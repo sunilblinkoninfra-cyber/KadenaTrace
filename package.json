@@ -1,0 +1,41 @@
+{
+  "name": "kadenatrace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && concurrently \"npm run dev:shared\" \"npm run dev:pact\" \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:shared": "npm run dev --workspace @kadenatrace/shared",
+    "dev:pact": "npm run dev --workspace @kadenatrace/pact",
+    "dev:web": "npm run dev --workspace @kadenatrace/web",
+    "dev:api": "npm run dev --workspace @kadenatrace/api",
+    "dev:worker": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run dev --workspace @kadenatrace/worker",
+    "build": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run build --workspace @kadenatrace/api && npm run build --workspace @kadenatrace/worker && npm run build --workspace @kadenatrace/web",
+    "typecheck": "npm run typecheck --workspace @kadenatrace/shared && npm run typecheck --workspace @kadenatrace/pact && npm run typecheck --workspace @kadenatrace/api && npm run typecheck --workspace @kadenatrace/worker && npm run typecheck --workspace @kadenatrace/web",
+    "test": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run test --workspace @kadenatrace/shared && npm run test --workspace @kadenatrace/api",
+    "start:web": "npm run start --workspace @kadenatrace/web",
+    "start:api": "npm run start --workspace @kadenatrace/api"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.11.11",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "@kadena/client": "^1.18.3",
+    "@kadena/wallet-adapter-chainweaver-legacy": "^0.0.6",
+    "@kadena/wallet-adapter-ecko": "^0.0.6",
+    "@kadena/wallet-adapter-react": "^0.0.7"
+  }
+}

@@ -1,0 +1,33 @@
+import type { TraceOptions } from "./domain.js";
+
+export const DEFAULT_TRACE_OPTIONS: TraceOptions = {
+  maxDepth: 4,
+  maxNodes: 250,
+  lookaheadWindowDays: 7,
+  includeBackwardContext: true,
+  graphPruneNodeLimit: 120,
+  maxSuspiciousPaths: 5
+};
+
+export const HEURISTIC_THRESHOLDS = {
+  rapidHopWindowMinutes: 15,
+  rapidHopMinimumEdges: 3,
+  fanOutRecipients: 5,
+  fanInSenders: 4,
+  fanOutWindowMinutes: 30,
+  sinkConsolidationRatio: 0.6,
+  bridgeObfuscationWindowMinutes: 45
+} as const;
+
+export const ANALYSIS_THRESHOLDS = {
+  dustAbsoluteAmount: 0.02,
+  dustShareOfSeed: 0.005,
+  airdropRecipientThreshold: 4,
+  airdropAmountShareOfSeed: 0.01,
+  exchangeInboundCounterparties: 3,
+  routerCounterparties: 3,
+  partialGraphDefaultDepth: 2,
+  partialGraphDefaultLimit: 60
+} as const;
+
+export const QUEUE_NAME = "trace-jobs";

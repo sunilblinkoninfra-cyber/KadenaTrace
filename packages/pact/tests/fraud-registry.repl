@@ -1,0 +1,202 @@
+(env-data {
+  "kadenatrace-admin": {"keys": ["admin"], "pred": "keys-all"},
+  "kadenatrace-reporters": {"keys": ["demo-public-key"], "pred": "keys-all"}
+})
+
+(begin-tx "load namespace")
+  (load "contracts/ns-setup.pact")
+(commit-tx)
+
+(env-sigs [{'key: "admin", 'caps: ["kadenatrace.fraud-registry.GOV"]}])
+
+(begin-tx "load fraud registry")
+  (load "contracts/fraud-registry.pact")
+(commit-tx)
+
+(begin-tx "init reporters guard")
+  (env-sigs [{'key: "admin", 'caps:
+    ["kadenatrace.fraud-registry.MANAGE-REPORTERS"]}])
+  (env-data {"init-guard":
+    {"keys": ["demo-public-key"], "pred": "keys-all"}})
+  (kadenatrace.fraud-registry.init-reporters
+    (read-keyset "init-guard"))
+(commit-tx)
+
+(begin-tx "create case")
+  (env-data {"submitter-guard": {"keys": ["demo-public-key"], "pred": "keys-all"}})
+  (env-sigs [{'key: "demo-public-key", 'caps: ["kadenatrace.fraud-registry.WRITE-CASE"]}])
+  (expect "case creation works"
+    "case-demo-1"
+    (kadenatrace.fraud-registry.create-case
+      "case-demo-1"
+      "ethereum"
+      "address"
+      "subject-hash-1"
+      "metadata-hash-1"
+      "public-uri-hash-1"
+      "demo-reporter"
+      (read-keyset "submitter-guard")))
+(commit-tx)
+
+(begin-tx "duplicate case fails")
+  (env-data {"submitter-guard": {"keys": ["demo-public-key"], "pred": "keys-all"}})
+  (env-sigs [{'key: "demo-public-key", 'caps: ["kadenatrace.fraud-registry.WRITE-CASE"]}])
+  (expect-failure "duplicate case rejected"
+    (kadenatrace.fraud-registry.create-case
+      "case-demo-1"
+      "ethereum"
+      "address"
+      "subject-hash-1"
+      "metadata-hash-1"
+      "public-uri-hash-1"
+      "demo-reporter"
+      (read-keyset "submitter-guard")))
+(commit-tx)
+
+(begin-tx "append event and attestation")
+  (env-data {"submitter-guard": {"keys": ["demo-public-key"], "pred": "keys-all"}})
+  (env-sigs [{'key: "demo-public-key", 'caps: [
+    "kadenatrace.fraud-registry.APPEND-EVENT",
+    "kadenatrace.fraud-registry.ATTEST-WALLET-RISK"
+  ]}])
+  (expect "append-case-event"
+    "event-1"
+    (kadenatrace.fraud-registry.append-case-event
+      "event-1"
+      "case-demo-1"
+      "trace-published"
+      "trace-hash-1"
+      "demo-reporter"
+      (read-keyset "submitter-guard")))
+  (expect "attestation works"
+    "attestation-1"
+    (kadenatrace.fraud-registry.attest-wallet-risk
+      "attestation-1"
+      "case-demo-1"
+      "0x2222222222222222222222222222222222222222"
+      "ethereum"
+      "high"
+      83
+      "evidence-hash-1"
+      "demo-reporter"
+      (read-keyset "submitter-guard")))
+(commit-tx)
+
+(begin-tx "list query helpers")
+  (expect "list-cases-for-chain count"
+    1
+    (length (kadenatrace.fraud-registry.list-cases-for-chain "ethereum")))
+  (expect "list-cases-for-chain includes case"
+    "case-demo-1"
+    (at "case-id" (at 0 (kadenatrace.fraud-registry.list-cases-for-chain "ethereum"))))
+  (expect "list-attestations-for-case count"
+    1
+    (length (kadenatrace.fraud-registry.list-attestations-for-case "case-demo-1")))
+(commit-tx)
+
+(begin-tx "public verify-subject-hash")
+  (expect "known subject hash returns true"
+    true
+    (kadenatrace.fraud-registry.verify-subject-hash "subject-hash-1"))
+  (expect "unknown subject hash returns false"
+    false
+    (kadenatrace.fraud-registry.verify-subject-hash "no-such-hash"))
+(commit-tx)
+
+(begin-tx "raise dispute step 1")
+  (env-data {"submitter-guard": {"keys": ["demo-public-key"], "pred": "keys-all"}})
+  (env-sigs [{'key: "demo-public-key", 'caps: [(kadenatrace.fraud-registry.DISPUTE "case-demo-1")]}])
+  (kadenatrace.fraud-registry.raise-dispute
+    "dispute-1"
+    "case-demo-1"
+    "demo-reporter"
+    "reason-hash-1"
+    (read-keyset "submitter-guard"))
+  (expect "dispute pending after first step"
+    "pending"
+    (at "status" (kadenatrace.fraud-registry.get-dispute "dispute-1")))
+(commit-tx)
+
+(begin-tx "non-reporter cannot create case")
+  (env-data {"submitter-guard": {"keys": ["outsider-key"], "pred": "keys-all"}})
+  (env-sigs [{'key: "outsider-key", 'caps: []}])
+  (expect-failure "missing reporter capability is rejected"
+    (kadenatrace.fraud-registry.create-case
+      "case-demo-outsider"
+      "ethereum"
+      "address"
+      "subject-hash-outsider"
+      "metadata-hash-outsider"
+      "public-uri-hash-outsider"
+      "outsider"
+      (read-keyset "submitter-guard")))
+(commit-tx)
+
+(begin-tx "risk-score upper bound enforced")
+  (env-data {"submitter-guard": {"keys": ["demo-public-key"], "pred": "keys-all"}})
+  (env-sigs [{'key: "demo-public-key", 'caps: ["kadenatrace.fraud-registry.ATTEST-WALLET-RISK"]}])
+  (expect-failure "risk-score over 100 rejected"
+    (kadenatrace.fraud-registry.attest-wallet-risk
+      "attestation-over-100"
+      "case-demo-1"
+      "0x9999999999999999999999999999999999999999"
+      "ethereum"
+      "critical"
+      101
+      "evidence-hash-2"
+      "demo-reporter"
+      (read-keyset "submitter-guard")))
+(commit-tx)
+
+(begin-tx "invalid risk level rejected")
+  (env-data {"submitter-guard": 
+    {"keys": ["demo-public-key"], "pred": "keys-all"}})
+  (env-sigs [{'key: "demo-public-key", 
+              'caps: ["kadenatrace.fraud-registry.ATTEST-WALLET-RISK"]}])
+  (expect-failure "risk-level 'extreme' rejected"
+    (kadenatrace.fraud-registry.attest-wallet-risk
+      "attestation-invalid-level"
+      "case-demo-1"
+      "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "ethereum"
+      "extreme"
+      50
+      "evidence-hash-bad"
+      "demo-reporter"
+      (read-keyset "submitter-guard")))
+(commit-tx)
+
+(begin-tx "rotate reporters guard (GOV only)")
+  (env-sigs [{'key: "admin", 'caps:
+    ["kadenatrace.fraud-registry.MANAGE-REPORTERS"]}])
+  (env-data {
+    "new-reporters": {
+      "keys": ["demo-public-key", "second-reporter-key"],
+      "pred": "keys-any"
+    },
+    "restored-reporters": {
+      "keys": ["demo-public-key"],
+      "pred": "keys-all"
+    }
+  })
+  (kadenatrace.fraud-registry.rotate-reporters
+    (read-keyset "new-reporters"))
+  (expect "get-reporters-guard returns updated guard"
+    true
+    (is-principal
+      (create-principal
+        (kadenatrace.fraud-registry.get-reporters-guard))))
+  ;; Restore the original guard so subsequent tests run
+  ;; with a clean, deterministic state.
+  (kadenatrace.fraud-registry.rotate-reporters
+    (read-keyset "restored-reporters"))
+(commit-tx)
+
+(begin-tx "rotate reporters guard fails without GOV")
+  (env-sigs [{'key: "demo-public-key", 'caps: []}])
+  (env-data {"new-reporters": 
+    {"keys": ["attacker-key"], "pred": "keys-all"}})
+  (expect-failure "non-admin cannot rotate reporters guard"
+    (kadenatrace.fraud-registry.rotate-reporters
+      (read-keyset "new-reporters")))
+(commit-tx)

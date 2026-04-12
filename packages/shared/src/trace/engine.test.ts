@@ -1,0 +1,37 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import { DEMO_TRACE_REQUEST, DEMO_TX_TRACE_REQUEST } from "../fixtures/sample-trace.js";
+import { TraceEngine } from "./engine.js";
+import { FixtureActivityProvider } from "./provider.js";
+
+test("trace engine expands the demo wallet into a branching cross-chain graph", async () => {
+  const engine = new TraceEngine(new FixtureActivityProvider());
+  const result = await engine.run(DEMO_TRACE_REQUEST, "trace-demo");
+
+  assert.equal(result.graph.nodes.length >= 9, true);
+  assert.equal(result.graph.edges.length >= 11, true);
+  assert.equal(result.metrics.chainsInvolved.includes("ethereum"), true);
+  assert.equal(result.metrics.chainsInvolved.includes("bsc"), true);
+  assert.equal(result.findings.some((finding) => finding.code === "fan-out-burst"), true);
+  assert.equal(result.findings.some((finding) => finding.confidence > 0.7), true);
+  assert.equal(result.findings.some((finding) => finding.code === "mixer-touchpoint"), true);
+  assert.equal(result.graph.edges.some((edge) => edge.id === "bridge-eth-bsc-1:bridge-withdrawal"), true);
+  assert.equal(result.suspiciousPaths.length >= 1, true);
+  assert.equal(result.graph.edges.some((edge) => edge.valueFromSeedPct > 0), true);
+});
+
+test("trace engine can seed from a transaction hash", async () => {
+  const engine = new TraceEngine(new FixtureActivityProvider());
+  const result = await engine.run(DEMO_TX_TRACE_REQUEST, "trace-tx");
+
+  assert.equal(result.seed.seedType, "tx");
+  assert.equal(result.graph.edges.some((edge) => edge.txHash.startsWith("0x100")), true);
+  assert.equal(
+    result.graph.edges.some(
+      (edge) => edge.from === "ethereum:0xcccccccccccccccccccccccccccccccccccccccc" && edge.to === "ethereum:0x1111111111111111111111111111111111111111"
+    ),
+    true
+  );
+  assert.equal(result.graph.nodes.some((node) => node.valueFromSeedPct >= 0), true);
+});
