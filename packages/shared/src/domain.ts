@@ -124,6 +124,62 @@ export interface PruningSummary {
   reason: string;
 }
 
+export type TerminalEndpointType = "cex" | "bridge" | "burn" | "dex-lp" | "terminal";
+
+export interface VelocityTimelineEntry {
+  id: string;
+  edgeId: string;
+  fromNodeId: string;
+  toNodeId: string;
+  fromLabel: string;
+  toLabel: string;
+  chain: Chain;
+  txHash: string;
+  asset: string;
+  amount: number;
+  timestamp: string;
+  gapMinutesFromPrevious: number | null;
+  terminalType?: TerminalEndpointType;
+}
+
+export interface TimeToExitPath {
+  id: string;
+  incidentEdgeId: string;
+  terminalEdgeId: string;
+  incidentTxHash: string;
+  terminalTxHash: string;
+  incidentTimestamp: string;
+  terminalTimestamp: string;
+  minutesToExit: number;
+  hopCount: number;
+  nodeIds: string[];
+  edgeIds: string[];
+  chainPath: Chain[];
+  terminalNodeId: string;
+  terminalLabel: string;
+  terminalType: TerminalEndpointType;
+  crossChainExit: boolean;
+  spvVerificationRequired: boolean;
+}
+
+export interface VelocityMetrics {
+  incidentTimestamp: string | null;
+  meanTimeToExitMinutes: number | null;
+  fastestTimeToExitMinutes: number | null;
+  slowestTimeToExitMinutes: number | null;
+  fanOutBranchAverageMinutes: number | null;
+  criminalEfficiencyScore: number | null;
+  urgencyLabel: string;
+  urgencyRiskLevel: RiskLevel;
+  terminalPathCount: number;
+  crossChainExitDetected: boolean;
+  spvVerificationRequired: boolean;
+  requiresImmediateExchangeContact: boolean;
+  recoveryPotential: string;
+  terminalPaths: TimeToExitPath[];
+  timeline: VelocityTimelineEntry[];
+}
+
 export interface TraceMetrics {
   totalNodes: number;
   totalEdges: number;
@@ -135,6 +191,7 @@ export interface TraceMetrics {
   prunedNodes: number;
   prunedEdges: number;
   suspiciousPathCount: number;
+  velocity: VelocityMetrics;
 }
 
 export interface TraceGraph {

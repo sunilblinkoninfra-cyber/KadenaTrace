@@ -22,6 +22,7 @@ import {
   propagateValueFlow,
   pruneGraph
 } from "./analysis.js";
+import { calculateVelocityMetrics } from "./crawler.js";
 import { scoreGraph } from "./heuristics.js";
 import { buildEdge, buildNode, makeNodeId, normalizeAddress } from "./normalizer.js";
 import { scoreToRiskLevel } from "./scoring.js";
@@ -172,16 +173,23 @@ export async function buildTraceGraph(provider: ActivityProvider, request: Trace
   const suspiciousPaths = extractSuspiciousPaths(graph, dedupeFindings(scored.findings), seedNodeIds, options.maxSuspiciousPaths);
   const pruned = pruneGraph(graph, suspiciousPaths, seedNodeIds, Math.min(options.graphPruneNodeLimit, options.maxNodes));
   const filteredFindings = filterFindingsForGraph(dedupeFindings(scored.findings), pruned.graph);
+  const velocity = calculateVelocityMetrics(pruned.graph, request);
   if (pruned.pruning) {
     warnings.push(
       `Graph pruned from ${pruned.pruning.originalNodes} nodes to ${pruned.pruning.retainedNodes} nodes for investigation-focused rendering.`
     );
   }
+  if (velocity.requiresImmediateExchangeContact) {
+    warnings.push(velocity.recoveryPotential);
+  }
+  if (velocity.spvVerificationRequired) {
+    warnings.push("Cross-chain exit timing should be anchored with an SPV-backed proof before publishing the final on-chain registry entry.");
+  }
 
   return {
     graph: pruned.graph,
     findings: filteredFindings,
-    metrics: buildMetrics(pruned.graph, suspiciousPaths, pruned.pruning),
+    metrics: buildMetrics(pruned.graph, suspiciousPaths, velocity, pruned.pruning),
     suspiciousPaths,
     sources: Array.from(sources.values()),
     warnings,
@@ -409,6 +417,7 @@ function addDays(timestamp: string, days: number) {
 function buildMetrics(
   graph: TraceGraph,
   suspiciousPaths: SuspiciousPath[],
+  velocity: TraceMetrics["velocity"],
   pruning?: PruningSummary
 ): TraceMetrics {
   const chainsInvolved = Array.from(new Set(graph.nodes.map((node) => node.chain)));
@@ -432,7 +441,8 @@ function buildMetrics(
     tracedValueToExchanges,
     prunedNodes: pruning?.prunedNodes ?? 0,
     prunedEdges: pruning?.prunedEdges ?? 0,
-    suspiciousPathCount: suspiciousPaths.length
+    suspiciousPathCount: suspiciousPaths.length,
+    velocity
   };
 }
 

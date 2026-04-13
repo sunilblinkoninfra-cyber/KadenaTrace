@@ -14,6 +14,8 @@ export function SummaryCards({
 }): ReactElement {
   const hopsToMixer = getHopsToMixer(graph, seed);
   const bridgeCrossings = graph.edges.filter((edge) => edge.flags.includes("bridge")).length;
+  const meanTimeToExit = metrics.velocity.meanTimeToExitMinutes;
+  const efficiencyScore = metrics.velocity.criminalEfficiencyScore;
 
   return (
     <section className="summary-cards">
@@ -48,6 +50,14 @@ export function SummaryCards({
       <article className="summary-card">
         <span className="muted">Bridge crossings</span>
         <strong>{bridgeCrossings}</strong>
+      </article>
+      <article className="summary-card">
+        <span className="muted">Mean Time to Exit</span>
+        <strong>{meanTimeToExit === null ? "Open" : formatMinutes(meanTimeToExit)}</strong>
+      </article>
+      <article className="summary-card">
+        <span className="muted">Efficiency Score</span>
+        <strong>{efficiencyScore === null ? "N/A" : `${efficiencyScore}/100`}</strong>
       </article>
     </section>
   );
@@ -106,4 +116,16 @@ function getHopsToMixer(graph: TraceGraph, seed: TraceRequest): number | null {
   }
 
   return null;
+}
+
+function formatMinutes(value: number): string {
+  if (value < 60) {
+    return `${value.toFixed(0)} min`;
+  }
+
+  if (value < 24 * 60) {
+    return `${(value / 60).toFixed(value < 120 ? 1 : 0)} hr`;
+  }
+
+  return `${(value / (24 * 60)).toFixed(1)} d`;
 }

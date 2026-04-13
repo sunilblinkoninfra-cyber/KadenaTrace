@@ -19,6 +19,9 @@ test("trace engine expands the demo wallet into a branching cross-chain graph", 
   assert.equal(result.graph.edges.some((edge) => edge.id === "bridge-eth-bsc-1:bridge-withdrawal"), true);
   assert.equal(result.suspiciousPaths.length >= 1, true);
   assert.equal(result.graph.edges.some((edge) => edge.valueFromSeedPct > 0), true);
+  assert.equal(result.metrics.velocity.terminalPathCount >= 1, true);
+  assert.equal(result.metrics.velocity.meanTimeToExitMinutes !== null, true);
+  assert.equal(result.metrics.velocity.timeline.length >= 1, true);
 });
 
 test("trace engine can seed from a transaction hash", async () => {
@@ -34,4 +37,5 @@ test("trace engine can seed from a transaction hash", async () => {
     true
   );
   assert.equal(result.graph.nodes.some((node) => node.valueFromSeedPct >= 0), true);
+  assert.equal(result.metrics.velocity.incidentTimestamp !== null, true);
 });

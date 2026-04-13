@@ -5,8 +5,19 @@ import { useState, type ChangeEvent } from "react";
 
 import type { Finding, TraceRecord } from "@kadenatrace/shared";
 
+import { buildPublicAuditUrl, buildTimelineSidebar, getUrgencyGauge } from "../lib/frontend-logic";
 import { getApiBaseUrl } from "../lib/api";
 import { useKadenaWalletSession } from "../lib/use-kadena-wallet-session";
+
+interface TimelineSidebarEntry {
+  id: string;
+  title: string;
+  subtitle: string;
+  timestampLabel: string;
+  gapLabel: string;
+  terminalLabel: string | null;
+  txHash: string;
+}
 
 export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
   const wallet = useKadenaWalletSession();
@@ -17,6 +28,13 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
   const [caseId, setCaseId] = useState<string | null>(null);
   const [slug, setSlug] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const velocityMetrics = trace.result?.metrics.velocity;
+  const urgencyGauge = getUrgencyGauge(velocityMetrics);
+  const timelineEntries = buildTimelineSidebar(velocityMetrics) as TimelineSidebarEntry[];
+  const publicAuditUrl = buildPublicAuditUrl(
+    typeof window === "undefined" ? "http://localhost:3000" : window.location.origin,
+    slug
+  );
 
   async function createCase() {
     setPending(true);
@@ -110,39 +128,81 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
           <h2 className="section-title">Turn this trace into a public fraud case</h2>
         </div>
       </div>
-      <div className="publish-form grid">
-        <div className="trace-meta">
-          <span className="pill">{wallet.currentAdapterName ?? "Wallet not selected"}</span>
-          <span className="muted">{wallet.signer?.accountName ?? "Connect a Kadena wallet to sign"}</span>
-        </div>
-        <label>
-          Title
-          <input value={title} onChange={(event) => setTitle(event.target.value)} />
-        </label>
-        <label>
-          Summary
-          <input value={summary} onChange={(event: ChangeEvent<HTMLInputElement>) => setSummary(event.target.value)} />
-        </label>
-        <label>
-          Narrative
-          <textarea value={narrative} onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNarrative(event.target.value)} />
-        </label>
-        <div className="actions">
-          <button className="button" type="button" disabled={pending} onClick={createCase}>
-            {pending ? "Working..." : "Create Public Case"}
-          </button>
-          {caseId ? (
-            <button className="ghost-button" type="button" disabled={pending || !wallet.signer} onClick={anchorCase}>
-              Sign & Relay on Kadena
+      <div className="publish-layout">
+        <div className="publish-form grid">
+          <div className="trace-meta">
+            <span className="pill">{wallet.currentAdapterName ?? "Wallet not selected"}</span>
+            <span className="muted">{wallet.signer?.accountName ?? "Connect a Kadena wallet to sign"}</span>
+          </div>
+          <div className="audit-url-row">
+            <div className="audit-url-copy">
+              <span className="muted">Public Audit URL</span>
+              <span className="code">{publicAuditUrl ?? "Create a public case to generate a shareable permalink."}</span>
+            </div>
+            <div className={urgencyGauge.toneClass}>
+              <span className="muted">{urgencyGauge.label}</span>
+              <strong>{urgencyGauge.value}</strong>
+              <span>{urgencyGauge.descriptor}</span>
+            </div>
+          </div>
+          <p className="velocity-warning">{urgencyGauge.warning}</p>
+          <label>
+            Title
+            <input value={title} onChange={(event) => setTitle(event.target.value)} />
+          </label>
+          <label>
+            Summary
+            <input value={summary} onChange={(event: ChangeEvent<HTMLInputElement>) => setSummary(event.target.value)} />
+          </label>
+          <label>
+            Narrative
+            <textarea value={narrative} onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNarrative(event.target.value)} />
+          </label>
+          <div className="actions">
+            <button className="button" type="button" disabled={pending} onClick={createCase}>
+              {pending ? "Working..." : "Create Public Case"}
             </button>
-          ) : null}
-          {slug ? (
-            <a className="ghost-button" href={`/case/${slug}`}>
-              Open public case
-            </a>
-          ) : null}
+            {caseId ? (
+              <button className="ghost-button" type="button" disabled={pending || !wallet.signer} onClick={anchorCase}>
+                Sign & Relay on Kadena
+              </button>
+            ) : null}
+            {slug ? (
+              <a className="ghost-button" href={`/case/${slug}`}>
+                Open public case
+              </a>
+            ) : null}
+          </div>
+          {status ? <p className="muted">{status}</p> : null}
         </div>
-        {status ? <p className="muted">{status}</p> : null}
+
+        <aside className="timeline-sidebar">
+          <div className="trace-meta">
+            <span className="pill">Hop Timeline</span>
+            <span className="muted">
+              {velocityMetrics?.terminalPathCount ?? 0} terminal branch{velocityMetrics?.terminalPathCount === 1 ? "" : "es"}
+            </span>
+          </div>
+          <div className="timeline-list">
+            {timelineEntries.length > 0 ? (
+              timelineEntries.map((entry) => (
+                <article key={entry.id} className="timeline-entry">
+                  <span className="timeline-gap">{entry.gapLabel}</span>
+                  <strong>{entry.title}</strong>
+                  <span className="muted">{entry.subtitle}</span>
+                  <span className="muted">{entry.timestampLabel}</span>
+                  {entry.terminalLabel ? <span className="pill">{entry.terminalLabel}</span> : null}
+                  <span className="code">{entry.txHash}</span>
+                </article>
+              ))
+            ) : (
+              <article className="timeline-entry">
+                <strong>No terminal exit timeline yet</strong>
+                <span className="muted">As soon as the crawler sees a bridge or exchange endpoint, the hop history will appear here.</span>
+              </article>
+            )}
+          </div>
+        </aside>
       </div>
     </section>
   );

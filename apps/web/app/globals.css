@@ -392,6 +392,122 @@ a {
   z-index: 3;
 }
 
+.publish-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) 320px;
+  gap: 18px;
+}
+
+.audit-url-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.audit-url-copy {
+  display: grid;
+  gap: 8px;
+  min-width: min(100%, 360px);
+}
+
+.urgency-gauge {
+  display: grid;
+  gap: 4px;
+  min-width: 220px;
+  border-radius: 18px;
+  padding: 14px 16px;
+  border-left: 6px solid transparent;
+  font-weight: 600;
+}
+
+.urgency-gauge strong {
+  font-size: 1.35rem;
+}
+
+.urgency-gauge--critical {
+  background: #fde8e8;
+  color: #7b1f1f;
+  border-left-color: #ff3b30;
+  box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.08);
+}
+
+.urgency-gauge--active {
+  background: #fff2df;
+  color: #7b4a00;
+  border-left-color: #e67e22;
+}
+
+.urgency-gauge--manual,
+.urgency-gauge--open {
+  background: #f7efe4;
+  color: #7c4f13;
+  border-left-color: #d38b2f;
+}
+
+.velocity-warning {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--border);
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+
+.timeline-sidebar {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.timeline-list {
+  display: grid;
+  gap: 12px;
+  max-height: 480px;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.timeline-entry {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 14px 14px 14px 18px;
+  border-radius: 18px;
+  background: rgba(255, 250, 240, 0.96);
+  border: 1px solid var(--border);
+}
+
+.timeline-entry::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 8px;
+  bottom: -14px;
+  width: 2px;
+  background: rgba(14, 123, 131, 0.18);
+}
+
+.timeline-entry:last-child::before {
+  display: none;
+}
+
+.timeline-gap {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(14, 123, 131, 0.1);
+  color: var(--teal);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .verification-banner {
   border-radius: 18px;
   padding: 14px 18px;
@@ -434,6 +550,7 @@ a {
 @media (max-width: 980px) {
   .hero,
   .graph-shell,
+  .publish-layout,
   .summary-cards,
   .three-up,
   .two-up {

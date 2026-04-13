@@ -3,6 +3,7 @@ export * from "./domain.js";
 export * from "./fixtures/sample-trace.js";
 export * from "./trace/analysis.js";
 export * from "./trace/builder.js";
+export * from "./trace/crawler.js";
 export * from "./trace/engine.js";
 export * from "./trace/heuristics.js";
 export * from "./trace/mempool-provider.js";
