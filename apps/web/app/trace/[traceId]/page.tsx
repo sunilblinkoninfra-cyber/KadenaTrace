@@ -94,8 +94,8 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
           <h2 className="section-title">Findings</h2>
           <FindingHistogram findings={trace.result.findings} />
           <div className="findings-list">
-            {trace.result.findings.map((finding) => (
-              <article key={`${finding.code}-${finding.explanation}`} className="finding">
+            {trace.result.findings.map((finding, index) => (
+              <article key={`${finding.code}-${finding.explanation}-${index}`} className="finding">
                 <div className="trace-meta">
                   <span className="pill">{finding.code}</span>
                   <RiskBadge level={finding.severity === "critical" ? "critical" : finding.severity} />

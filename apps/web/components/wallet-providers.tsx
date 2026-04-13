@@ -9,9 +9,8 @@ const adapters = [createEckoAdapter(), createChainweaverLegacyAdapter()];
 
 export function WalletProviders({ children }: { children: ReactNode }) {
   return (
-    <KadenaWalletProvider adapters={adapters} defaultAdapterName="Ecko">
+    <KadenaWalletProvider adapters={adapters}>
       {children}
     </KadenaWalletProvider>
   );
 }
-

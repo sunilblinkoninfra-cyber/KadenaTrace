@@ -380,8 +380,8 @@ export function GraphView({
               <>
                 <h4>Related findings</h4>
                 <div className="findings-list">
-                  {relatedFindings.map((finding) => (
-                    <article key={`${finding.code}-${finding.explanation}`} className="finding">
+                  {relatedFindings.map((finding, index) => (
+                    <article key={`${finding.code}-${finding.explanation}-${index}`} className="finding">
                       <div className="trace-meta">
                         <span className="pill">{finding.code}</span>
                         <RiskBadge level={finding.severity === "critical" ? "critical" : finding.severity} />

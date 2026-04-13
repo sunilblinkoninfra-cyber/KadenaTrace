@@ -12,6 +12,9 @@ export function useKadenaWalletSession() {
   const [walletError, setWalletError] = useState<string | null>(null);
 
   const detectedAdapters = providerData.filter((provider) => provider.detected);
+  const activeAdapterDetected = currentAdapterName
+    ? detectedAdapters.some((provider) => provider.name === currentAdapterName)
+    : false;
 
   useEffect(() => {
     if (!currentAdapterName && detectedAdapters[0]) {
@@ -20,7 +23,17 @@ export function useKadenaWalletSession() {
   }, [currentAdapterName, detectedAdapters, setCurrentAdapterName]);
 
   useEffect(() => {
-    if (!currentAdapterName) {
+    if (!currentAdapterName || !activeAdapterDetected) {
+      if (!currentAdapterName) {
+        setWalletError(null);
+      }
+      setState({
+        loading: false,
+        accounts: [],
+        activeAccount: null,
+        networks: [],
+        activeNetwork: null
+      });
       return;
     }
 
@@ -65,25 +78,30 @@ export function useKadenaWalletSession() {
     return () => {
       cancelled = true;
     };
-  }, [client, currentAdapterName, setState]);
+  }, [activeAdapterDetected, client, currentAdapterName, setState]);
 
   useEffect(() => {
-    if (!currentAdapterName) {
+    if (!currentAdapterName || !activeAdapterDetected) {
       return;
     }
 
-    client.onAccountChange(currentAdapterName, (account) => {
-      setState({
-        activeAccount: account
+    try {
+      client.onAccountChange(currentAdapterName, (account) => {
+        setState({
+          activeAccount: account
+        });
       });
-    });
 
-    client.onNetworkChange(currentAdapterName, (network) => {
-      setState({
-        activeNetwork: network
+      client.onNetworkChange(currentAdapterName, (network) => {
+        setState({
+          activeNetwork: network
+        });
       });
-    });
-  }, [client, currentAdapterName, setState]);
+      setWalletError(null);
+    } catch (error) {
+      setWalletError(error instanceof Error ? error.message : "Unable to watch the selected Kadena wallet.");
+    }
+  }, [activeAdapterDetected, client, currentAdapterName, setState]);
 
   const activeAccount = state.activeAccount;
   const activeNetwork = state.activeNetwork;
@@ -100,7 +118,7 @@ export function useKadenaWalletSession() {
   const networkMismatch = Boolean(activeNetwork && activeNetwork.networkId !== TARGET_NETWORK);
 
   async function connect() {
-    if (!currentAdapterName) {
+    if (!currentAdapterName || !activeAdapterDetected) {
       setWalletError("Select a detected Kadena wallet first.");
       return;
     }
@@ -114,7 +132,7 @@ export function useKadenaWalletSession() {
   }
 
   async function disconnect() {
-    if (!currentAdapterName) {
+    if (!currentAdapterName || !activeAdapterDetected) {
       return;
     }
 
@@ -127,7 +145,7 @@ export function useKadenaWalletSession() {
   }
 
   async function switchToTargetNetwork() {
-    if (!currentAdapterName) {
+    if (!currentAdapterName || !activeAdapterDetected) {
       return;
     }
 
@@ -147,7 +165,7 @@ export function useKadenaWalletSession() {
   }
 
   async function signTransaction(unsignedCommand: IUnsignedCommand): Promise<ICommand> {
-    if (!currentAdapterName) {
+    if (!currentAdapterName || !activeAdapterDetected) {
       throw new Error("No Kadena wallet adapter is selected.");
     }
 
