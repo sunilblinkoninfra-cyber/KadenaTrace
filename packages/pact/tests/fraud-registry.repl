@@ -173,10 +173,6 @@
     "new-reporters": {
       "keys": ["demo-public-key", "second-reporter-key"],
       "pred": "keys-any"
-    },
-    "restored-reporters": {
-      "keys": ["demo-public-key"],
-      "pred": "keys-all"
     }
   })
   (kadenatrace.fraud-registry.rotate-reporters
@@ -186,8 +182,8 @@
     (is-principal
       (create-principal
         (kadenatrace.fraud-registry.get-reporters-guard))))
-  ;; Restore the original guard so subsequent tests run
-  ;; with a clean, deterministic state.
+  (env-data {"restored-reporters":
+    {"keys": ["demo-public-key"], "pred": "keys-all"}})
   (kadenatrace.fraud-registry.rotate-reporters
     (read-keyset "restored-reporters"))
 (commit-tx)

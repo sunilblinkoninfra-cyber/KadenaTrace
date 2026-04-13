@@ -11,8 +11,8 @@ export default async function AttestationsPage() {
   const allAttestations = cases.flatMap(c => 
     c.attestations.map(a => ({ ...a, caseSlug: c.slug }))
   ).sort((a, b) => {
-    const bTime = new Date(b.submittedAt ?? b.blockHeight?.toString() ?? "0").getTime();
-    const aTime = new Date(a.submittedAt ?? a.blockHeight?.toString() ?? "0").getTime();
+    const bTime = new Date(b.submittedAt ?? "0").getTime();
+    const aTime = new Date(a.submittedAt ?? "0").getTime();
     return bTime - aTime;
   });
 

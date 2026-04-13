@@ -5,7 +5,6 @@ import { deriveChainwebBaseUrl } from "@kadenatrace/pact";
 export interface ApiConfig {
   port: number;
   webBaseUrl: string;
-  corsOrigin?: string;
   databaseUrl?: string;
   redisUrl?: string;
   covalentApiKey?: string;
@@ -19,6 +18,7 @@ export interface ApiConfig {
   kadenaSenderAccount: string;
   kadenaPublicKey?: string;
   kadenaSecretKey?: string;
+  corsOrigin?: string;
 }
 
 export function loadConfig(): ApiConfig {
@@ -29,7 +29,6 @@ export function loadConfig(): ApiConfig {
   return {
     port: Number(process.env.API_PORT ?? 4000),
     webBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/:\d+$/, ":3000") ?? "http://localhost:3000",
-    corsOrigin: process.env.CORS_ORIGIN,
     databaseUrl: process.env.DATABASE_URL,
     redisUrl: process.env.REDIS_URL,
     covalentApiKey: process.env.COVALENT_API_KEY,
@@ -42,6 +41,7 @@ export function loadConfig(): ApiConfig {
     kadenaChainId: process.env.KADENA_CHAIN_ID ?? "1",
     kadenaSenderAccount: process.env.KADENA_SENDER_ACCOUNT ?? "kadenatrace-relayer",
     kadenaPublicKey: process.env.KADENA_GAS_PAYER_PUBLIC_KEY,
-    kadenaSecretKey: process.env.KADENA_GAS_PAYER_SECRET_KEY
+    kadenaSecretKey: process.env.KADENA_GAS_PAYER_SECRET_KEY,
+    corsOrigin: process.env.CORS_ORIGIN
   };
 }

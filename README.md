@@ -64,26 +64,25 @@ The default provider stack is route-aware: Ethereum and BSC use GoldRush, JSON-R
 
 ## Enabling live chain data
 
-KadenaTrace works out of the box with fixture data. To trace real wallets and transactions, configure the following in `.env`:
+KadenaTrace works fully with fixture data out of the box. To trace
+real wallets, configure these values in `.env`:
 
-### Ethereum and BSC (Covalent GoldRush)
-1. Sign up for a free API key at [goldrush.dev](https://goldrush.dev).
-2. Set `COVALENT_API_KEY=your_key` in `.env`.
-3. Restart the API. Address-based traces will now query live indexed transfers for Ethereum mainnet and BSC mainnet.
+**Ethereum and BSC** — sign up for a free key at
+[goldrush.dev](https://goldrush.dev), then set:
+`COVALENT_API_KEY=your_key`
 
-### Bitcoin (mempool.space)
-No API key required. Bitcoin address and transaction traces use the public `mempool.space` API automatically when `chain = bitcoin` is selected. To use a self-hosted mempool node, set `BITCOIN_MEMPOOL_URL=http://your-node:8999`.
+**Bitcoin** — no key required. The public mempool.space API is used
+automatically when chain = bitcoin. To use a self-hosted node:
+`BITCOIN_MEMPOOL_URL=http://your-node:8999`
 
-### Kadena (graph.kadena.network)
-No API key required. Kadena address and transaction traces query the public Kadena Graph GraphQL API. Set `KADENA_GRAPH_URL=https://graph.kadena.network/graphql` in `.env` (already the default). Select `Kadena` in the chain dropdown to trace KDA transfers.
+**Kadena** — no key required. The public Kadena Graph API is used
+automatically when chain = kadena. Default is already set:
+`KADENA_GRAPH_URL=https://graph.kadena.network/graphql`
 
-### Demo addresses to try with live data
-- **Ethereum**: Any public wallet from Etherscan —
-  e.g. `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045` (Vitalik.eth)
-- **Bitcoin**: Any address from mempool.space —
-  e.g. `bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh`
-- **Kadena**: Any account from explorer.chainweb.com —
-  e.g. `k:your-public-key`
+**Example addresses to try with live data:**
+- Ethereum: any address from etherscan.io
+- Bitcoin: any address from mempool.space
+- Kadena: `k:your-public-key` on explorer.chainweb.com
 
 ## Live Kadena signing
 

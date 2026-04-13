@@ -154,7 +154,8 @@
 
   (defun verify-subject-hash (subject-hash:string)
     @doc "Returns true if any case exists for the given subject-hash.
-         Allows public verification without exposing case metadata."
+         Public read — no capability required. Allows third-party
+         verification without exposing reporter, metadata, or case details."
     (> (length
          (fold-db cases
            (lambda (k obj)
