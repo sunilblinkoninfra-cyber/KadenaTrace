@@ -101,6 +101,38 @@ export interface Finding {
   evidenceRefs: EvidenceRef[];
 }
 
+export interface ExplainableRiskItem {
+  wallet: string;
+  label?: string;
+  risk: "HIGH" | "MEDIUM" | "LOW";
+  score: number;
+  reason: string;
+  signals: string[];
+  confidence: number;
+  relatedNodeIds?: string[];
+  relatedEdgeIds?: string[];
+}
+
+export interface ExplainablePathRiskItem {
+  pathId: string;
+  wallet: string;
+  risk: "HIGH" | "MEDIUM" | "LOW";
+  score: number;
+  reason: string;
+  signals: string[];
+  confidence: number;
+  edgeIds: string[];
+  nodeIds: string[];
+}
+
+export interface RiskAnalysis {
+  overallRisk: "HIGH" | "MEDIUM" | "LOW";
+  overallScore: number;
+  summary: string;
+  suspiciousWallets: ExplainableRiskItem[];
+  suspiciousPaths: ExplainablePathRiskItem[];
+}
+
 export interface SuspiciousPath {
   id: string;
   startNodeId: string;
@@ -206,6 +238,9 @@ export interface TraceResult {
   findings: Finding[];
   suspiciousPaths: SuspiciousPath[];
   metrics: TraceMetrics;
+  riskAnalysis: RiskAnalysis;
+  traceHash: string;
+  verifiable: boolean;
   sources: EvidenceRef[];
   generatedAt: string;
   warnings: string[];
@@ -228,6 +263,7 @@ export interface CaseAnchor {
   networkId: string;
   status: "pending" | "submitted" | "confirmed" | "local-simulation" | "failed";
   blockHeight?: number;
+  traceHash?: string;
   metadataHash: string;
   publicUri: string;
   txPreview?: string;
@@ -264,6 +300,7 @@ export interface CaseRecord {
   summary: string;
   seed: TraceRequest;
   traceId: string;
+  traceHash: string;
   traceSnapshot: TraceResult;
   publicUri: string;
   metadataHash: string;
@@ -282,7 +319,9 @@ export interface PublicCaseView {
   summary: string;
   narrative: string;
   seed: TraceRequest;
+  traceHash: string;
   trace: TraceResult;
+  traceSnapshot?: TraceResult;
   anchor?: CaseAnchor;
   attestations: RiskAttestation[];
   sourceRefs: EvidenceRef[];

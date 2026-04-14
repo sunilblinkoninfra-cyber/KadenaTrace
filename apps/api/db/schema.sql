@@ -15,6 +15,7 @@ create table if not exists fraud_cases (
   summary text not null,
   seed jsonb not null,
   trace_id text not null,
+  trace_hash text not null,
   trace_snapshot jsonb not null,
   public_uri text not null,
   metadata_hash text not null,
@@ -26,3 +27,4 @@ create table if not exists fraud_cases (
   updated_at timestamptz not null
 );
 
+alter table fraud_cases add column if not exists trace_hash text;

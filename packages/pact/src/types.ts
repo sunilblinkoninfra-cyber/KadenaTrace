@@ -1,5 +1,5 @@
 import type { ICommand, IUnsignedCommand } from "@kadena/client";
-import type { Chain, RiskLevel, SeedType } from "@kadenatrace/shared";
+import type { Chain, RiskLevel } from "@kadenatrace/shared";
 
 export interface WalletSignerDescriptor {
   accountName: string;
@@ -9,12 +9,12 @@ export interface WalletSignerDescriptor {
 
 export interface PrepareCaseAnchorInput {
   caseId: string;
-  subjectChain: Chain;
-  subjectKind: SeedType;
-  subjectHash: string;
+  traceHash: string;
   metadataHash: string;
+  timestamp: string;
   publicUri: string;
   publicUriHash: string;
+  investigator: string;
   signer: WalletSignerDescriptor;
   chainId: string;
   networkId: string;
@@ -28,6 +28,7 @@ export interface PrepareWalletAttestationInput {
   riskLevel: RiskLevel;
   riskScore: number;
   evidenceHash: string;
+  timestamp: string;
   signer: WalletSignerDescriptor;
   chainId: string;
   networkId: string;
@@ -38,8 +39,9 @@ export interface PreparedCaseAnchorPayload {
   txPreview: string;
   chainId: string;
   networkId: string;
+  traceHash: string;
   metadataHash: string;
-  subjectHash: string;
+  timestamp: string;
   publicUriHash: string;
   publicUri: string;
   signer: WalletSignerDescriptor;
@@ -52,6 +54,7 @@ export interface PreparedWalletAttestationPayload {
   networkId: string;
   attestationId: string;
   evidenceHash: string;
+  timestamp: string;
   signer: WalletSignerDescriptor;
 }
 

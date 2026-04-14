@@ -47,6 +47,7 @@ export interface PactAttestationListRow {
 
 export class PactAnchorService {
   private readonly client;
+  private readonly requestTimeoutMs = 5000;
 
   constructor(private readonly config: ApiConfig) {
     this.client = createClient(({ chainId, networkId }) =>
@@ -57,12 +58,12 @@ export class PactAnchorService {
   prepareCaseAnchor(record: CaseRecord, signer: WalletSignerDescriptor): PreparedCaseAnchorPayload {
     return prepareCaseAnchorTransaction({
       caseId: record.caseId,
+      traceHash: record.traceHash,
       metadataHash: record.metadataHash,
+      timestamp: record.updatedAt,
       publicUri: record.publicUri,
       publicUriHash: sha256Hex(record.publicUri),
-      subjectChain: record.seed.chain,
-      subjectKind: record.seed.seedType,
-      subjectHash: this.createCaseSubjectHash(record),
+      investigator: signer.accountName,
       signer,
       chainId: this.config.kadenaChainId,
       networkId: this.config.kadenaNetworkId
@@ -78,11 +79,11 @@ export class PactAnchorService {
     assertSignedCommandMatches(signedCommand, prepared.unsignedCommand);
 
     try {
-      const preflight = await this.client.preflight(signedCommand);
+      const preflight = await withTimeout(this.client.preflight(signedCommand), "Case anchor preflight timed out.", this.requestTimeoutMs);
       ensurePactSuccess(preflight, "Case anchor preflight failed.");
 
-      const descriptor = await this.client.submit(signedCommand);
-      const result = await this.client.listen(descriptor);
+      const descriptor = await withTimeout(this.client.submit(signedCommand), "Case anchor submission timed out.", this.requestTimeoutMs);
+      const result = await withTimeout(this.client.listen(descriptor), "Case anchor confirmation timed out.", this.requestTimeoutMs);
       const confirmed = ensurePactSuccess(result, "Case anchor transaction failed.");
 
       return {
@@ -91,6 +92,7 @@ export class PactAnchorService {
         networkId: descriptor.networkId,
         status: "confirmed",
         blockHeight: confirmed.metaData?.blockHeight,
+        traceHash: record.traceHash,
         metadataHash: record.metadataHash,
         publicUri: record.publicUri,
         txPreview: prepared.txPreview,
@@ -104,6 +106,7 @@ export class PactAnchorService {
         chainId: this.config.kadenaChainId,
         networkId: this.config.kadenaNetworkId,
         status: "failed",
+        traceHash: record.traceHash,
         metadataHash: record.metadataHash,
         publicUri: record.publicUri,
         txPreview: prepared.txPreview,
@@ -123,10 +126,11 @@ export class PactAnchorService {
     const prepared = this.prepareCaseAnchor(record, previewSigner);
 
     return {
-      requestKey: sha256Hex(`${record.caseId}:${record.metadataHash}`).slice(0, 64),
+      requestKey: sha256Hex(`${record.caseId}:${record.traceHash}:${record.metadataHash}`).slice(0, 64),
       chainId: this.config.kadenaChainId,
       networkId: this.config.kadenaNetworkId,
       status: "local-simulation",
+      traceHash: record.traceHash,
       metadataHash: record.metadataHash,
       publicUri: record.publicUri,
       txPreview: prepared.txPreview,
@@ -151,6 +155,7 @@ export class PactAnchorService {
       evidenceHash,
       signerAccount: signer.accountName
     });
+    const timestamp = record.updatedAt;
 
     return prepareWalletAttestationTransaction({
       attestationId,
@@ -160,6 +165,7 @@ export class PactAnchorService {
       riskLevel: input.riskLevel,
       riskScore: input.riskScore,
       evidenceHash,
+      timestamp,
       signer,
       chainId: this.config.kadenaChainId,
       networkId: this.config.kadenaNetworkId
@@ -186,16 +192,16 @@ export class PactAnchorService {
       signer: signer.accountName,
       signerPublicKey: signer.publicKey,
       note: input.note,
-      createdAt: new Date().toISOString(),
-      submittedAt: new Date().toISOString()
+      createdAt: prepared.timestamp,
+      submittedAt: prepared.timestamp
     };
 
     try {
-      const preflight = await this.client.preflight(signedCommand);
+      const preflight = await withTimeout(this.client.preflight(signedCommand), "Wallet attestation preflight timed out.", this.requestTimeoutMs);
       ensurePactSuccess(preflight, "Wallet attestation preflight failed.");
 
-      const descriptor = await this.client.submit(signedCommand);
-      const result = await this.client.listen(descriptor);
+      const descriptor = await withTimeout(this.client.submit(signedCommand), "Wallet attestation submission timed out.", this.requestTimeoutMs);
+      const result = await withTimeout(this.client.listen(descriptor), "Wallet attestation confirmation timed out.", this.requestTimeoutMs);
       const confirmed = ensurePactSuccess(result, "Wallet attestation transaction failed.");
 
       return {
@@ -221,7 +227,7 @@ export class PactAnchorService {
 
   async listCasesForChain(chain: string): Promise<PactCaseListRow[]> {
     const command = buildListCasesForChainCommand(chain, this.config.kadenaNetworkId, this.config.kadenaChainId);
-    const result = await this.client.dirtyRead(command);
+    const result = await withTimeout(this.client.dirtyRead(command), "Timed out while reading cases for chain.", this.requestTimeoutMs);
     const successful = ensurePactSuccess(result, "Unable to read cases for chain.") as ICommandResult & {
       result: { data?: unknown };
     };
@@ -230,7 +236,7 @@ export class PactAnchorService {
 
   async listAttestationsForCase(caseId: string): Promise<PactAttestationListRow[]> {
     const command = buildListAttestationsForCaseCommand(caseId, this.config.kadenaNetworkId, this.config.kadenaChainId);
-    const result = await this.client.dirtyRead(command);
+    const result = await withTimeout(this.client.dirtyRead(command), "Timed out while reading attestations for case.", this.requestTimeoutMs);
     const successful = ensurePactSuccess(result, "Unable to read attestations for case.") as ICommandResult & {
       result: { data?: unknown };
     };
@@ -273,4 +279,13 @@ function ensurePactSuccess(result: ICommandResult | IPreflightResult, fallbackMe
 
 function stringifyError(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown Kadena relay error.";
+}
+
+async function withTimeout<T>(promise: Promise<T>, message: string, timeoutMs: number): Promise<T> {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(message)), timeoutMs);
+    })
+  ]);
 }

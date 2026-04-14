@@ -60,7 +60,13 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
 
     try {
       const record = await caseService.createCase(parsed.data);
-      return reply.send({ caseId: record.caseId, slug: record.slug, publicUri: record.publicUri });
+      return reply.send({
+        caseId: record.caseId,
+        slug: record.slug,
+        publicUri: record.publicUri,
+        traceHash: record.traceHash,
+        verifiable: true
+      });
     } catch (error) {
       return reply.code(400).send({ error: error instanceof Error ? error.message : "Unable to create case." });
     }

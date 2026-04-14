@@ -17,6 +17,7 @@
     "dev:web": "npm run dev --workspace @kadenatrace/web",
     "dev:api": "npm run dev --workspace @kadenatrace/api",
     "dev:worker": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run dev --workspace @kadenatrace/worker",
+    "demo:seed": "tsx scripts/demo-seed.ts",
     "build": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run build --workspace @kadenatrace/api && npm run build --workspace @kadenatrace/worker && npm run build --workspace @kadenatrace/web",
     "typecheck": "npm run typecheck --workspace @kadenatrace/shared && npm run typecheck --workspace @kadenatrace/pact && npm run typecheck --workspace @kadenatrace/api && npm run typecheck --workspace @kadenatrace/worker && npm run typecheck --workspace @kadenatrace/web",
     "test": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run test --workspace @kadenatrace/shared && npm run test --workspace @kadenatrace/api",

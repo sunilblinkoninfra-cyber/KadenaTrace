@@ -46,9 +46,11 @@ export class CaseService {
       summary: input.summary,
       narrative: input.narrative,
       traceId: trace.id,
+      traceHash: trace.result.traceHash,
       graph: trace.result.graph,
       findings: trace.result.findings,
-      suspiciousPaths: trace.result.suspiciousPaths
+      suspiciousPaths: trace.result.suspiciousPaths,
+      riskAnalysis: trace.result.riskAnalysis
     });
     const metadataHash = sha256Hex(payloadToHash);
     const now = new Date().toISOString();
@@ -59,6 +61,7 @@ export class CaseService {
       summary: input.summary,
       seed: trace.request,
       traceId: trace.id,
+      traceHash: trace.result.traceHash,
       traceSnapshot: trace.result,
       publicUri,
       metadataHash,
@@ -251,7 +254,9 @@ function toPublicCase(record: CaseRecord): PublicCaseView {
     summary: record.summary,
     narrative: record.narrative,
     seed: record.seed,
+    traceHash: record.traceHash,
     trace: record.traceSnapshot,
+    traceSnapshot: record.traceSnapshot,
     anchor: record.anchor,
     attestations: record.attestations,
     sourceRefs: record.sourceRefs,

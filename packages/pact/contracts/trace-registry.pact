@@ -1,31 +1,24 @@
-;; trace-registry.pact -- Stores immutable case hashes, velocity metrics, and investigator attestations for KadenaTrace.
+;; trace-registry.pact -- Stores hash-only trace commitments and wallet risk attestations for verifiable investigations.
 (namespace 'kadenatrace)
 
 (module trace-registry GOVERNANCE
   (defcap GOVERNANCE ()
-    @doc "Governance capability protecting upgrades and investigator-managed writes."
+    @doc "Governance capability protecting module administration."
     (enforce-keyset "kadenatrace.admin"))
 
-  (defcap INVESTIGATOR-CASE-WRITE (case-id:string)
-    @doc "Managed investigator capability for writing immutable fraud case records."
-    @managed
+  (defcap CREATE_CASE ()
+    @doc "Allows approved investigators to register a case trace commitment."
     (enforce-keyset "kadenatrace.reporters"))
 
-  (defcap INVESTIGATOR-ATTEST (address:string)
-    @doc "Managed investigator capability for writing wallet risk attestations."
-    @managed
+  (defcap ATTEST_RISK ()
+    @doc "Allows approved investigators to anchor wallet risk attestations."
     (enforce-keyset "kadenatrace.reporters"))
 
   (defschema fraud-case
     case-id:string
-    report-hash:string
-    status:string
-    velocity-metrics:string
-    incident-chain:string
-    terminal-chain:string
-    incident-block-time:string
-    terminal-block-time:string
-    spv-proof-hash:string
+    trace-hash:string
+    metadata-hash:string
+    timestamp:string
     investigator:string)
 
   (defschema wallet-risk-attestation
@@ -39,59 +32,38 @@
   (deftable fraud-case-registry:{fraud-case})
   (deftable wallet-risk-attestations:{wallet-risk-attestation})
 
-  (defun register-case
-    (case-id:string
-     report-hash:string
-     status:string
-     velocity-metrics:string
-     incident-chain:string
-     terminal-chain:string
-     incident-block-time:string
-     terminal-block-time:string
-     spv-proof-hash:string
-     investigator:string)
-    @doc "Registers a case hash and velocity metrics. Cross-chain exits require an SPV proof hash."
-    (require-capability (INVESTIGATOR-CASE-WRITE case-id))
+  (defun create-case
+    (case-id:string trace-hash:string metadata-hash:string timestamp:string investigator:string)
+    @doc "Registers a hash-only trace commitment for a case."
+    (require-capability (CREATE_CASE))
     (enforce (!= case-id "") "case-id required")
-    (enforce (!= report-hash "") "report-hash required")
-    (enforce (!= velocity-metrics "") "velocity-metrics required")
-    (enforce (!= incident-block-time "") "incident-block-time required")
-    (enforce (!= terminal-block-time "") "terminal-block-time required")
-    (enforce
-      (or (= incident-chain terminal-chain) (!= spv-proof-hash ""))
-      "Cross-chain exits require an SPV-backed block-time proof hash")
+    (enforce (!= trace-hash "") "trace-hash required")
+    (enforce (!= metadata-hash "") "metadata-hash required")
+    (enforce (!= timestamp "") "timestamp required")
     (insert fraud-case-registry case-id
       {
         "case-id": case-id,
-        "report-hash": report-hash,
-        "status": status,
-        "velocity-metrics": velocity-metrics,
-        "incident-chain": incident-chain,
-        "terminal-chain": terminal-chain,
-        "incident-block-time": incident-block-time,
-        "terminal-block-time": terminal-block-time,
-        "spv-proof-hash": spv-proof-hash,
+        "trace-hash": trace-hash,
+        "metadata-hash": metadata-hash,
+        "timestamp": timestamp,
         "investigator": investigator
       }))
 
-  (defun update-case-status (case-id:string status:string)
-    @doc "Updates a case status while preserving the immutable report and velocity hashes."
-    (require-capability (INVESTIGATOR-CASE-WRITE case-id))
-    (enforce (!= status "") "status required")
-    (update fraud-case-registry case-id
-      {
-        "status": status
-      }))
+  (defun verify-trace (case-id:string trace-hash:string)
+    @doc "Verifies a recomputed trace hash against the stored on-chain commitment."
+    (let ((stored-hash (at "trace-hash" (read fraud-case-registry case-id))))
+      (enforce (= trace-hash stored-hash) "Trace mismatch")
+      true))
 
   (defun attest-wallet-risk
-    (address:string case-id:string score:integer timestamp:string investigator:string investigator-guard:guard)
-    @doc "Stores a wallet risk attestation signed by an investigator guard."
-    (require-capability (INVESTIGATOR-ATTEST address))
-    (enforce (!= address "") "address required")
+    (case-id:string address:string score:integer timestamp:string investigator:string investigator-guard:guard)
+    @doc "Stores a wallet risk attestation without publishing raw investigation data."
+    (require-capability (ATTEST_RISK))
     (enforce (!= case-id "") "case-id required")
+    (enforce (!= address "") "address required")
+    (enforce (!= timestamp "") "timestamp required")
     (enforce (>= score 0) "score must be non-negative")
     (enforce (<= score 100) "score must be <= 100")
-    (enforce (!= timestamp "") "timestamp required")
     (enforce-guard investigator-guard)
     (insert wallet-risk-attestations (+ case-id ":" address)
       {
@@ -104,12 +76,18 @@
       }))
 
   (defun get-case (case-id:string)
-    @doc "Returns the immutable case record for public hash verification."
+    @doc "Returns the stored case commitment for independent verification."
     (read fraud-case-registry case-id))
 
   (defun get-wallet-attestation (case-id:string address:string)
-    @doc "Returns the stored wallet risk attestation for a case and address."
+    @doc "Returns the risk attestation record for the specified address."
     (read wallet-risk-attestations (+ case-id ":" address)))
+
+  (defun list-attestations-for-case (target-case-id:string)
+    @doc "Lists all on-chain wallet attestations for a case."
+    (fold-db wallet-risk-attestations
+      (lambda (k obj) (= (at "case-id" obj) target-case-id))
+      (lambda (k obj) obj)))
 )
 
 (create-table fraud-case-registry)

@@ -26,12 +26,23 @@ const worker = new Worker<{ traceId: string; request: TraceRequest }>(
   QUEUE_NAME,
   async (job): Promise<void> => {
     try {
-      await runner.run(job.data.traceId, job.data.request);
-      logWithTimestamp(`Completed trace job ${job.data.traceId}.`);
+      const result = await runner.run(job.data.traceId, job.data.request);
+      logStructured({
+        event: "TRACE_COMPLETE",
+        traceId: job.data.traceId,
+        NODES: result.graph.nodes.length,
+        RISK_SCORE: result.riskAnalysis.overallScore,
+        TRACE_HASH: result.traceHash,
+        status: "completed",
+        generatedAt: result.generatedAt
+      });
     } catch (error) {
-      logWithTimestamp(
-        `Trace job ${job.data.traceId} failed: ${error instanceof Error ? error.message : "Unknown error."}`
-      );
+      logStructured({
+        event: "TRACE_COMPLETE",
+        traceId: job.data.traceId,
+        status: "failed",
+        error: error instanceof Error ? error.message : "Unknown error."
+      });
       throw error;
     }
   },
@@ -84,4 +95,13 @@ process.on("SIGTERM", shutdown);
 
 function logWithTimestamp(message: string): void {
   console.log(`[${new Date().toISOString()}] ${message}`);
+}
+
+function logStructured(payload: Record<string, string | number | boolean | null | undefined>): void {
+  console.log(
+    JSON.stringify({
+      timestamp: new Date().toISOString(),
+      ...payload
+    })
+  );
 }

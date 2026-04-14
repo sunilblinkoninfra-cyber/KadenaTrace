@@ -22,6 +22,10 @@ test("trace engine expands the demo wallet into a branching cross-chain graph", 
   assert.equal(result.metrics.velocity.terminalPathCount >= 1, true);
   assert.equal(result.metrics.velocity.meanTimeToExitMinutes !== null, true);
   assert.equal(result.metrics.velocity.timeline.length >= 1, true);
+  assert.equal(typeof result.traceHash, "string");
+  assert.equal(result.traceHash.length, 64);
+  assert.equal(result.verifiable, true);
+  assert.equal(result.riskAnalysis.suspiciousWallets.length >= 1, true);
 });
 
 test("trace engine can seed from a transaction hash", async () => {
@@ -38,4 +42,13 @@ test("trace engine can seed from a transaction hash", async () => {
   );
   assert.equal(result.graph.nodes.some((node) => node.valueFromSeedPct >= 0), true);
   assert.equal(result.metrics.velocity.incidentTimestamp !== null, true);
+  assert.equal(result.riskAnalysis.overallScore >= 0, true);
+});
+
+test("trace hashing is deterministic for identical input graphs", async () => {
+  const engine = new TraceEngine(new FixtureActivityProvider());
+  const first = await engine.run(DEMO_TRACE_REQUEST, "trace-demo-1");
+  const second = await engine.run(DEMO_TRACE_REQUEST, "trace-demo-2");
+
+  assert.equal(first.traceHash, second.traceHash);
 });

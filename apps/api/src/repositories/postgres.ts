@@ -69,12 +69,12 @@ export class PostgresCaseRepository implements CaseRepository {
     await this.pool.query(
       `
         insert into fraud_cases (
-          case_id, slug, title, summary, seed, trace_id, trace_snapshot, public_uri,
+          case_id, slug, title, summary, seed, trace_id, trace_hash, trace_snapshot, public_uri,
           metadata_hash, narrative, source_refs, anchor, attestations, created_at, updated_at
         )
         values (
-          $1, $2, $3, $4, $5::jsonb, $6, $7::jsonb, $8,
-          $9, $10, $11::jsonb, $12::jsonb, $13::jsonb, $14::timestamptz, $15::timestamptz
+          $1, $2, $3, $4, $5::jsonb, $6, $7, $8::jsonb, $9,
+          $10, $11, $12::jsonb, $13::jsonb, $14::jsonb, $15::timestamptz, $16::timestamptz
         )
         on conflict (case_id) do update
         set slug = excluded.slug,
@@ -82,6 +82,7 @@ export class PostgresCaseRepository implements CaseRepository {
             summary = excluded.summary,
             seed = excluded.seed,
             trace_id = excluded.trace_id,
+            trace_hash = excluded.trace_hash,
             trace_snapshot = excluded.trace_snapshot,
             public_uri = excluded.public_uri,
             metadata_hash = excluded.metadata_hash,
@@ -98,6 +99,7 @@ export class PostgresCaseRepository implements CaseRepository {
         record.summary,
         JSON.stringify(record.seed),
         record.traceId,
+        record.traceHash,
         JSON.stringify(record.traceSnapshot),
         record.publicUri,
         record.metadataHash,
@@ -132,6 +134,7 @@ export class PostgresCaseRepository implements CaseRepository {
 }
 
 function hydrateCaseRow(row: Record<string, unknown>): CaseRecord {
+  const traceSnapshot = row.trace_snapshot as CaseRecord["traceSnapshot"];
   return {
     caseId: String(row.case_id),
     slug: String(row.slug),
@@ -139,7 +142,8 @@ function hydrateCaseRow(row: Record<string, unknown>): CaseRecord {
     summary: String(row.summary),
     seed: row.seed as CaseRecord["seed"],
     traceId: String(row.trace_id),
-    traceSnapshot: row.trace_snapshot as CaseRecord["traceSnapshot"],
+    traceHash: String(row.trace_hash ?? traceSnapshot.traceHash),
+    traceSnapshot,
     publicUri: String(row.public_uri),
     metadataHash: String(row.metadata_hash),
     narrative: String(row.narrative),

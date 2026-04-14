@@ -1,6 +1,12 @@
 import type { FastifyInstance } from "fastify";
 
-import { ANALYSIS_THRESHOLDS, filterFindingsForGraph, sliceGraph, traceRequestSchema } from "@kadenatrace/shared";
+import {
+  ANALYSIS_THRESHOLDS,
+  filterFindingsForGraph,
+  sliceGraph,
+  traceRequestSchema,
+  type TraceRecord
+} from "@kadenatrace/shared";
 
 import type { TraceService } from "../services/trace-service.js";
 
@@ -39,7 +45,7 @@ export async function registerTraceRoutes(app: FastifyInstance, traceService: Tr
     }
 
     if (!trace.result || (!query.focusNodeId && !query.highRiskOnly)) {
-      return reply.send(trace);
+      return reply.send(toApiTraceResponse(trace));
     }
 
     const slicedGraph = sliceGraph(trace.result.graph, {
@@ -53,7 +59,7 @@ export async function registerTraceRoutes(app: FastifyInstance, traceService: Tr
       path.edgeIds.some((edgeId) => slicedGraph.edges.some((edge) => edge.id === edgeId))
     );
 
-    return reply.send({
+    return reply.send(toApiTraceResponse({
       ...trace,
       result: {
         ...trace.result,
@@ -65,9 +71,29 @@ export async function registerTraceRoutes(app: FastifyInstance, traceService: Tr
           `Partial graph view generated with depth ${query.depth} and limit ${query.limit}.`
         ]
       }
-    });
+    }));
   });
 
+}
+
+function toApiTraceResponse(trace: TraceRecord) {
+  return {
+    ...trace,
+    trace: trace.result
+      ? {
+          graph: trace.result.graph,
+          findings: trace.result.findings,
+          suspiciousPaths: trace.result.suspiciousPaths,
+          metrics: trace.result.metrics,
+          sources: trace.result.sources,
+          warnings: trace.result.warnings,
+          generatedAt: trace.result.generatedAt
+        }
+      : null,
+    riskAnalysis: trace.result?.riskAnalysis ?? null,
+    traceHash: trace.result?.traceHash ?? null,
+    verifiable: trace.result?.verifiable ?? false
+  };
 }
 
 function normalizeTraceQuery(input: unknown) {

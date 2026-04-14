@@ -109,9 +109,15 @@ test("api can relay a wallet-signed Kadena anchor and attestation through the li
   assert.equal(partialTraceResponse.statusCode, 200);
   const partialTrace = partialTraceResponse.json() as {
     result?: { graph?: { nodes?: unknown[]; edges?: unknown[] }; warnings?: string[] };
+    traceHash?: string;
+    verifiable?: boolean;
+    riskAnalysis?: { overallScore?: number };
   };
   assert.equal((partialTrace.result?.graph?.nodes?.length ?? 0) <= 5, true);
   assert.equal(partialTrace.result?.warnings?.some((warning) => warning.includes("Partial graph view generated")), true);
+  assert.equal(typeof partialTrace.traceHash, "string");
+  assert.equal(partialTrace.verifiable, true);
+  assert.equal(typeof partialTrace.riskAnalysis?.overallScore, "number");
 
   const caseResponse = await app.inject({
     method: "POST",
@@ -124,7 +130,9 @@ test("api can relay a wallet-signed Kadena anchor and attestation through the li
     }
   });
   assert.equal(caseResponse.statusCode, 200);
-  const casePayload = caseResponse.json() as { caseId: string };
+  const casePayload = caseResponse.json() as { caseId: string; traceHash?: string; verifiable?: boolean };
+  assert.equal(typeof casePayload.traceHash, "string");
+  assert.equal(casePayload.verifiable, true);
 
   const signer = {
     accountName: `k:${keypair.publicKey}`,
@@ -259,8 +267,14 @@ test("new endpoint integrations and edge cases", async () => {
   // b) GET /api/cases/nomad-bridge-exploit-demo
   const nomadCase = await app.inject({ method: "GET", url: "/api/public/cases/nomad-bridge-exploit-demo" });
   assert.equal(nomadCase.statusCode, 200);
-  const nomadPayload = nomadCase.json() as any;
+  const nomadPayload = nomadCase.json() as {
+    caseId: string;
+    title: string;
+    traceHash: string;
+    traceSnapshot: { graph: { nodes: unknown[] } };
+  };
   assert.equal(nomadPayload.title.includes("Nomad"), true);
+  assert.equal(typeof nomadPayload.traceHash, "string");
   assert.equal(nomadPayload.traceSnapshot.graph.nodes.length > 0, true);
 
   // c) POST /traces with rate limit

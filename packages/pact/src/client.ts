@@ -1,26 +1,20 @@
 import { readKeyset } from "@kadena/client";
-import type { Chain, RiskLevel, SeedType } from "@kadenatrace/shared";
 
-import { FRAUD_REGISTRY_MODULE } from "./contracts.js";
+import { FRAUD_REGISTRY_MODULE, TRACE_REGISTRY_MODULE } from "./contracts.js";
 
 interface CreateCaseCommandInput {
   caseId: string;
-  subjectChain: Chain;
-  subjectKind: SeedType;
-  subjectHash: string;
+  traceHash: string;
   metadataHash: string;
-  publicUriHash: string;
-  reporter: string;
+  timestamp: string;
+  investigator: string;
 }
 
 interface AttestationCommandInput {
-  attestationId: string;
   caseId: string;
   wallet: string;
-  chain: Chain;
-  riskLevel: RiskLevel;
   riskScore: number;
-  evidenceHash: string;
+  timestamp: string;
   signer: string;
 }
 
@@ -29,9 +23,9 @@ function quote(value: string) {
 }
 
 export function buildCreateCaseCommand(input: CreateCaseCommandInput) {
-  return `(${FRAUD_REGISTRY_MODULE}.create-case ${quote(input.caseId)} ${quote(input.subjectChain)} ${quote(
-    input.subjectKind
-  )} ${quote(input.subjectHash)} ${quote(input.metadataHash)} ${quote(input.publicUriHash)} ${quote(input.reporter)} ${readKeyset(
+  return `(${TRACE_REGISTRY_MODULE}.create-case ${quote(input.caseId)} ${quote(input.traceHash)} ${quote(
+    input.metadataHash
+  )} ${quote(input.timestamp)} ${quote(input.investigator)} ${readKeyset(
     "submitter-guard"
   )()})`;
 }
@@ -49,9 +43,7 @@ export function buildAppendCaseEventCommand(input: {
 }
 
 export function buildAttestationCommand(input: AttestationCommandInput) {
-  return `(${FRAUD_REGISTRY_MODULE}.attest-wallet-risk ${quote(input.attestationId)} ${quote(
-    input.caseId
-  )} ${quote(input.wallet)} ${quote(input.chain)} ${quote(input.riskLevel)} ${Math.round(input.riskScore)} ${quote(
-    input.evidenceHash
-  )} ${quote(input.signer)} ${readKeyset("submitter-guard")()})`;
+  return `(${TRACE_REGISTRY_MODULE}.attest-wallet-risk ${quote(input.caseId)} ${quote(input.wallet)} ${Math.round(
+    input.riskScore
+  )} ${quote(input.timestamp)} ${quote(input.signer)} ${readKeyset("submitter-guard")()})`;
 }

@@ -7,13 +7,14 @@ import { StorageClient } from "../storage.js";
 export class TraceRunner {
   constructor(private readonly storage: StorageClient) {}
 
-  async run(traceId: string, request: TraceRequest): Promise<void> {
+  async run(traceId: string, request: TraceRequest): Promise<TraceResult> {
     const engine = new TraceEngine(createWorkerProvider());
     await this.storage.markRunning(traceId, request);
 
     try {
       const result: TraceResult = await engine.run(request, traceId);
       await this.storage.markCompleted(traceId, request, result);
+      return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Trace execution failed.";
       await this.storage.markFailed(traceId, request, errorMessage);

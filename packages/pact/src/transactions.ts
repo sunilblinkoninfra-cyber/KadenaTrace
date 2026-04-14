@@ -2,7 +2,7 @@ import { Pact, isSignedTransaction, type ChainId, type ICommand, type IUnsignedC
 import { sha256Hex } from "@kadenatrace/shared";
 
 import { buildAttestationCommand, buildCreateCaseCommand } from "./client.js";
-import { FRAUD_REGISTRY_MODULE } from "./contracts.js";
+import { FRAUD_REGISTRY_MODULE, TRACE_REGISTRY_MODULE } from "./contracts.js";
 import type {
   PrepareCaseAnchorInput,
   PreparedCaseAnchorPayload,
@@ -23,6 +23,7 @@ function buildGasSignedTransaction(
     senderAccount: string;
     publicKey: string;
     nonce: string;
+    creationTime: number;
     capabilities: Array<{ name: string; args?: unknown[] }>;
   }
 ): IUnsignedCommand {
@@ -36,6 +37,7 @@ function buildGasSignedTransaction(
     .setMeta({
       chainId: input.chainId as ChainId,
       senderAccount: input.senderAccount,
+      creationTime: input.creationTime,
       gasLimit: DEFAULT_GAS_LIMIT,
       gasPrice: DEFAULT_GAS_PRICE,
       ttl: DEFAULT_TTL
@@ -70,12 +72,10 @@ export function createAttestationId(input: {
 export function prepareCaseAnchorTransaction(input: PrepareCaseAnchorInput): PreparedCaseAnchorPayload {
   const txPreview = buildCreateCaseCommand({
     caseId: input.caseId,
+    traceHash: input.traceHash,
     metadataHash: input.metadataHash,
-    publicUriHash: input.publicUriHash,
-    subjectChain: input.subjectChain,
-    subjectKind: input.subjectKind,
-    subjectHash: input.subjectHash,
-    reporter: input.signer.accountName
+    timestamp: input.timestamp,
+    investigator: input.investigator
   });
 
   const unsignedCommand = buildGasSignedTransaction(txPreview, {
@@ -84,7 +84,8 @@ export function prepareCaseAnchorTransaction(input: PrepareCaseAnchorInput): Pre
     senderAccount: input.signer.accountName,
     publicKey: input.signer.publicKey,
     nonce: createCaseAnchorNonce(input),
-    capabilities: [{ name: "kadenatrace.fraud-registry.WRITE-CASE" }]
+    creationTime: toCreationTime(input.timestamp),
+    capabilities: [{ name: `${TRACE_REGISTRY_MODULE}.CREATE_CASE` }]
   });
 
   return {
@@ -92,8 +93,9 @@ export function prepareCaseAnchorTransaction(input: PrepareCaseAnchorInput): Pre
     txPreview,
     chainId: input.chainId,
     networkId: input.networkId,
+    traceHash: input.traceHash,
     metadataHash: input.metadataHash,
-    subjectHash: input.subjectHash,
+    timestamp: input.timestamp,
     publicUriHash: input.publicUriHash,
     publicUri: input.publicUri,
     signer: input.signer
@@ -104,13 +106,10 @@ export function prepareWalletAttestationTransaction(
   input: PrepareWalletAttestationInput
 ): PreparedWalletAttestationPayload {
   const txPreview = buildAttestationCommand({
-    attestationId: input.attestationId,
     caseId: input.caseId,
     wallet: input.wallet,
-    chain: input.chain,
-    riskLevel: input.riskLevel,
     riskScore: input.riskScore,
-    evidenceHash: input.evidenceHash,
+    timestamp: input.timestamp,
     signer: input.signer.accountName
   });
 
@@ -120,7 +119,8 @@ export function prepareWalletAttestationTransaction(
     senderAccount: input.signer.accountName,
     publicKey: input.signer.publicKey,
     nonce: createWalletAttestationNonce(input),
-    capabilities: [{ name: "kadenatrace.fraud-registry.ATTEST-WALLET-RISK" }]
+    creationTime: toCreationTime(input.timestamp),
+    capabilities: [{ name: `${TRACE_REGISTRY_MODULE}.ATTEST_RISK` }]
   });
 
   return {
@@ -130,6 +130,7 @@ export function prepareWalletAttestationTransaction(
     networkId: input.networkId,
     attestationId: input.attestationId,
     evidenceHash: input.evidenceHash,
+    timestamp: input.timestamp,
     signer: input.signer
   };
 }
@@ -153,6 +154,10 @@ function createCaseAnchorNonce(input: PrepareCaseAnchorInput) {
 
 function createWalletAttestationNonce(input: PrepareWalletAttestationInput) {
   return `kadenatrace:attestation:${input.attestationId}:${input.signer.accountName}`;
+}
+
+function toCreationTime(timestamp: string): number {
+  return Math.floor(Date.parse(timestamp) / 1000);
 }
 
 export function buildListCasesForChainCommand(
