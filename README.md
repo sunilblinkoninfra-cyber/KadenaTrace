@@ -108,6 +108,19 @@ automatically when chain = kadena. Default is already set:
 - Create a public case from the trace
 - Optionally anchor it through the Kadena relay endpoint
 
+## Real-World Example
+
+The repository includes a judge-friendly fraud simulation at `examples/real-scam-case.json`.
+
+This case demonstrates a realistic phishing flow:
+
+- a victim wallet is drained into a primary collector
+- the collector fans funds out to four fresh splitter wallets in the same minute
+- the highest-value branch hits a bridge and exits into a BSC exchange deposit wallet
+- secondary branches move into a mixer, a burn address, and a DEX liquidity pool
+
+The example includes the graph nodes, graph edges, explainable risk analysis, and the deterministic `traceHash`, so reviewers can see exactly how KadenaTrace represents a real investigation without needing live chain access.
+
 ## Pact contract architecture
 
 The Pact deployment is split into two transactions:

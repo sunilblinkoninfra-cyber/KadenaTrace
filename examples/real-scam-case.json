@@ -1,0 +1,977 @@
+{
+  "inputWallet": "0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080",
+  "description": "Simulated phishing/scam flow based on a fake wallet verification portal. Funds are drained from the victim, scattered to fresh splitters, pushed through a bridge, routed into a CEX deposit wallet, and partially obscured through mixer, burn, and DEX liquidity endpoints.",
+  "nodes": [
+    {
+      "id": "ethereum:0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080",
+      "chain": "ethereum",
+      "address": "0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080",
+      "kind": "wallet",
+      "label": "Victim Wallet",
+      "tags": [
+        "victim",
+        "origin"
+      ],
+      "riskScore": 18,
+      "riskConfidence": 0.82,
+      "riskLevel": "low",
+      "reasons": [
+        "Origin wallet shows a rapid full-balance drain into a freshly funded collector."
+      ],
+      "riskSignals": [
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Origin wallet shows a rapid full-balance drain into a freshly funded collector.",
+          "confidence": 0.82,
+          "weight": 18
+        }
+      ],
+      "valueFromSeedPct": 100,
+      "evidenceRefs": [
+        {
+          "id": "tx:ethereum:0xphish0001",
+          "label": "Initial phishing drain",
+          "type": "tx",
+          "txHash": "0xphish0001",
+          "chain": "ethereum"
+        }
+      ]
+    },
+    {
+      "id": "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+      "chain": "ethereum",
+      "address": "0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+      "kind": "wallet",
+      "label": "Phishing Collector",
+      "tags": [
+        "collector",
+        "scam",
+        "fan-out"
+      ],
+      "riskScore": 94,
+      "riskConfidence": 0.99,
+      "riskLevel": "critical",
+      "reasons": [
+        "Collector receives the full drain, then scatters funds to four newly created wallets in the same minute."
+      ],
+      "riskSignals": [
+        {
+          "code": "fan-out",
+          "title": "Fan-out burst",
+          "reason": "Collector receives the full drain, then scatters funds to four newly created wallets in the same minute.",
+          "confidence": 0.99,
+          "weight": 34
+        },
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Collector receives the full drain, then scatters funds to four newly created wallets in the same minute.",
+          "confidence": 0.99,
+          "weight": 20
+        },
+        {
+          "code": "bridge-usage",
+          "title": "Bridge usage",
+          "reason": "The highest-value branch hits a bridge immediately after the fan-out event.",
+          "confidence": 0.96,
+          "weight": 16
+        }
+      ],
+      "valueFromSeedPct": 100,
+      "evidenceRefs": [
+        {
+          "id": "case:collector",
+          "label": "Primary laundering collector",
+          "type": "case",
+          "chain": "ethereum",
+          "note": "This address receives the phishing drain before all secondary movements."
+        }
+      ]
+    },
+    {
+      "id": "ethereum:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234",
+      "chain": "ethereum",
+      "address": "0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234",
+      "kind": "wallet",
+      "label": "Splitter A",
+      "tags": [
+        "splitter",
+        "bridge-branch"
+      ],
+      "riskScore": 82,
+      "riskConfidence": 0.96,
+      "riskLevel": "high",
+      "reasons": [
+        "Highest-value splitter forwards funds into a bridge within eleven minutes of the theft."
+      ],
+      "riskSignals": [
+        {
+          "code": "bridge-usage",
+          "title": "Bridge usage",
+          "reason": "Highest-value splitter forwards funds into a bridge within eleven minutes of the theft.",
+          "confidence": 0.96,
+          "weight": 26
+        },
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Highest-value splitter forwards funds into a bridge within eleven minutes of the theft.",
+          "confidence": 0.96,
+          "weight": 18
+        }
+      ],
+      "valueFromSeedPct": 33.55,
+      "evidenceRefs": []
+    },
+    {
+      "id": "ethereum:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456",
+      "chain": "ethereum",
+      "address": "0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456",
+      "kind": "wallet",
+      "label": "Splitter B",
+      "tags": [
+        "splitter",
+        "mixer-branch"
+      ],
+      "riskScore": 78,
+      "riskConfidence": 0.95,
+      "riskLevel": "high",
+      "reasons": [
+        "Secondary splitter diverts funds into a mixer route minutes after the phishing drain."
+      ],
+      "riskSignals": [
+        {
+          "code": "mixer-interaction",
+          "title": "Mixer interaction",
+          "reason": "Secondary splitter diverts funds into a mixer route minutes after the phishing drain.",
+          "confidence": 0.95,
+          "weight": 30
+        },
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Secondary splitter diverts funds into a mixer route minutes after the phishing drain.",
+          "confidence": 0.95,
+          "weight": 16
+        }
+      ],
+      "valueFromSeedPct": 25.57,
+      "evidenceRefs": []
+    },
+    {
+      "id": "ethereum:0x9e3c2ddbe5f60718293a4b5c6d7e8f9012345678",
+      "chain": "ethereum",
+      "address": "0x9e3c2ddbe5f60718293a4b5c6d7e8f9012345678",
+      "kind": "wallet",
+      "label": "Splitter C",
+      "tags": [
+        "splitter",
+        "burn-branch"
+      ],
+      "riskScore": 54,
+      "riskConfidence": 0.79,
+      "riskLevel": "medium",
+      "reasons": [
+        "This branch burns funds, cutting attribution and reducing recovery probability."
+      ],
+      "riskSignals": [
+        {
+          "code": "terminal-burn",
+          "title": "Burn address",
+          "reason": "This branch burns funds, cutting attribution and reducing recovery probability.",
+          "confidence": 0.79,
+          "weight": 18
+        }
+      ],
+      "valueFromSeedPct": 17.15,
+      "evidenceRefs": []
+    },
+    {
+      "id": "ethereum:0xaf4d3eece60718293a4b5c6d7e8f901234567890",
+      "chain": "ethereum",
+      "address": "0xaf4d3eece60718293a4b5c6d7e8f901234567890",
+      "kind": "wallet",
+      "label": "Splitter D",
+      "tags": [
+        "splitter",
+        "dex-lp-branch"
+      ],
+      "riskScore": 48,
+      "riskConfidence": 0.74,
+      "riskLevel": "medium",
+      "reasons": [
+        "This branch parks funds in a DEX liquidity pool as a staging step."
+      ],
+      "riskSignals": [
+        {
+          "code": "dex-liquidity",
+          "title": "DEX liquidity pool",
+          "reason": "This branch parks funds in a DEX liquidity pool as a staging step.",
+          "confidence": 0.74,
+          "weight": 16
+        }
+      ],
+      "valueFromSeedPct": 15.36,
+      "evidenceRefs": []
+    },
+    {
+      "id": "ethereum:0x7777777777777777777777777777777777777701",
+      "chain": "ethereum",
+      "address": "0x7777777777777777777777777777777777777701",
+      "kind": "bridge",
+      "label": "Bridge Portal",
+      "tags": [
+        "bridge",
+        "portal",
+        "cross-chain"
+      ],
+      "riskScore": 44,
+      "riskConfidence": 0.92,
+      "riskLevel": "medium",
+      "reasons": [
+        "Bridge interaction marks a likely ecosystem exit and complicates rapid recovery."
+      ],
+      "riskSignals": [
+        {
+          "code": "bridge-usage",
+          "title": "Bridge usage",
+          "reason": "Bridge interaction marks a likely ecosystem exit and complicates rapid recovery.",
+          "confidence": 0.92,
+          "weight": 20
+        }
+      ],
+      "valueFromSeedPct": 32.08,
+      "evidenceRefs": [
+        {
+          "id": "bridge:portal-01",
+          "label": "Known bridge router",
+          "type": "bridge",
+          "chain": "ethereum"
+        }
+      ]
+    },
+    {
+      "id": "bsc:0xbbcdef1234567890abcdef1234567890abcdef12",
+      "chain": "bsc",
+      "address": "0xbbcdef1234567890abcdef1234567890abcdef12",
+      "kind": "wallet",
+      "label": "BSC Mule Wallet",
+      "tags": [
+        "cross-chain",
+        "cashout-prep"
+      ],
+      "riskScore": 76,
+      "riskConfidence": 0.94,
+      "riskLevel": "high",
+      "reasons": [
+        "Bridge exit wallet quickly forwards stablecoins to a known exchange deposit address."
+      ],
+      "riskSignals": [
+        {
+          "code": "bridge-usage",
+          "title": "Bridge usage",
+          "reason": "Bridge exit wallet quickly forwards stablecoins to a known exchange deposit address.",
+          "confidence": 0.94,
+          "weight": 22
+        },
+        {
+          "code": "sink-consolidation",
+          "title": "Sink consolidation",
+          "reason": "Bridge exit wallet quickly forwards stablecoins to a known exchange deposit address.",
+          "confidence": 0.94,
+          "weight": 18
+        }
+      ],
+      "valueFromSeedPct": 31.27,
+      "evidenceRefs": []
+    },
+    {
+      "id": "bsc:0xcex000000000000000000000000000000000001",
+      "chain": "bsc",
+      "address": "0xcex000000000000000000000000000000000001",
+      "kind": "exchange",
+      "label": "CEX Deposit Wallet",
+      "tags": [
+        "exchange",
+        "terminal",
+        "cashout"
+      ],
+      "riskScore": 34,
+      "riskConfidence": 0.9,
+      "riskLevel": "medium",
+      "reasons": [
+        "The main branch terminates at a known exchange deposit wallet less than twenty-five minutes after the incident."
+      ],
+      "riskSignals": [
+        {
+          "code": "sink-consolidation",
+          "title": "Sink consolidation",
+          "reason": "The main branch terminates at a known exchange deposit wallet less than twenty-five minutes after the incident.",
+          "confidence": 0.9,
+          "weight": 18
+        }
+      ],
+      "valueFromSeedPct": 31.27,
+      "evidenceRefs": []
+    },
+    {
+      "id": "ethereum:0x8888888888888888888888888888888888888802",
+      "chain": "ethereum",
+      "address": "0x8888888888888888888888888888888888888802",
+      "kind": "mixer",
+      "label": "Mixer Entry",
+      "tags": [
+        "mixer",
+        "terminal"
+      ],
+      "riskScore": 66,
+      "riskConfidence": 0.94,
+      "riskLevel": "high",
+      "reasons": [
+        "The mixer branch obscures attribution and indicates intentional laundering."
+      ],
+      "riskSignals": [
+        {
+          "code": "mixer-interaction",
+          "title": "Mixer interaction",
+          "reason": "The mixer branch obscures attribution and indicates intentional laundering.",
+          "confidence": 0.94,
+          "weight": 28
+        }
+      ],
+      "valueFromSeedPct": 24.7,
+      "evidenceRefs": []
+    },
+    {
+      "id": "ethereum:0x000000000000000000000000000000000000dead",
+      "chain": "ethereum",
+      "address": "0x000000000000000000000000000000000000dead",
+      "kind": "terminal",
+      "label": "Burn Address",
+      "tags": [
+        "burn",
+        "terminal"
+      ],
+      "riskScore": 22,
+      "riskConfidence": 0.71,
+      "riskLevel": "low",
+      "reasons": [
+        "Burn destination cuts recoverability even though it is not a cash-out point."
+      ],
+      "riskSignals": [
+        {
+          "code": "terminal-burn",
+          "title": "Burn address",
+          "reason": "Burn destination cuts recoverability even though it is not a cash-out point.",
+          "confidence": 0.71,
+          "weight": 12
+        }
+      ],
+      "valueFromSeedPct": 16.94,
+      "evidenceRefs": [],
+      "terminal": true
+    },
+    {
+      "id": "ethereum:0xdef1cafe00000000000000000000000000000001",
+      "chain": "ethereum",
+      "address": "0xdef1cafe00000000000000000000000000000001",
+      "kind": "terminal",
+      "label": "DEX Liquidity Pool",
+      "tags": [
+        "dex",
+        "liquidity-pool",
+        "terminal"
+      ],
+      "riskScore": 24,
+      "riskConfidence": 0.72,
+      "riskLevel": "low",
+      "reasons": [
+        "DEX LP staging slows attribution and is treated as a terminal parking point."
+      ],
+      "riskSignals": [
+        {
+          "code": "dex-liquidity",
+          "title": "DEX liquidity pool",
+          "reason": "DEX LP staging slows attribution and is treated as a terminal parking point.",
+          "confidence": 0.72,
+          "weight": 14
+        }
+      ],
+      "valueFromSeedPct": 14.87,
+      "evidenceRefs": [],
+      "terminal": true
+    }
+  ],
+  "edges": [
+    {
+      "id": "ethereum:0xphish0001:0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:ETH",
+      "from": "ethereum:0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080",
+      "to": "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+      "chain": "ethereum",
+      "txHash": "0xphish0001",
+      "asset": "ETH",
+      "amount": 18.42,
+      "timestamp": "2026-04-06T09:10:00.000Z",
+      "flags": [
+        "rapid-hop"
+      ],
+      "riskScore": 24,
+      "riskConfidence": 0.91,
+      "reasons": [
+        "Initial phishing drain moved funds out within one block."
+      ],
+      "riskSignals": [
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Initial phishing drain moved funds out within one block.",
+          "confidence": 0.91,
+          "weight": 24
+        }
+      ],
+      "valueFromSeedPct": 100,
+      "propagatedAmount": 18.42,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "ethereum:0xphish0002:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234:ETH",
+      "from": "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+      "to": "ethereum:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234",
+      "chain": "ethereum",
+      "txHash": "0xphish0002",
+      "asset": "ETH",
+      "amount": 6.18,
+      "timestamp": "2026-04-06T09:16:00.000Z",
+      "flags": [
+        "fan-out",
+        "rapid-hop"
+      ],
+      "riskScore": 32,
+      "riskConfidence": 0.95,
+      "reasons": [
+        "Collector scattered stolen funds to four fresh wallets in the same minute."
+      ],
+      "riskSignals": [
+        {
+          "code": "fan-out",
+          "title": "Fan-out burst",
+          "reason": "Collector scattered stolen funds to four fresh wallets in the same minute.",
+          "confidence": 0.95,
+          "weight": 20
+        },
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Collector scattered stolen funds to four fresh wallets in the same minute.",
+          "confidence": 0.95,
+          "weight": 12
+        }
+      ],
+      "valueFromSeedPct": 33.55,
+      "propagatedAmount": 6.18,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "ethereum:0xphish0003:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456:ETH",
+      "from": "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+      "to": "ethereum:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456",
+      "chain": "ethereum",
+      "txHash": "0xphish0003",
+      "asset": "ETH",
+      "amount": 4.71,
+      "timestamp": "2026-04-06T09:16:00.000Z",
+      "flags": [
+        "fan-out",
+        "rapid-hop"
+      ],
+      "riskScore": 30,
+      "riskConfidence": 0.94,
+      "reasons": [
+        "Collector scattered stolen funds to four fresh wallets in the same minute."
+      ],
+      "riskSignals": [
+        {
+          "code": "fan-out",
+          "title": "Fan-out burst",
+          "reason": "Collector scattered stolen funds to four fresh wallets in the same minute.",
+          "confidence": 0.94,
+          "weight": 20
+        },
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Collector scattered stolen funds to four fresh wallets in the same minute.",
+          "confidence": 0.94,
+          "weight": 10
+        }
+      ],
+      "valueFromSeedPct": 25.57,
+      "propagatedAmount": 4.71,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "ethereum:0xphish0004:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0x9e3c2ddbe5f60718293a4b5c6d7e8f9012345678:ETH",
+      "from": "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+      "to": "ethereum:0x9e3c2ddbe5f60718293a4b5c6d7e8f9012345678",
+      "chain": "ethereum",
+      "txHash": "0xphish0004",
+      "asset": "ETH",
+      "amount": 3.16,
+      "timestamp": "2026-04-06T09:16:00.000Z",
+      "flags": [
+        "fan-out"
+      ],
+      "riskScore": 22,
+      "riskConfidence": 0.9,
+      "reasons": [
+        "Collector scattered stolen funds to four fresh wallets in the same minute."
+      ],
+      "riskSignals": [
+        {
+          "code": "fan-out",
+          "title": "Fan-out burst",
+          "reason": "Collector scattered stolen funds to four fresh wallets in the same minute.",
+          "confidence": 0.9,
+          "weight": 22
+        }
+      ],
+      "valueFromSeedPct": 17.15,
+      "propagatedAmount": 3.16,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "ethereum:0xphish0005:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0xaf4d3eece60718293a4b5c6d7e8f901234567890:ETH",
+      "from": "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+      "to": "ethereum:0xaf4d3eece60718293a4b5c6d7e8f901234567890",
+      "chain": "ethereum",
+      "txHash": "0xphish0005",
+      "asset": "ETH",
+      "amount": 2.83,
+      "timestamp": "2026-04-06T09:16:00.000Z",
+      "flags": [
+        "fan-out"
+      ],
+      "riskScore": 22,
+      "riskConfidence": 0.9,
+      "reasons": [
+        "Collector scattered stolen funds to four fresh wallets in the same minute."
+      ],
+      "riskSignals": [
+        {
+          "code": "fan-out",
+          "title": "Fan-out burst",
+          "reason": "Collector scattered stolen funds to four fresh wallets in the same minute.",
+          "confidence": 0.9,
+          "weight": 22
+        }
+      ],
+      "valueFromSeedPct": 15.36,
+      "propagatedAmount": 2.83,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "ethereum:0xphish0006:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234:0x7777777777777777777777777777777777777701:ETH",
+      "from": "ethereum:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234",
+      "to": "ethereum:0x7777777777777777777777777777777777777701",
+      "chain": "ethereum",
+      "txHash": "0xphish0006",
+      "asset": "ETH",
+      "amount": 5.91,
+      "timestamp": "2026-04-06T09:21:00.000Z",
+      "flags": [
+        "bridge",
+        "rapid-hop"
+      ],
+      "riskScore": 28,
+      "riskConfidence": 0.93,
+      "reasons": [
+        "Primary splitter moved funds into a bridge within eleven minutes of the theft."
+      ],
+      "riskSignals": [
+        {
+          "code": "bridge-usage",
+          "title": "Bridge usage",
+          "reason": "Primary splitter moved funds into a bridge within eleven minutes of the theft.",
+          "confidence": 0.93,
+          "weight": 18
+        },
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Primary splitter moved funds into a bridge within eleven minutes of the theft.",
+          "confidence": 0.93,
+          "weight": 10
+        }
+      ],
+      "valueFromSeedPct": 32.08,
+      "propagatedAmount": 5.91,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "bridgeTransferId": "bridge-phish-001",
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "bridge:bridge-phish-001:0x7777777777777777777777777777777777777701:0xbbcdef1234567890abcdef1234567890abcdef12:USDT",
+      "from": "ethereum:0x7777777777777777777777777777777777777701",
+      "to": "bsc:0xbbcdef1234567890abcdef1234567890abcdef12",
+      "chain": "bsc",
+      "txHash": "0xbridgephish0001",
+      "asset": "USDT",
+      "amount": 16740,
+      "timestamp": "2026-04-06T09:28:00.000Z",
+      "flags": [
+        "bridge",
+        "path-highlight"
+      ],
+      "riskScore": 24,
+      "riskConfidence": 0.91,
+      "reasons": [
+        "Bridge exit indicates an ecosystem handoff and a lower recovery window."
+      ],
+      "riskSignals": [
+        {
+          "code": "bridge-usage",
+          "title": "Bridge usage",
+          "reason": "Bridge exit indicates an ecosystem handoff and a lower recovery window.",
+          "confidence": 0.91,
+          "weight": 24
+        }
+      ],
+      "valueFromSeedPct": 32.08,
+      "propagatedAmount": 0.97,
+      "evidenceRefs": [],
+      "synthetic": true,
+      "bridgeTransferId": "bridge-phish-001",
+      "metadata": {
+        "transferType": "synthetic-bridge",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "bsc:0xphish0007:0xbbcdef1234567890abcdef1234567890abcdef12:0xcex000000000000000000000000000000000001:USDT",
+      "from": "bsc:0xbbcdef1234567890abcdef1234567890abcdef12",
+      "to": "bsc:0xcex000000000000000000000000000000000001",
+      "chain": "bsc",
+      "txHash": "0xphish0007",
+      "asset": "USDT",
+      "amount": 16590,
+      "timestamp": "2026-04-06T09:34:00.000Z",
+      "flags": [
+        "exchange-cashout",
+        "sink"
+      ],
+      "riskScore": 36,
+      "riskConfidence": 0.97,
+      "reasons": [
+        "Bridged funds were consolidated into a known exchange deposit wallet less than twenty-five minutes after the theft."
+      ],
+      "riskSignals": [
+        {
+          "code": "sink-consolidation",
+          "title": "Sink consolidation",
+          "reason": "Bridged funds were consolidated into a known exchange deposit wallet less than twenty-five minutes after the theft.",
+          "confidence": 0.97,
+          "weight": 20
+        },
+        {
+          "code": "bridge-usage",
+          "title": "Bridge usage",
+          "reason": "Bridged funds were consolidated into a known exchange deposit wallet less than twenty-five minutes after the theft.",
+          "confidence": 0.97,
+          "weight": 16
+        }
+      ],
+      "valueFromSeedPct": 31.27,
+      "propagatedAmount": 0.99,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "token",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "ethereum:0xphish0008:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456:0x8888888888888888888888888888888888888802:ETH",
+      "from": "ethereum:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456",
+      "to": "ethereum:0x8888888888888888888888888888888888888802",
+      "chain": "ethereum",
+      "txHash": "0xphish0008",
+      "asset": "ETH",
+      "amount": 4.55,
+      "timestamp": "2026-04-06T09:23:00.000Z",
+      "flags": [
+        "mixer",
+        "rapid-hop"
+      ],
+      "riskScore": 34,
+      "riskConfidence": 0.96,
+      "reasons": [
+        "Secondary splitter entered a mixer path seven minutes after the fan-out event."
+      ],
+      "riskSignals": [
+        {
+          "code": "mixer-interaction",
+          "title": "Mixer interaction",
+          "reason": "Secondary splitter entered a mixer path seven minutes after the fan-out event.",
+          "confidence": 0.96,
+          "weight": 24
+        },
+        {
+          "code": "rapid-hop",
+          "title": "Rapid hop",
+          "reason": "Secondary splitter entered a mixer path seven minutes after the fan-out event.",
+          "confidence": 0.96,
+          "weight": 10
+        }
+      ],
+      "valueFromSeedPct": 24.7,
+      "propagatedAmount": 4.55,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "ethereum:0xphish0009:0x9e3c2ddbe5f60718293a4b5c6d7e8f9012345678:0x000000000000000000000000000000000000dead:ETH",
+      "from": "ethereum:0x9e3c2ddbe5f60718293a4b5c6d7e8f9012345678",
+      "to": "ethereum:0x000000000000000000000000000000000000dead",
+      "chain": "ethereum",
+      "txHash": "0xphish0009",
+      "asset": "ETH",
+      "amount": 3.12,
+      "timestamp": "2026-04-06T09:31:00.000Z",
+      "flags": [
+        "sink"
+      ],
+      "riskScore": 14,
+      "riskConfidence": 0.7,
+      "reasons": [
+        "One branch was intentionally burned to sever attribution and recoverable flow."
+      ],
+      "riskSignals": [
+        {
+          "code": "terminal-burn",
+          "title": "Burn address",
+          "reason": "One branch was intentionally burned to sever attribution and recoverable flow.",
+          "confidence": 0.7,
+          "weight": 14
+        }
+      ],
+      "valueFromSeedPct": 16.94,
+      "propagatedAmount": 3.12,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    },
+    {
+      "id": "ethereum:0xphish0010:0xaf4d3eece60718293a4b5c6d7e8f901234567890:0xdef1cafe00000000000000000000000000000001:ETH",
+      "from": "ethereum:0xaf4d3eece60718293a4b5c6d7e8f901234567890",
+      "to": "ethereum:0xdef1cafe00000000000000000000000000000001",
+      "chain": "ethereum",
+      "txHash": "0xphish0010",
+      "asset": "ETH",
+      "amount": 2.74,
+      "timestamp": "2026-04-06T09:29:00.000Z",
+      "flags": [
+        "sink"
+      ],
+      "riskScore": 12,
+      "riskConfidence": 0.68,
+      "reasons": [
+        "One branch parked funds in a DEX liquidity pool to slow down tracing."
+      ],
+      "riskSignals": [
+        {
+          "code": "dex-liquidity",
+          "title": "DEX liquidity pool",
+          "reason": "One branch parked funds in a DEX liquidity pool to slow down tracing.",
+          "confidence": 0.68,
+          "weight": 12
+        }
+      ],
+      "valueFromSeedPct": 14.87,
+      "propagatedAmount": 2.74,
+      "evidenceRefs": [],
+      "synthetic": false,
+      "metadata": {
+        "transferType": "native",
+        "source": "simulated-case"
+      }
+    }
+  ],
+  "riskAnalysis": {
+    "overallRisk": "HIGH",
+    "overallScore": 95,
+    "summary": "Overall risk is HIGH because the phishing collector rapidly fans funds out to four fresh wallets, pushes the primary branch through a bridge into a CEX cash-out path, and uses mixer, burn, and DEX terminals to reduce recoverability.",
+    "suspiciousWallets": [
+      {
+        "wallet": "0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+        "label": "Phishing Collector",
+        "risk": "HIGH",
+        "score": 94,
+        "reason": "Collector received the full phishing drain and scattered it to four fresh wallets in the same minute. Signals observed: fan-out burst, rapid hop, bridge usage.",
+        "signals": [
+          "fan-out burst",
+          "rapid hop",
+          "bridge usage"
+        ],
+        "confidence": 0.99,
+        "relatedNodeIds": [
+          "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12"
+        ],
+        "relatedEdgeIds": [
+          "ethereum:0xphish0002:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234:ETH",
+          "ethereum:0xphish0003:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456:ETH",
+          "ethereum:0xphish0004:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0x9e3c2ddbe5f60718293a4b5c6d7e8f9012345678:ETH",
+          "ethereum:0xphish0005:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0xaf4d3eece60718293a4b5c6d7e8f901234567890:ETH"
+        ]
+      },
+      {
+        "wallet": "0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234",
+        "label": "Splitter A",
+        "risk": "HIGH",
+        "score": 82,
+        "reason": "The highest-value splitter bridged funds cross-chain almost immediately after the theft. Signals observed: bridge usage, rapid hop.",
+        "signals": [
+          "bridge usage",
+          "rapid hop"
+        ],
+        "confidence": 0.96,
+        "relatedNodeIds": [
+          "ethereum:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234"
+        ],
+        "relatedEdgeIds": [
+          "ethereum:0xphish0006:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234:0x7777777777777777777777777777777777777701:ETH",
+          "bridge:bridge-phish-001:0x7777777777777777777777777777777777777701:0xbbcdef1234567890abcdef1234567890abcdef12:USDT"
+        ]
+      },
+      {
+        "wallet": "0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456",
+        "label": "Splitter B",
+        "risk": "HIGH",
+        "score": 78,
+        "reason": "A secondary splitter routed stolen funds into a mixer branch within minutes of the fan-out event. Signals observed: mixer interaction, rapid hop.",
+        "signals": [
+          "mixer interaction",
+          "rapid hop"
+        ],
+        "confidence": 0.95,
+        "relatedNodeIds": [
+          "ethereum:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456",
+          "ethereum:0x8888888888888888888888888888888888888802"
+        ],
+        "relatedEdgeIds": [
+          "ethereum:0xphish0008:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456:0x8888888888888888888888888888888888888802:ETH"
+        ]
+      },
+      {
+        "wallet": "0xbbcdef1234567890abcdef1234567890abcdef12",
+        "label": "BSC Mule Wallet",
+        "risk": "HIGH",
+        "score": 76,
+        "reason": "The bridge exit wallet consolidated stablecoins into a known CEX deposit wallet on BSC. Signals observed: bridge usage, sink consolidation.",
+        "signals": [
+          "bridge usage",
+          "sink consolidation"
+        ],
+        "confidence": 0.94,
+        "relatedNodeIds": [
+          "bsc:0xbbcdef1234567890abcdef1234567890abcdef12",
+          "bsc:0xcex000000000000000000000000000000000001"
+        ],
+        "relatedEdgeIds": [
+          "bsc:0xphish0007:0xbbcdef1234567890abcdef1234567890abcdef12:0xcex000000000000000000000000000000000001:USDT"
+        ]
+      }
+    ],
+    "suspiciousPaths": [
+      {
+        "pathId": "real-scam-bridge-cashout",
+        "wallet": "0xcex000000000000000000000000000000000001",
+        "risk": "HIGH",
+        "score": 93,
+        "reason": "Primary branch moves from the phishing collector to a bridge portal and into a BSC exchange deposit wallet in under 25 minutes. Signals observed: fan-out burst, bridge usage, sink consolidation.",
+        "signals": [
+          "fan-out burst",
+          "bridge usage",
+          "sink consolidation"
+        ],
+        "confidence": 0.97,
+        "edgeIds": [
+          "ethereum:0xphish0001:0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:ETH",
+          "ethereum:0xphish0002:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234:ETH",
+          "ethereum:0xphish0006:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234:0x7777777777777777777777777777777777777701:ETH",
+          "bridge:bridge-phish-001:0x7777777777777777777777777777777777777701:0xbbcdef1234567890abcdef1234567890abcdef12:USDT",
+          "bsc:0xphish0007:0xbbcdef1234567890abcdef1234567890abcdef12:0xcex000000000000000000000000000000000001:USDT"
+        ],
+        "nodeIds": [
+          "ethereum:0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080",
+          "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+          "ethereum:0x7c1a0bb9c3d4e5f60718293a4b5c6d7e8f901234",
+          "ethereum:0x7777777777777777777777777777777777777701",
+          "bsc:0xbbcdef1234567890abcdef1234567890abcdef12",
+          "bsc:0xcex000000000000000000000000000000000001"
+        ]
+      },
+      {
+        "pathId": "real-scam-mixer-route",
+        "wallet": "0x8888888888888888888888888888888888888802",
+        "risk": "HIGH",
+        "score": 81,
+        "reason": "Secondary branch enters a mixer shortly after the fan-out event, showing intent to obfuscate funds rather than cash out immediately. Signals observed: fan-out burst, mixer interaction, rapid hop.",
+        "signals": [
+          "fan-out burst",
+          "mixer interaction",
+          "rapid hop"
+        ],
+        "confidence": 0.95,
+        "edgeIds": [
+          "ethereum:0xphish0001:0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:ETH",
+          "ethereum:0xphish0003:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456:ETH",
+          "ethereum:0xphish0008:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456:0x8888888888888888888888888888888888888802:ETH"
+        ],
+        "nodeIds": [
+          "ethereum:0x5f3c9d8b9d1c4f6a7b8c9d0e1f20304050607080",
+          "ethereum:0xd4c7b1f8e2a934567890abcdefabcdefabcdef12",
+          "ethereum:0x8d2b1ccad4e5f60718293a4b5c6d7e8f90123456",
+          "ethereum:0x8888888888888888888888888888888888888802"
+        ]
+      }
+    ]
+  },
+  "traceHash": "28f0858faf38d464688842ee0390aa908e21ccf7e2a8d443a205e3d527b9c966"
+}

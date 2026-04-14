@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { FindingHistogram } from "../../../components/finding-histogram";
 
@@ -52,6 +53,20 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
     trace.result.findings.some(f => f.severity === "high") ? "HIGH" :
     trace.result.findings.some(f => f.severity === "medium") ? "MEDIUM" : "LOW";
   const chainsInvolved = trace.result.metrics.chainsInvolved.length;
+  const isVerified = Boolean(trace.result.traceHash);
+  const verificationLabel = isVerified ? "✔ Verified on Kadena" : "⚠ Not Verified";
+  const verificationBadgeStyle = {
+    alignItems: "center",
+    background: isVerified ? "#e7f7ef" : "#fff4db",
+    border: `1px solid ${isVerified ? "#2e8b57" : "#c98a13"}`,
+    borderRadius: "999px",
+    color: isVerified ? "#1f6b42" : "#8a5a00",
+    display: "inline-flex",
+    fontSize: "0.85rem",
+    fontWeight: 700,
+    gap: 8,
+    padding: "0.4rem 0.85rem"
+  } satisfies CSSProperties;
 
   return (
     <main className="shell grid" style={{ gap: 22 }}>
@@ -63,6 +78,14 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
             <div className="trace-meta">
               <span className="code">{trace.result.seed.seedValue}</span>
               <span className="muted">{trace.result.seed.seedType}</span>
+            </div>
+            <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: 12, marginTop: 12 }}>
+              <span style={verificationBadgeStyle}>{verificationLabel}</span>
+              {trace.result.traceHash ? (
+                <span className="code" style={{ overflowWrap: "anywhere" }}>
+                  {trace.result.traceHash}
+                </span>
+              ) : null}
             </div>
           </div>
           <Link href="/" className="ghost-button">

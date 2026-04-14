@@ -18,6 +18,7 @@
     "dev:api": "npm run dev --workspace @kadenatrace/api",
     "dev:worker": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run dev --workspace @kadenatrace/worker",
     "demo:seed": "tsx scripts/demo-seed.ts",
+    "verify-trace": "ts-node scripts/verify-trace.ts",
     "build": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run build --workspace @kadenatrace/api && npm run build --workspace @kadenatrace/worker && npm run build --workspace @kadenatrace/web",
     "typecheck": "npm run typecheck --workspace @kadenatrace/shared && npm run typecheck --workspace @kadenatrace/pact && npm run typecheck --workspace @kadenatrace/api && npm run typecheck --workspace @kadenatrace/worker && npm run typecheck --workspace @kadenatrace/web",
     "test": "npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run test --workspace @kadenatrace/shared && npm run test --workspace @kadenatrace/api",
@@ -30,6 +31,7 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "concurrently": "^9.1.2",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"
   },
