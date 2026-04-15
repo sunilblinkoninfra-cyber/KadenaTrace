@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Run unit tests
+        run: npm test
+
+  pact-tests:
+    runs-on: ubuntu-latest
+    name: Pact Contract Tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install Pact
+        run: |
+          curl -L https://github.com/kadena-io/pact/releases/download/v4.11.0/pact-4.11.0-linux-x64.tar.gz | tar xz
+          sudo mv pact /usr/local/bin/
+          pact --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Run Pact REPL tests
+        run: |
+          cd packages/pact
+          pact tests/fraud-registry.repl
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint (if configured)
+        run: |
+          if [ -f .eslintrc.js ] || [ -f .eslintrc.json ] || [ -f eslint.config.js ]; then
+            npx eslint . --ext .ts,.tsx
+          else
+            echo "No ESLint config found, skipping"
+          fi
+        continue-on-error: true

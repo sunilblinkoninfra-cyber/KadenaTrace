@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance } from "fastify";
+import { parse as parseYaml } from "yaml";
 
 import { DEMO_TRACE_REQUEST, NOMAD_TRACE_REQUEST } from "@kadenatrace/shared";
 
@@ -22,11 +25,13 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
     logger: true,
     genReqId: () => randomUUID()
   });
+
   await app.register(cors, {
     origin: config.corsOrigin ?? "http://localhost:3000",
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
   });
+
   await app.register(import("@fastify/rate-limit"), {
     max: 60,
     timeWindow: "1 minute",
@@ -37,8 +42,21 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
       message: `Rate limit exceeded. Retry after ${context.after}.`
     })
   });
+
+  // Add request ID header to all responses
   app.addHook("onRequest", async (request, reply) => {
     reply.header("x-request-id", request.id);
+  });
+
+  // Error handler
+  app.setErrorHandler(async (error, request, reply) => {
+    request.log.error(error);
+    reply.code(error.statusCode ?? 500).send({
+      code: error.code ?? "INTERNAL_ERROR",
+      message: error.message,
+      timestamp: new Date().toISOString(),
+      requestId: request.id
+    });
   });
 
   const pool = config.databaseUrl ? await createPostgresPool(config.databaseUrl) : null;
@@ -57,16 +75,94 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
   const pactAnchorService = new PactAnchorService(config);
   const caseService = new CaseService(caseRepository, traceService, pactAnchorService, config.webBaseUrl);
 
+  // Root endpoint with links
   app.get("/", async () => ({
     name: "KadenaTrace API",
-    status: "ok"
+    version: "1.0.0",
+    status: "ok",
+    documentation: {
+      openapi: "/api/docs/openapi.json",
+      swaggerUI: "/api/docs"
+    },
+    health: "/api/health"
   }));
 
+  // Health check endpoint
   app.get("/api/health", async () => ({
     status: "ok",
-    queueMode: queue ? "bullmq" : "inline",
-    storageMode: pool ? "postgres" : "memory"
+    timestamp: new Date().toISOString(),
+    version: "1.0.0",
+    services: {
+      queue: queue ? "bullmq" : "inline",
+      storage: pool ? "postgres" : "memory"
+    }
   }));
+
+  // Detailed health check
+  app.get("/api/health/detailed", async () => {
+    const health = {
+      status: "ok" as const,
+      timestamp: new Date().toISOString(),
+      version: "1.0.0",
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      services: {
+        queue: {
+          mode: queue ? "bullmq" : "inline",
+          healthy: true
+        },
+        storage: {
+          mode: pool ? "postgres" : "memory",
+          healthy: true
+        },
+        kadena: {
+          networkId: config.kadenaNetworkId,
+          chainId: config.kadenaChainId,
+          healthy: true
+        }
+      }
+    };
+    return health;
+  });
+
+  // OpenAPI documentation endpoints
+  app.get("/api/docs/openapi.json", async () => {
+    try {
+      const yamlPath = resolve(process.cwd(), "openapi.yml");
+      const yamlContent = readFileSync(yamlPath, "utf-8");
+      return parseYaml(yamlContent);
+    } catch (error) {
+      return { error: "OpenAPI spec not available" };
+    }
+  });
+
+  app.get("/api/docs", async (request, reply) => {
+    reply.header("Content-Type", "text/html");
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>KadenaTrace API Documentation</title>
+          <meta charset="utf-8" />
+          <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+        </head>
+        <body>
+          <div id="swagger-ui"></div>
+          <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+          <script>
+            SwaggerUIBundle({
+              url: '/api/docs/openapi.json',
+              dom_id: '#swagger-ui',
+              presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.presets.standalone
+              ]
+            });
+          </script>
+        </body>
+      </html>
+    `;
+  });
 
   await registerTraceRoutes(app, traceService);
   await registerCaseRoutes(app, caseService);

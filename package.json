@@ -39,6 +39,7 @@
     "@kadena/client": "^1.18.3",
     "@kadena/wallet-adapter-chainweaver-legacy": "^0.0.6",
     "@kadena/wallet-adapter-ecko": "^0.0.6",
-    "@kadena/wallet-adapter-react": "^0.0.7"
+    "@kadena/wallet-adapter-react": "^0.0.7",
+    "yaml": "^2.8.3"
   }
 }

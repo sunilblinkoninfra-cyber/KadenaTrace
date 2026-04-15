@@ -172,6 +172,20 @@ export function buildListCasesForChainCommand(
   );
 }
 
+export function buildListCasesForChainPaginatedCommand(
+  chain: string,
+  offset: number,
+  limit: number,
+  networkId: string,
+  chainId: string
+): IUnsignedCommand {
+  return buildReadOnlyQueryCommand(
+    `(${FRAUD_REGISTRY_MODULE}.list-cases-for-chain-paginated ${JSON.stringify(chain)} ${offset} ${limit})`,
+    networkId,
+    chainId
+  );
+}
+
 export function buildListAttestationsForCaseCommand(
   caseId: string,
   networkId: string,
@@ -179,6 +193,20 @@ export function buildListAttestationsForCaseCommand(
 ): IUnsignedCommand {
   return buildReadOnlyQueryCommand(
     `(${FRAUD_REGISTRY_MODULE}.list-attestations-for-case ${JSON.stringify(caseId)})`,
+    networkId,
+    chainId
+  );
+}
+
+export function buildListAttestationsForCasePaginatedCommand(
+  caseId: string,
+  offset: number,
+  limit: number,
+  networkId: string,
+  chainId: string
+): IUnsignedCommand {
+  return buildReadOnlyQueryCommand(
+    `(${FRAUD_REGISTRY_MODULE}.list-attestations-for-case-paginated ${JSON.stringify(caseId)} ${offset} ${limit})`,
     networkId,
     chainId
   );

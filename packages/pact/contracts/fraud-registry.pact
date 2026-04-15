@@ -170,11 +170,31 @@
       (lambda (k obj) (= (at "subject-chain" obj) target-chain))
       (lambda (k obj) obj)))
 
+  (defun list-cases-for-chain-paginated (target-chain:string offset:integer limit:integer)
+    @doc "Lists cases for a chain with pagination support (offset and limit)."
+    (enforce (>= offset 0) "offset must be non-negative")
+    (enforce (> limit 0) "limit must be positive")
+    (enforce (<= limit 100) "limit must be at most 100")
+    (take limit (drop offset
+      (fold-db cases
+        (lambda (k obj) (= (at "subject-chain" obj) target-chain))
+        (lambda (k obj) obj)))))
+
   (defun list-attestations-for-case (target-case-id:string)
     @doc "Lists all wallet attestations for a given case-id."
     (fold-db wallet-attestations
       (lambda (k obj) (= (at "case-id" obj) target-case-id))
       (lambda (k obj) obj)))
+
+  (defun list-attestations-for-case-paginated (target-case-id:string offset:integer limit:integer)
+    @doc "Lists attestations for a case with pagination support (offset and limit)."
+    (enforce (>= offset 0) "offset must be non-negative")
+    (enforce (> limit 0) "limit must be positive")
+    (enforce (<= limit 100) "limit must be at most 100")
+    (take limit (drop offset
+      (fold-db wallet-attestations
+        (lambda (k obj) (= (at "case-id" obj) target-case-id))
+        (lambda (k obj) obj)))))
 
   (defun init-reporters (initial-guard:guard)
     @doc "Initialises the reporters guard. Can only be called once."

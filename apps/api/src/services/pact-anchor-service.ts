@@ -2,7 +2,9 @@ import { createClient, type ICommand, type ICommandResult, type IPreflightResult
 import {
   assertSignedCommandMatches,
   buildListAttestationsForCaseCommand,
+  buildListAttestationsForCasePaginatedCommand,
   buildListCasesForChainCommand,
+  buildListCasesForChainPaginatedCommand,
   buildPactApiUrl,
   createAttestationId,
   prepareCaseAnchorTransaction,
@@ -15,6 +17,17 @@ import type { CaseAnchor, CaseRecord, Chain, RiskAttestation, RiskLevel } from "
 import { sha256Hex } from "@kadenatrace/shared";
 
 import type { ApiConfig } from "../config.js";
+
+export interface PaginationParams {
+  cursor?: string;
+  limit?: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+}
 
 export interface WalletAttestationDraftInput {
   wallet: string;
@@ -241,6 +254,70 @@ export class PactAnchorService {
       result: { data?: unknown };
     };
     return Array.isArray(successful.result.data) ? (successful.result.data as PactAttestationListRow[]) : [];
+  }
+
+  async listCasesForChainPaginated(
+    chain: string,
+    params: PaginationParams
+  ): Promise<PaginatedResult<PactCaseListRow>> {
+    const offset = params.cursor ? parseInt(params.cursor, 10) : 0;
+    const limit = Math.min(params.limit ?? 20, 100);
+
+    const command = buildListCasesForChainPaginatedCommand(
+      chain,
+      offset,
+      limit,
+      this.config.kadenaNetworkId,
+      this.config.kadenaChainId
+    );
+
+    const result = await withTimeout(this.client.dirtyRead(command), "Timed out while reading paginated cases.", this.requestTimeoutMs);
+    const successful = ensurePactSuccess(result, "Unable to read paginated cases.") as ICommandResult & {
+      result: { data?: unknown };
+    };
+
+    const items = Array.isArray(successful.result.data) ? (successful.result.data as PactCaseListRow[]) : [];
+    const hasMore = items.length === limit;
+
+    return {
+      items,
+      nextCursor: hasMore ? String(offset + limit) : undefined,
+      hasMore
+    };
+  }
+
+  async listAttestationsForCasePaginated(
+    caseId: string,
+    params: PaginationParams
+  ): Promise<PaginatedResult<PactAttestationListRow>> {
+    const offset = params.cursor ? parseInt(params.cursor, 10) : 0;
+    const limit = Math.min(params.limit ?? 20, 100);
+
+    const command = buildListAttestationsForCasePaginatedCommand(
+      caseId,
+      offset,
+      limit,
+      this.config.kadenaNetworkId,
+      this.config.kadenaChainId
+    );
+
+    const result = await withTimeout(
+      this.client.dirtyRead(command),
+      "Timed out while reading paginated attestations.",
+      this.requestTimeoutMs
+    );
+    const successful = ensurePactSuccess(result, "Unable to read paginated attestations.") as ICommandResult & {
+      result: { data?: unknown };
+    };
+
+    const items = Array.isArray(successful.result.data) ? (successful.result.data as PactAttestationListRow[]) : [];
+    const hasMore = items.length === limit;
+
+    return {
+      items,
+      nextCursor: hasMore ? String(offset + limit) : undefined,
+      hasMore
+    };
   }
 
   private createAttestationEvidenceHash(record: CaseRecord, input: WalletAttestationDraftInput): string {

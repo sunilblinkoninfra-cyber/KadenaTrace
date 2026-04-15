@@ -1,0 +1,1174 @@
+openapi: 3.0.3
+info:
+  title: KadenaTrace API
+  description: |
+    Hybrid fraud and scam tracing API that combines off-chain transaction indexing with Kadena Pact contracts for immutable case anchoring.
+
+    ## Features
+    - Multi-chain tracing (Ethereum, BSC, Bitcoin, Kadena)
+    - Graph-based fund flow analysis
+    - Risk scoring with explainable signals
+    - Immutable case anchoring on Kadena blockchain
+    - Wallet attestations and dispute resolution
+  version: 1.0.0
+  contact:
+    name: KadenaTrace Team
+
+servers:
+  - url: http://localhost:3001
+    description: Local development server
+
+tags:
+  - name: Traces
+    description: Fund flow tracing and graph analysis
+  - name: Cases
+    description: Case management and Kadena anchoring
+  - name: Attestations
+    description: Wallet risk attestations
+  - name: Disputes
+    description: Case dispute resolution
+  - name: Public
+    description: Public read-only endpoints
+
+paths:
+  /api/traces:
+    post:
+      summary: Create a new trace
+      description: Initiates a fund flow trace from a seed address or transaction
+      tags:
+        - Traces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TraceRequest'
+      responses:
+        '200':
+          description: Trace created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl -X POST http://localhost:3001/api/traces \
+              -H "Content-Type: application/json" \
+              -d '{
+                "chain": "ethereum",
+                "seedType": "address",
+                "seedValue": "0x1111111111111111111111111111111111111111",
+                "options": {
+                  "maxDepth": 4,
+                  "maxNodes": 250
+                }
+              }'
+
+  /api/traces/{traceId}:
+    get:
+      summary: Get trace by ID
+      description: Retrieve a trace result with optional graph slicing
+      tags:
+        - Traces
+      parameters:
+        - name: traceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique trace identifier
+        - name: focusNodeId
+          in: query
+          schema:
+            type: string
+          description: Focus graph on specific node
+        - name: depth
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+            default: 2
+          description: Depth for partial graph view
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 10
+            maximum: 200
+            default: 60
+          description: Maximum nodes for partial view
+        - name: highRiskOnly
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Filter to high-risk nodes only
+      responses:
+        '200':
+          description: Trace retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceRecord'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/cases:
+    post:
+      summary: Create a new case
+      description: Create a public case from a completed trace
+      tags:
+        - Cases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseCreateInput'
+      responses:
+        '200':
+          description: Case created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  caseId:
+                    type: string
+                  slug:
+                    type: string
+                  publicUri:
+                    type: string
+                  traceHash:
+                    type: string
+                  verifiable:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Case with same ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/cases/by-chain/{chain}:
+    get:
+      summary: List cases by chain
+      description: Retrieve paginated list of cases for a specific blockchain
+      tags:
+        - Cases
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [ethereum, bsc, kadena, bitcoin]
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: Pagination cursor
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of cases
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PactCaseListRow'
+                  nextCursor:
+                    type: string
+                    nullable: true
+
+  /api/cases/{caseId}/anchor/payload:
+    post:
+      summary: Prepare case anchor payload
+      description: Create unsigned Pact transaction for case anchoring
+      tags:
+        - Cases
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signer:
+                  $ref: '#/components/schemas/WalletSigner'
+      responses:
+        '200':
+          description: Payload prepared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreparedCaseAnchorPayload'
+
+  /api/cases/{caseId}/anchor/submit:
+    post:
+      summary: Submit signed case anchor
+      description: Submit signed Pact transaction to Kadena chain
+      tags:
+        - Cases
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signer:
+                  $ref: '#/components/schemas/WalletSigner'
+                signedCommand:
+                  $ref: '#/components/schemas/SignedCommand'
+      responses:
+        '200':
+          description: Anchor submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseAnchor'
+
+  /api/cases/{caseId}/attestations:
+    post:
+      summary: Add wallet attestation
+      description: Create a risk attestation for a wallet
+      tags:
+        - Attestations
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskAttestationInput'
+      responses:
+        '200':
+          description: Attestation added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  caseId:
+                    type: string
+                  attestations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RiskAttestation'
+
+  /api/cases/{caseId}/attestations/payload:
+    post:
+      summary: Prepare attestation payload
+      description: Create unsigned Pact transaction for wallet attestation
+      tags:
+        - Attestations
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signer:
+                  $ref: '#/components/schemas/WalletSigner'
+                attestation:
+                  $ref: '#/components/schemas/RiskAttestationInput'
+      responses:
+        '200':
+          description: Payload prepared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreparedWalletAttestationPayload'
+
+  /api/cases/{caseId}/attestations/submit:
+    post:
+      summary: Submit signed attestation
+      description: Submit signed Pact transaction for wallet attestation
+      tags:
+        - Attestations
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signer:
+                  $ref: '#/components/schemas/WalletSigner'
+                attestation:
+                  $ref: '#/components/schemas/RiskAttestationInput'
+                signedCommand:
+                  $ref: '#/components/schemas/SignedCommand'
+      responses:
+        '200':
+          description: Attestation submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  caseId:
+                    type: string
+                  attestations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RiskAttestation'
+
+  /api/cases/{caseId}/disputes/payload:
+    post:
+      summary: Prepare dispute payload
+      description: Create unsigned Pact transaction for raising a dispute
+      tags:
+        - Disputes
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+                signer:
+                  $ref: '#/components/schemas/WalletSigner'
+      responses:
+        '200':
+          description: Dispute payload prepared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  disputeId:
+                    type: string
+                  unsignedCommand:
+                    type: object
+                  txPreview:
+                    type: string
+
+  /api/cases/{caseId}/disputes/submit:
+    post:
+      summary: Submit signed dispute
+      description: Submit signed Pact transaction to raise a dispute
+      tags:
+        - Disputes
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                disputeId:
+                  type: string
+                signedCommand:
+                  $ref: '#/components/schemas/SignedCommand'
+      responses:
+        '200':
+          description: Dispute submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisputeRecord'
+
+  /api/cases/{caseId}/disputes:
+    get:
+      summary: List case disputes
+      description: Retrieve all disputes for a case
+      tags:
+        - Disputes
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of disputes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DisputeRecord'
+
+  /api/public/cases:
+    get:
+      summary: List public cases
+      description: Retrieve paginated list of public cases
+      tags:
+        - Public
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: List of public cases
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublicCaseView'
+                  nextCursor:
+                    type: string
+                    nullable: true
+
+  /api/public/cases/{slug}:
+    get:
+      summary: Get public case by slug
+      description: Retrieve a public case by its URL-friendly slug
+      tags:
+        - Public
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Public case details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicCaseView'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    ErrorCode:
+      type: string
+      enum:
+        - RATE_LIMIT_EXCEEDED
+        - PROVIDER_TIMEOUT
+        - PROVIDER_ERROR
+        - INVALID_SEED_FORMAT
+        - INVALID_CHAIN
+        - INVALID_SEED_TYPE
+        - TRACE_NOT_FOUND
+        - CASE_NOT_FOUND
+        - DUPLICATE_CASE
+        - UNAUTHORIZED
+        - FORBIDDEN
+        - VALIDATION_ERROR
+        - PACT_SUBMISSION_FAILED
+        - PACT_PREFLIGHT_FAILED
+        - WALLET_CONNECTION_ERROR
+        - BRIDGE_RESOLUTION_FAILED
+        - GRAPH_PRUNED
+        - MAX_NODES_EXCEEDED
+        - INTERNAL_ERROR
+
+    ApiError:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        requestId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Chain:
+      type: string
+      enum: [ethereum, bsc, kadena, bitcoin]
+
+    SeedType:
+      type: string
+      enum: [address, tx]
+
+    TraceRequest:
+      type: object
+      required:
+        - chain
+        - seedType
+        - seedValue
+      properties:
+        chain:
+          $ref: '#/components/schemas/Chain'
+        seedType:
+          $ref: '#/components/schemas/SeedType'
+        seedValue:
+          type: string
+          minLength: 3
+        options:
+          type: object
+          properties:
+            maxDepth:
+              type: integer
+              minimum: 1
+              maximum: 10
+              default: 4
+            maxNodes:
+              type: integer
+              minimum: 10
+              maximum: 1000
+              default: 250
+            lookaheadWindowDays:
+              type: integer
+              minimum: 1
+              maximum: 30
+              default: 7
+            includeBackwardContext:
+              type: boolean
+              default: true
+            graphPruneNodeLimit:
+              type: integer
+              minimum: 20
+              maximum: 1000
+              default: 120
+            maxSuspiciousPaths:
+              type: integer
+              minimum: 1
+              maximum: 20
+              default: 5
+
+    TraceResponse:
+      type: object
+      properties:
+        traceId:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, completed, failed]
+
+    TraceRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        request:
+          $ref: '#/components/schemas/TraceRequest'
+        status:
+          type: string
+        result:
+          $ref: '#/components/schemas/TraceResult'
+        error:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TraceResult:
+      type: object
+      properties:
+        graph:
+          $ref: '#/components/schemas/TraceGraph'
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+        suspiciousPaths:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuspiciousPath'
+        metrics:
+          $ref: '#/components/schemas/TraceMetrics'
+        riskAnalysis:
+          $ref: '#/components/schemas/RiskAnalysis'
+        traceHash:
+          type: string
+        verifiable:
+          type: boolean
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidenceRef'
+        warnings:
+          type: array
+          items:
+            type: string
+        generatedAt:
+          type: string
+          format: date-time
+
+    TraceGraph:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphEdge'
+
+    GraphNode:
+      type: object
+      properties:
+        id:
+          type: string
+        chain:
+          $ref: '#/components/schemas/Chain'
+        address:
+          type: string
+        kind:
+          type: string
+          enum: [wallet, contract, bridge, mixer, exchange, router, multisig, terminal]
+        label:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        riskScore:
+          type: number
+        riskConfidence:
+          type: number
+        riskLevel:
+          type: string
+          enum: [low, medium, high, critical]
+        reasons:
+          type: array
+          items:
+            type: string
+        valueFromSeedPct:
+          type: number
+
+    GraphEdge:
+      type: object
+      properties:
+        id:
+          type: string
+        from:
+          type: string
+        to:
+          type: string
+        chain:
+          $ref: '#/components/schemas/Chain'
+        txHash:
+          type: string
+        asset:
+          type: string
+        amount:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+        flags:
+          type: array
+          items:
+            type: string
+            enum: [bridge, rapid-hop, fan-out, fan-in, mixer, sink, unresolved-bridge, dust, airdrop, exchange-cashout, bridge-obfuscated, path-highlight, internal-transfer]
+        riskScore:
+          type: number
+        riskConfidence:
+          type: number
+
+    Finding:
+      type: object
+      properties:
+        code:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        explanation:
+          type: string
+        confidence:
+          type: number
+        relatedNodeIds:
+          type: array
+          items:
+            type: string
+        relatedEdgeIds:
+          type: array
+          items:
+            type: string
+
+    SuspiciousPath:
+      type: object
+      properties:
+        id:
+          type: string
+        startNodeId:
+          type: string
+        endNodeId:
+          type: string
+        nodeIds:
+          type: array
+          items:
+            type: string
+        edgeIds:
+          type: array
+          items:
+            type: string
+        riskScore:
+          type: number
+        confidence:
+          type: number
+
+    TraceMetrics:
+      type: object
+      properties:
+        totalNodes:
+          type: integer
+        totalEdges:
+          type: integer
+        chainsInvolved:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chain'
+        highRiskNodes:
+          type: integer
+        highRiskEdges:
+          type: integer
+        totalValueObserved:
+          type: number
+        tracedValueToExchanges:
+          type: number
+        suspiciousPathCount:
+          type: integer
+
+    RiskAnalysis:
+      type: object
+      properties:
+        overallRisk:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        overallScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        summary:
+          type: string
+        suspiciousWallets:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExplainableRiskItem'
+        suspiciousPaths:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExplainablePathRiskItem'
+
+    ExplainableRiskItem:
+      type: object
+      properties:
+        wallet:
+          type: string
+        label:
+          type: string
+        risk:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        score:
+          type: integer
+        reason:
+          type: string
+        signals:
+          type: array
+          items:
+            type: string
+        confidence:
+          type: number
+
+    ExplainablePathRiskItem:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ExplainableRiskItem'
+        - type: object
+          properties:
+            pathId:
+              type: string
+            edgeIds:
+              type: array
+              items:
+                type: string
+            nodeIds:
+              type: array
+              items:
+                type: string
+
+    EvidenceRef:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [provider, tx, bridge, case, contract]
+        url:
+          type: string
+          format: uri
+        txHash:
+          type: string
+        chain:
+          $ref: '#/components/schemas/Chain'
+        note:
+          type: string
+
+    CaseCreateInput:
+      type: object
+      required:
+        - traceId
+        - title
+        - summary
+        - narrative
+      properties:
+        traceId:
+          type: string
+        title:
+          type: string
+          minLength: 3
+          maxLength: 140
+        summary:
+          type: string
+          minLength: 10
+          maxLength: 400
+        narrative:
+          type: string
+          minLength: 10
+          maxLength: 5000
+
+    CaseAnchor:
+      type: object
+      properties:
+        requestKey:
+          type: string
+        chainId:
+          type: string
+        networkId:
+          type: string
+        status:
+          type: string
+          enum: [pending, submitted, confirmed, local-simulation, failed]
+        blockHeight:
+          type: integer
+        traceHash:
+          type: string
+        metadataHash:
+          type: string
+        publicUri:
+          type: string
+        submittedAt:
+          type: string
+          format: date-time
+        error:
+          type: string
+
+    RiskAttestationInput:
+      type: object
+      required:
+        - wallet
+        - chain
+        - riskLevel
+        - riskScore
+        - evidenceHash
+        - signer
+      properties:
+        wallet:
+          type: string
+        chain:
+          $ref: '#/components/schemas/Chain'
+        riskLevel:
+          type: string
+          enum: [low, medium, high, critical]
+        riskScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        evidenceHash:
+          type: string
+        signer:
+          type: string
+        note:
+          type: string
+          maxLength: 500
+
+    RiskAttestation:
+      type: object
+      properties:
+        attestationId:
+          type: string
+        caseId:
+          type: string
+        wallet:
+          type: string
+        chain:
+          $ref: '#/components/schemas/Chain'
+        riskLevel:
+          type: string
+        riskScore:
+          type: integer
+        evidenceHash:
+          type: string
+        signer:
+          type: string
+        note:
+          type: string
+        status:
+          type: string
+          enum: [submitted, confirmed, failed]
+        blockHeight:
+          type: integer
+        submittedAt:
+          type: string
+          format: date-time
+
+    DisputeRecord:
+      type: object
+      properties:
+        disputeId:
+          type: string
+        caseId:
+          type: string
+        disputer:
+          type: string
+        reasonHash:
+          type: string
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [pending, reviewed]
+        createdAt:
+          type: string
+          format: date-time
+        reviewedAt:
+          type: string
+          format: date-time
+
+    WalletSigner:
+      type: object
+      required:
+        - accountName
+        - publicKey
+      properties:
+        accountName:
+          type: string
+          minLength: 3
+        publicKey:
+          type: string
+          minLength: 16
+        adapterName:
+          type: string
+
+    SignedCommand:
+      type: object
+      required:
+        - cmd
+        - hash
+        - sigs
+      properties:
+        cmd:
+          type: string
+        hash:
+          type: string
+        sigs:
+          type: array
+          items:
+            type: object
+
+    PreparedCaseAnchorPayload:
+      type: object
+      properties:
+        unsignedCommand:
+          type: object
+        txPreview:
+          type: string
+        metadata:
+          type: object
+
+    PreparedWalletAttestationPayload:
+      type: object
+      properties:
+        attestationId:
+          type: string
+        unsignedCommand:
+          type: object
+        txPreview:
+          type: string
+        evidenceHash:
+          type: string
+
+    PublicCaseView:
+      type: object
+      properties:
+        caseId:
+          type: string
+        slug:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        narrative:
+          type: string
+        seed:
+          $ref: '#/components/schemas/TraceRequest'
+        traceHash:
+          type: string
+        trace:
+          $ref: '#/components/schemas/TraceResult'
+        anchor:
+          $ref: '#/components/schemas/CaseAnchor'
+        attestations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskAttestation'
+        updatedAt:
+          type: string
+          format: date-time
+
+    PactCaseListRow:
+      type: object
+      properties:
+        case-id:
+          type: string
+        subject-chain:
+          type: string
+        subject-kind:
+          type: string
+        subject-hash:
+          type: string
+        metadata-hash:
+          type: string
+        public-uri-hash:
+          type: string
+        reporter:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: VALIDATION_ERROR
+            message: "Validation failed for body: Invalid chain"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: TRACE_NOT_FOUND
+            message: "Trace with ID abc-123 was not found"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    RateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: RATE_LIMIT_EXCEEDED
+            message: "Rate limit exceeded. Please retry after 60 seconds."
+            details:
+              retryAfter: 60
+            timestamp: "2024-01-15T10:30:00Z"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: INTERNAL_ERROR
+            message: "An internal error occurred during trace creation"
+            timestamp: "2024-01-15T10:30:00Z"

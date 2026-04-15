@@ -1,5 +1,6 @@
 export * from "./config.js";
 export * from "./domain.js";
+export * from "./errors.js";
 export * from "./fixtures/sample-trace.js";
 export * from "./trace/analysis.js";
 export * from "./trace/builder.js";

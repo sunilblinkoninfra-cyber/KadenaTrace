@@ -1,7 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 
-import { caseCreateSchema, walletAttestationSchema } from "@kadenatrace/shared";
+import {
+  buildErrorResponse,
+  caseCreateSchema,
+  Errors,
+  walletAttestationSchema
+} from "@kadenatrace/shared";
 
 import type { CaseService } from "../services/case-service.js";
 
@@ -45,17 +50,45 @@ const attestationSubmitSchema = z.object({
   signedCommand: signedCommandSchema
 });
 
+const disputeCreateSchema = z.object({
+  reason: z.string().min(10).max(1000),
+  signer: walletSignerSchema
+});
+
+const disputeSubmitSchema = z.object({
+  disputeId: z.string().min(3),
+  signedCommand: signedCommandSchema
+});
+
 export async function registerCaseRoutes(app: FastifyInstance, caseService: CaseService) {
   app.get("/api/cases/by-chain/:chain", async (request, reply) => {
-    const params = request.params as { chain: string };
-    const result = await caseService.listCasesByChain(params.chain);
-    return reply.send(result);
+    try {
+      const params = request.params as { chain: string };
+      const query = request.query as { cursor?: string; limit?: string };
+
+      const result = await caseService.listCasesByChain(params.chain, {
+        cursor: query.cursor,
+        limit: query.limit ? parseInt(query.limit, 10) : undefined
+      });
+
+      return reply.send(result);
+    } catch (error) {
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
+    }
   });
 
   app.post("/api/cases", async (request, reply) => {
     const parsed = caseCreateSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: parsed.error.flatten() });
+      const error = Errors.validationError(
+        "body",
+        "Invalid case creation request",
+        parsed.error.flatten()
+      );
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
 
     try {
@@ -68,7 +101,9 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
         verifiable: true
       });
     } catch (error) {
-      return reply.code(400).send({ error: error instanceof Error ? error.message : "Unable to create case." });
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
   });
 
@@ -76,14 +111,22 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
     const params = request.params as { caseId: string };
     const parsed = anchorPrepareSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: parsed.error.flatten() });
+      const error = Errors.validationError(
+        "body",
+        "Invalid anchor prepare request",
+        parsed.error.flatten()
+      );
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
 
     try {
       const payload = await caseService.prepareCaseAnchor(params.caseId, parsed.data.signer);
       return reply.send(payload);
     } catch (error) {
-      return reply.code(404).send({ error: error instanceof Error ? error.message : "Unable to prepare anchor." });
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
   });
 
@@ -93,7 +136,9 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
       const record = await caseService.anchorCase(params.caseId);
       return reply.send(record.anchor);
     } catch (error) {
-      return reply.code(404).send({ error: error instanceof Error ? error.message : "Unable to anchor case." });
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
   });
 
@@ -101,14 +146,22 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
     const params = request.params as { caseId: string };
     const parsed = anchorSubmitSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: parsed.error.flatten() });
+      const error = Errors.validationError(
+        "body",
+        "Invalid anchor submit request",
+        parsed.error.flatten()
+      );
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
 
     try {
       const record = await caseService.submitCaseAnchor(params.caseId, parsed.data.signer, parsed.data.signedCommand);
       return reply.send(record.anchor);
     } catch (error) {
-      return reply.code(400).send({ error: error instanceof Error ? error.message : "Unable to submit anchor." });
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
   });
 
@@ -116,14 +169,22 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
     const params = request.params as { caseId: string };
     const parsed = walletAttestationSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: parsed.error.flatten() });
+      const error = Errors.validationError(
+        "body",
+        "Invalid attestation request",
+        parsed.error.flatten()
+      );
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
 
     try {
       const record = await caseService.addAttestation(params.caseId, parsed.data);
       return reply.send({ caseId: record.caseId, attestations: record.attestations });
     } catch (error) {
-      return reply.code(404).send({ error: error instanceof Error ? error.message : "Unable to add attestation." });
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
   });
 
@@ -131,7 +192,13 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
     const params = request.params as { caseId: string };
     const parsed = attestationPrepareSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: parsed.error.flatten() });
+      const error = Errors.validationError(
+        "body",
+        "Invalid attestation prepare request",
+        parsed.error.flatten()
+      );
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
 
     try {
@@ -142,7 +209,9 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
       );
       return reply.send(payload);
     } catch (error) {
-      return reply.code(404).send({ error: error instanceof Error ? error.message : "Unable to prepare attestation." });
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
   });
 
@@ -150,7 +219,13 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
     const params = request.params as { caseId: string };
     const parsed = attestationSubmitSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: parsed.error.flatten() });
+      const error = Errors.validationError(
+        "body",
+        "Invalid attestation submit request",
+        parsed.error.flatten()
+      );
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
 
     try {
@@ -162,23 +237,109 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
       );
       return reply.send({ caseId: record.caseId, attestations: record.attestations });
     } catch (error) {
-      return reply.code(400).send({ error: error instanceof Error ? error.message : "Unable to submit attestation." });
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
   });
 
-  app.get("/api/public/cases", async () => caseService.listPublicCases());
+  // New dispute endpoints
+  app.post("/api/cases/:caseId/disputes/payload", async (request, reply) => {
+    const params = request.params as { caseId: string };
+    const parsed = disputeCreateSchema.safeParse(request.body);
+    if (!parsed.success) {
+      const error = Errors.validationError(
+        "body",
+        "Invalid dispute request",
+        parsed.error.flatten()
+      );
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
+    }
+
+    try {
+      const payload = await caseService.prepareDispute(params.caseId, parsed.data.reason, parsed.data.signer);
+      return reply.send(payload);
+    } catch (error) {
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
+    }
+  });
+
+  app.post("/api/cases/:caseId/disputes/submit", async (request, reply) => {
+    const params = request.params as { caseId: string };
+    const parsed = disputeSubmitSchema.safeParse(request.body);
+    if (!parsed.success) {
+      const error = Errors.validationError(
+        "body",
+        "Invalid dispute submit request",
+        parsed.error.flatten()
+      );
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
+    }
+
+    try {
+      const record = await caseService.submitDispute(params.caseId, parsed.data.disputeId, parsed.data.signedCommand);
+      return reply.send(record);
+    } catch (error) {
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
+    }
+  });
+
+  app.get("/api/cases/:caseId/disputes", async (request, reply) => {
+    const params = request.params as { caseId: string };
+    try {
+      const disputes = await caseService.listDisputesForCase(params.caseId);
+      return reply.send(disputes);
+    } catch (error) {
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
+    }
+  });
+
+  app.get("/api/public/cases", async (request, reply) => {
+    try {
+      const query = request.query as { cursor?: string; limit?: string };
+      const result = await caseService.listPublicCases({
+        cursor: query.cursor,
+        limit: query.limit ? parseInt(query.limit, 10) : undefined
+      });
+      return reply.send(result);
+    } catch (error) {
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
+    }
+  });
 
   app.get("/api/cases/:caseId/attestations", async (request, reply) => {
-    const params = request.params as { caseId: string };
-    const result = await caseService.listAttestationsForCase(params.caseId);
-    return reply.send(result);
+    try {
+      const params = request.params as { caseId: string };
+      const query = request.query as { cursor?: string; limit?: string };
+      const result = await caseService.listAttestationsForCase(params.caseId, {
+        cursor: query.cursor,
+        limit: query.limit ? parseInt(query.limit, 10) : undefined
+      });
+      return reply.send(result);
+    } catch (error) {
+      request.log.error(error);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
+    }
   });
 
   app.get("/api/public/cases/:slug", async (request, reply) => {
     const params = request.params as { slug: string };
     const record = await caseService.getPublicCase(params.slug);
     if (!record) {
-      return reply.code(404).send({ error: "Case not found." });
+      const error = Errors.caseNotFound(params.slug);
+      const { statusCode, body } = buildErrorResponse(error);
+      return reply.code(statusCode).send(body);
     }
 
     return reply.send(record);
