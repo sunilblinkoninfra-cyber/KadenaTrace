@@ -13,7 +13,7 @@ We currently support security updates for the following versions:
 If you discover a security vulnerability in KadenaTrace, please report it responsibly:
 
 1. **Do NOT** open a public issue
-2. Email security details to: [sunil@blinkoninfra.com](mailto:sunil@blinkoninfra.com)
+2. Email security details to: kumars92@outlook.com
 3. Include a detailed description of the vulnerability
 4. Provide steps to reproduce the issue
 5. Allow up to 48 hours for an initial response
