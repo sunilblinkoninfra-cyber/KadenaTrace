@@ -6,7 +6,17 @@ export const dynamic = "force-dynamic";
 
 export default async function AttestationsPage() {
   const cases = await getPublicCases();
-  if (!cases) return null;
+  if (!cases || !Array.isArray(cases)) {
+    return (
+      <main className="shell stack">
+        <h1 className="section-title">Attestations Dashboard</h1>
+        <div className="panel card">
+          <h3 style={{ color: "#ff4d4f" }}>API not connected — Retry</h3>
+          <p className="muted">Could not load attestations. Ensure the backend is running and reachable.</p>
+        </div>
+      </main>
+    );
+  }
 
   const allAttestations = cases.flatMap(c => 
     c.attestations.map(a => ({ ...a, caseSlug: c.slug }))
