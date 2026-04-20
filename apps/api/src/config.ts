@@ -27,8 +27,8 @@ export function loadConfig(): ApiConfig {
     "https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact";
 
   return {
-    port: Number(process.env.API_PORT ?? 4000),
-    webBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/:\d+$/, ":3000") ?? "http://localhost:3000",
+    port: Number(process.env.PORT ?? process.env.API_PORT ?? 4000),
+    webBaseUrl: process.env.WEB_BASE_URL ?? process.env.CORS_ORIGIN ?? "http://localhost:3000",
     databaseUrl: process.env.DATABASE_URL,
     redisUrl: process.env.REDIS_URL,
     covalentApiKey: process.env.COVALENT_API_KEY,
