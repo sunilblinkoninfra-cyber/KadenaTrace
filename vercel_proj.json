@@ -1,0 +1,5 @@
+{
+  "name": "kadenatrace-frontend",
+  "framework": "nextjs",
+  "rootDirectory": "apps/web"
+}

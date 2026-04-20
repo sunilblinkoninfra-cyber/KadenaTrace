@@ -67,7 +67,7 @@ describe("heuristics", () => {
 
       const edges: GraphEdge[] = [
         // Fan out from source to 6 recipients within 5 minutes
-        ...Array.from({ length: 6 }, (_, i) =
+        ...Array.from({ length: 6 }, (_, i) =>
           createMockEdge({
             id: `edge-${i}`,
             from: "source",
@@ -203,7 +203,7 @@ describe("heuristics", () => {
 
     it("should detect sink consolidation", () => {
       const nodes: GraphNode[] = [
-        ...Array.from({ length: 5 }, (_, i) =
+        ...Array.from({ length: 5 }, (_, i) =>
           createMockNode({ id: `source-${i}`, address: `0xsource${i}` })
         ),
         createMockNode({
@@ -216,7 +216,7 @@ describe("heuristics", () => {
 
       const edges: GraphEdge[] = [
         // 5 sources sending 20% each to sink
-        ...Array.from({ length: 5 }, (_, i) =
+        ...Array.from({ length: 5 }, (_, i) =>
           createMockEdge({
             id: `edge-${i}`,
             from: `source-${i}`,
