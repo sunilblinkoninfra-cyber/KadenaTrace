@@ -144,8 +144,8 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
       <section className="panel stack">
         <h2 className="section-title">Risk findings</h2>
         <div className="findings-list">
-          {fraudCase.trace.findings.map((finding) => (
-            <article key={`${finding.code}-${finding.explanation}`} className="finding">
+          {fraudCase.trace.findings.map((finding, index) => (
+            <article key={`${finding.code}-${index}`} className="finding">
               <div className="trace-meta">
                 <span className="pill">{finding.code}</span>
                 <RiskBadge level={finding.severity === "critical" ? "critical" : finding.severity} />
