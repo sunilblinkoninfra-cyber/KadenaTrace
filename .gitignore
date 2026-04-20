@@ -9,3 +9,5 @@ apps/api/data
 apps/api/.data
 *.log
 
+
+.vercel

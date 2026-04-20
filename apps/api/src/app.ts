@@ -50,10 +50,11 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
 
   // Error handler
   app.setErrorHandler(async (error, request, reply) => {
-    request.log.error(error);
-    reply.code(error.statusCode ?? 500).send({
-      code: error.code ?? "INTERNAL_ERROR",
-      message: error.message,
+    const err = error as any;
+    request.log.error(err);
+    reply.code(err.statusCode ?? 500).send({
+      code: err.code ?? "INTERNAL_ERROR",
+      message: err.message ?? "Unknown error",
       timestamp: new Date().toISOString(),
       requestId: request.id
     });
