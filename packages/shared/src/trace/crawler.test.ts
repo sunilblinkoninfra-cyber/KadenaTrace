@@ -157,7 +157,7 @@ describe("crawler", () => {
       const nodes: GraphNode[] = [
         createMockNode({ id: "seed-node", address: "0xseed" }),
         createMockNode({ id: "fan-out", address: "0xfanout" }),
-        ...Array.from({ length: 5 }, (_, i) =
+        ...Array.from({ length: 5 }, (_, i) =>
           createMockNode({
             id: `dest-${i}`,
             address: `0xdest${i}`,
@@ -175,7 +175,7 @@ describe("crawler", () => {
           timestamp: baseTime.toISOString()
         }),
         // Fan out from fan-out node to 5 destinations
-        ...Array.from({ length: 5 }, (_, i) =
+        ...Array.from({ length: 5 }, (_, i) =>
           createMockEdge({
             id: `fan-edge-${i}`,
             from: "fan-out",
@@ -301,9 +301,9 @@ describe("crawler", () => {
       const result = calculateVelocityMetrics({ nodes, edges }, seed);
 
       assert.strictEqual(result.timeline.length, 2);
-      assert.strictEqual(result.timeline[0].gapMinutesFromPrevious, null); // First entry
-      assert.strictEqual(result.timeline[1].gapMinutesFromPrevious, 60); // 1 hour gap
-      assert.strictEqual(result.timeline[1].terminalType, "cex");
+      assert.strictEqual(result.timeline[0]!.gapMinutesFromPrevious, null); // First entry
+      assert.strictEqual(result.timeline[1]!.gapMinutesFromPrevious, 60); // 1 hour gap
+      assert.strictEqual(result.timeline[1]!.terminalType, "cex");
     });
 
     it("should identify burn addresses", () => {
@@ -331,7 +331,7 @@ describe("crawler", () => {
       const result = calculateVelocityMetrics({ nodes, edges }, seed);
 
       if (result.terminalPaths.length > 0) {
-        assert.strictEqual(result.terminalPaths[0].terminalType, "burn");
+        assert.strictEqual(result.terminalPaths[0]!.terminalType, "burn");
       }
     });
 
@@ -360,7 +360,7 @@ describe("crawler", () => {
       const result = calculateVelocityMetrics({ nodes, edges }, seed);
 
       if (result.terminalPaths.length > 0) {
-        assert.strictEqual(result.terminalPaths[0].terminalType, "dex-lp");
+        assert.strictEqual(result.terminalPaths[0]!.terminalType, "dex-lp");
       }
     });
   });
