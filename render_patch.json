@@ -1,5 +1,0 @@
-[
-  {"key": "CORS_ORIGIN", "value": "https://kadenatrace-frontend.vercel.app"},
-  {"key": "WEB_BASE_URL", "value": "https://kadenatrace-frontend.vercel.app"},
-  {"key": "NODE_ENV", "value": "production"}
-]

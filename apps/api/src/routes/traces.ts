@@ -126,7 +126,7 @@ function toApiTraceResponse(trace: TraceRecord) {
       : null,
     riskAnalysis: trace.result?.riskAnalysis ?? null,
     traceHash: trace.result?.traceHash ?? null,
-    verifiable: trace.result?.verifiable ?? false
+    verifiable: Boolean(trace.result?.traceHash)
   };
 }
 
