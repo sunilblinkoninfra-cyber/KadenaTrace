@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent, type ReactElement } from "react";
 
-import { getApiBaseUrl } from "../lib/api";
+import { fetchTrace } from "../lib/api";
 
 const DEMO_WALLET = "0x1111111111111111111111111111111111111111";
 const DEMO_TX = "0x1000000000000000000000000000000000000000000000000000000000000001";
@@ -22,26 +22,14 @@ export function SearchForm(): ReactElement {
     setStatus(null);
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/api/traces`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          chain,
-          seedType,
-          seedValue
-        })
+      const payload = await fetchTrace({
+        chain,
+        seedType,
+        seedValue
       });
-
-      if (!response.ok) {
-        throw new Error("Unable to create trace.");
-      }
-
-      const payload = (await response.json()) as { traceId: string };
       router.push(`/trace/${payload.traceId}`);
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to start trace.");
+    } catch (err: any) {
+      setStatus(err.message || "Network error: check API connectivity and CORS");
     } finally {
       setPending(false);
     }
