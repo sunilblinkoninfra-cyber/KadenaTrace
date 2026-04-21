@@ -27,7 +27,7 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
   });
 
   await app.register(cors, {
-    origin: config.corsOrigin ?? "http://localhost:3000",
+    origin: process.env.WEB_URL || "https://your-vercel-app.vercel.app",
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
   });
@@ -89,6 +89,12 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
   }));
 
   // Health check endpoint
+  app.get("/health", async () => ({
+    status: "ok",
+    service: "kadenatrace-api",
+    env: process.env.NODE_ENV || "production"
+  }));
+
   app.get("/api/health", async () => ({
     status: "ok",
     timestamp: new Date().toISOString(),

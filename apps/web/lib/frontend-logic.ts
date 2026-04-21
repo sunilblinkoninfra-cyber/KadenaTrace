@@ -1,8 +1,26 @@
-// frontend-logic.js -- Formats Time-to-Exit velocity metrics into urgency badges, audit URLs, and timeline entries.
+// frontend-logic.ts -- Formats Time-to-Exit velocity metrics into urgency badges, audit URLs, and timeline entries.
 const MINUTES_PER_HOUR = 60;
 const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
 
-export function buildPublicAuditUrl(baseUrl, slug) {
+export interface VelocityMetrics {
+  meanTimeToExitMinutes?: number | null;
+  recoveryPotential?: string;
+  urgencyLabel?: string;
+  timeline?: {
+    id: string;
+    fromLabel: string;
+    toLabel: string;
+    amount: number | string;
+    asset: string;
+    chain: string;
+    timestamp: string | number | Date;
+    gapMinutesFromPrevious?: number | null;
+    terminalType?: string | null;
+    txHash?: string;
+  }[];
+}
+
+export function buildPublicAuditUrl(baseUrl: string | null | undefined, slug: string | null | undefined): string | null {
   if (!slug) {
     return null;
   }
@@ -11,7 +29,7 @@ export function buildPublicAuditUrl(baseUrl, slug) {
   return `${normalizedBase}/case/${slug}`;
 }
 
-export function formatMeanTimeToExit(minutes) {
+export function formatMeanTimeToExit(minutes: number | null | undefined): string {
   if (minutes == null) {
     return "Awaiting terminal endpoint";
   }
@@ -28,7 +46,7 @@ export function formatMeanTimeToExit(minutes) {
   return `${(minutes / MINUTES_PER_DAY).toFixed(1)} d`;
 }
 
-export function getUrgencyGauge(velocityMetrics) {
+export function getUrgencyGauge(velocityMetrics: VelocityMetrics | null | undefined) {
   const minutes = velocityMetrics?.meanTimeToExitMinutes ?? null;
 
   if (minutes == null) {
@@ -76,7 +94,7 @@ export function getUrgencyGauge(velocityMetrics) {
   };
 }
 
-export function buildTimelineSidebar(velocityMetrics) {
+export function buildTimelineSidebar(velocityMetrics: VelocityMetrics | null | undefined) {
   const entries = velocityMetrics?.timeline ?? [];
 
   return entries.map((entry) => ({
@@ -90,7 +108,7 @@ export function buildTimelineSidebar(velocityMetrics) {
   }));
 }
 
-function formatGap(minutes) {
+function formatGap(minutes: number): string {
   if (minutes < MINUTES_PER_HOUR) {
     return `${Math.round(minutes)} min`;
   }
@@ -102,7 +120,7 @@ function formatGap(minutes) {
   return `${(minutes / MINUTES_PER_DAY).toFixed(1)} d`;
 }
 
-function formatTimestamp(timestamp) {
+function formatTimestamp(timestamp: string | number | Date): string {
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
     timeStyle: "short"

@@ -1,8 +1,0 @@
-{
-  "serviceDetails": {
-    "envSpecificDetails": {
-      "buildCommand": "npm install --include=dev && npm run build --workspace @kadenatrace/shared && npm run build --workspace @kadenatrace/pact && npm run build --workspace @kadenatrace/api",
-      "startCommand": "npm run start:api"
-    }
-  }
-}

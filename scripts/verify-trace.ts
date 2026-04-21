@@ -174,6 +174,7 @@ async function loadExampleCandidates(): Promise<VerificationCandidate[]> {
 
   const examplePaths = [
     resolve(process.cwd(), "examples", "sample-case.json"),
+    resolve(process.cwd(), "examples", "real-chain-case.json"),
     resolve(process.cwd(), "examples", "real-scam-case.json")
   ];
 
