@@ -26,10 +26,24 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
     genReqId: () => randomUUID()
   });
 
+  const allowedOrigin = process.env.WEB_URL || "https://kadenatrace-frontend.vercel.app";
+  console.log("CORS allowed origin:", allowedOrigin);
+
   await app.register(cors, {
-    origin: process.env.WEB_URL || "https://your-vercel-app.vercel.app",
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // allow server-to-server / curl
+
+      if (
+        origin === allowedOrigin ||
+        origin.includes("vercel.app") || // allow preview deployments
+        origin.startsWith("http://localhost")
+      ) {
+        return cb(null, true);
+      }
+
+      cb(new Error("Not allowed by CORS"), false);
+    },
+    credentials: true,
   });
 
   await app.register(import("@fastify/rate-limit"), {
