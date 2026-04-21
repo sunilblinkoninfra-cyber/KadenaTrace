@@ -1,0 +1,109 @@
+{
+  "inputWallet": "0xVictimWalletAddress0000000000000000000",
+  "chain": "ethereum",
+  "bridge": "ethereum->bsc",
+  "nodes": [
+    {"id": "0xVictimWalletAddress0000000000000000000", "label": "Victim", "type": "eoa"},
+    {"id": "0xAttackerProxy00000000000000000000000", "label": "Exploiter", "type": "contract"},
+    {"id": "0xSplitter1_00000000000000000000000000", "label": "Splitter A", "type": "eoa"},
+    {"id": "0xSplitter2_00000000000000000000000000", "label": "Splitter B", "type": "eoa"},
+    {"id": "0xMixerDeposit0000000000000000000000000", "label": "Tornado Cash", "type": "mixer"},
+    {"id": "0xStargateBridgeEth0000000000000000000", "label": "Stargate Eth", "type": "bridge"},
+    {"id": "0xStargateBridgeBsc0000000000000000000", "label": "Stargate Bsc", "type": "bridge"},
+    {"id": "0xAttackerBscWallet00000000000000000000", "label": "BSC Attacker Proxy", "type": "eoa"},
+    {"id": "0xBinanceDeposit0000000000000000000000", "label": "Binance Deposit", "type": "exchange"}
+  ],
+  "edges": [
+    {
+      "from": "0xVictimWalletAddress0000000000000000000",
+      "to": "0xAttackerProxy00000000000000000000000",
+      "amount": 100,
+      "asset": "ETH",
+      "chain": "ethereum",
+      "synthetic": false,
+      "timestamp": "2026-04-21T00:00:00Z",
+      "txHash": "0xabcdef111111111111111111111111111111111111111111111111111"
+    },
+    {
+      "from": "0xAttackerProxy00000000000000000000000",
+      "to": "0xSplitter1_00000000000000000000000000",
+      "amount": 50,
+      "asset": "ETH",
+      "chain": "ethereum",
+      "synthetic": false,
+      "timestamp": "2026-04-21T00:05:00Z",
+      "txHash": "0xabcdef222222222222222222222222222222222222222222222222222"
+    },
+    {
+      "from": "0xAttackerProxy00000000000000000000000",
+      "to": "0xSplitter2_00000000000000000000000000",
+      "amount": 50,
+      "asset": "ETH",
+      "chain": "ethereum",
+      "synthetic": false,
+      "timestamp": "2026-04-21T00:05:30Z",
+      "txHash": "0xabcdef333333333333333333333333333333333333333333333333333"
+    },
+    {
+      "from": "0xSplitter1_00000000000000000000000000",
+      "to": "0xMixerDeposit0000000000000000000000000",
+      "amount": 50,
+      "asset": "ETH",
+      "chain": "ethereum",
+      "synthetic": false,
+      "timestamp": "2026-04-21T00:10:00Z",
+      "txHash": "0xabcdef444444444444444444444444444444444444444444444444444"
+    },
+    {
+      "from": "0xSplitter2_00000000000000000000000000",
+      "to": "0xStargateBridgeEth0000000000000000000",
+      "amount": 50,
+      "asset": "ETH",
+      "chain": "ethereum",
+      "synthetic": false,
+      "timestamp": "2026-04-21T00:11:00Z",
+      "txHash": "0xabcdef555555555555555555555555555555555555555555555555555"
+    },
+    {
+      "from": "0xStargateBridgeEth0000000000000000000",
+      "to": "0xStargateBridgeBsc0000000000000000000",
+      "amount": 50,
+      "asset": "ETH",
+      "bridgeTransferId": "sg-12345",
+      "chain": "ethereum->bsc",
+      "synthetic": true,
+      "timestamp": "2026-04-21T00:14:00Z",
+      "txHash": "synthetic-bridge-hop"
+    },
+    {
+      "from": "0xStargateBridgeBsc0000000000000000000",
+      "to": "0xAttackerBscWallet00000000000000000000",
+      "amount": 50,
+      "asset": "WETH",
+      "chain": "bsc",
+      "synthetic": false,
+      "timestamp": "2026-04-21T00:15:00Z",
+      "txHash": "0xbcdef666666666666666666666666666666666666666666666666666"
+    },
+    {
+      "from": "0xAttackerBscWallet00000000000000000000",
+      "to": "0xBinanceDeposit0000000000000000000000",
+      "amount": 50,
+      "asset": "WETH",
+      "chain": "bsc",
+      "synthetic": false,
+      "timestamp": "2026-04-21T00:20:00Z",
+      "txHash": "0xbcdef777777777777777777777777777777777777777777777777777"
+    }
+  ],
+  "riskAnalysis": {
+    "risk": "HIGH",
+    "signals": [
+      "rapid-hops",
+      "fan-out",
+      "bridge-usage"
+    ],
+    "explanation": "Funds rapidly moved across chains and split across multiple wallets"
+  },
+  "traceHash": "95ced7c00b1d0f4c8da1a4773c0792819b0fe0ed777eac1d979a6756ba2081f9"
+}

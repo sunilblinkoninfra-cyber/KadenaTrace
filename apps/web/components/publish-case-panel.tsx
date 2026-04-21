@@ -32,7 +32,7 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
   const urgencyGauge = getUrgencyGauge(velocityMetrics);
   const timelineEntries = buildTimelineSidebar(velocityMetrics) as TimelineSidebarEntry[];
   const publicAuditUrl = buildPublicAuditUrl(
-    typeof window === "undefined" ? "http://localhost:3000" : window.location.origin,
+    typeof window === "undefined" ? process.env.NEXT_PUBLIC_WEB_URL || "https://your-vercel-app.vercel.app" : window.location.origin,
     slug
   );
 

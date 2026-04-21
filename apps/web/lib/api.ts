@@ -1,6 +1,6 @@
 import type { PublicCaseView, TraceRecord } from "@kadenatrace/shared";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://kadenatrace-api.onrender.com";
 
 export async function apiFetch<T>(path: string): Promise<T | null> {
   try {

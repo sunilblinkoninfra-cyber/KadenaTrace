@@ -11,3 +11,6 @@ apps/api/.data
 
 
 .vercel
+render_patch*.json
+vercel_patch*.json
+render_payload.json

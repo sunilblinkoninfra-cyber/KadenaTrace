@@ -1,3 +1,0 @@
-{
-  "buildCommand": "cd ../.. && npm install && npm run build"
-}
