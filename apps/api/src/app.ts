@@ -36,7 +36,8 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
       if (
         origin === allowedOrigin ||
         origin.includes("vercel.app") || // allow preview deployments
-        origin.startsWith("http://localhost")
+        origin.startsWith("http://localhost") ||
+        origin.startsWith("http://127.0.0.1")
       ) {
         return cb(null, true);
       }
@@ -44,6 +45,8 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
       cb(new Error("Not allowed by CORS"), false);
     },
     credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-request-id"]
   });
 
   await app.register(import("@fastify/rate-limit"), {
