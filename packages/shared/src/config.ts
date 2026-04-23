@@ -12,11 +12,20 @@ export const DEFAULT_TRACE_OPTIONS: TraceOptions = {
 export const HEURISTIC_THRESHOLDS = {
   rapidHopWindowMinutes: 15,
   rapidHopMinimumEdges: 3,
+  rapidHopMaxChainLength: 20,
   fanOutRecipients: 5,
   fanInSenders: 4,
   fanOutWindowMinutes: 30,
   sinkConsolidationRatio: 0.6,
-  bridgeObfuscationWindowMinutes: 45
+  bridgeObfuscationWindowMinutes: 45,
+  peelChainMinHops: 3,
+  peelChainMaxRetainPct: 0.15,
+  structuringRoundAmountTolerance: 0.001,
+  structuringMinTransactions: 3,
+  circularFlowMaxMinutes: 120,
+  dormantWalletMinDays: 30,
+  exchangeHoppingMinExchanges: 2,
+  exchangeHoppingWindowMinutes: 60
 } as const;
 
 export const ANALYSIS_THRESHOLDS = {
