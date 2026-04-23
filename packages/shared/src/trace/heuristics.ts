@@ -64,6 +64,11 @@ export function scoreGraph(graph: TraceShape): ScoredFinding {
   applyBridgeObfuscation(graph, accumulator);
   applyMixerInteraction(graph, accumulator);
   applySinkConsolidation(graph, accumulator);
+  applyPeelChain(graph, accumulator);
+  applyStructuring(graph, accumulator);
+  applyCircularFlow(graph, accumulator);
+  applyDormantReactivation(graph, accumulator);
+  applyExchangeHopping(graph, accumulator);
   return accumulator;
 }
 
@@ -143,45 +148,76 @@ function applyFanIn(graph: TraceShape, accumulator: ScoredFinding) {
 
 function applyRapidHops(graph: TraceShape, accumulator: ScoredFinding) {
   const candidateEdges = graph.edges.filter((edge) => !isSuppressedEdge(edge));
-  for (const edge of candidateEdges) {
-    const path = [edge];
-    let cursor = edge.to;
-    let cursorTime = edge.timestamp;
+  const coveredEdgeIds = new Set<string>();
 
-    while (path.length < HEURISTIC_THRESHOLDS.rapidHopMinimumEdges) {
+  for (const startEdge of candidateEdges) {
+    // Skip edges already covered by a previously found rapid-hop path
+    if (coveredEdgeIds.has(startEdge.id)) {
+      continue;
+    }
+
+    const path = [startEdge];
+    const visitedNodeIds = new Set<string>([startEdge.from, startEdge.to]);
+    let cursor = startEdge.to;
+    let cursorTime = startEdge.timestamp;
+
+    // Extend the path as far as possible within the time window
+    for (let depth = 1; depth < HEURISTIC_THRESHOLDS.rapidHopMaxChainLength; depth++) {
       const nextCandidates = candidateEdges
-        .filter((candidate) => candidate.from === cursor)
+        .filter(
+          (candidate) =>
+            candidate.from === cursor &&
+            !coveredEdgeIds.has(candidate.id) &&
+            !visitedNodeIds.has(candidate.to) // prevent cycles
+        )
         .sort((left, right) => left.timestamp.localeCompare(right.timestamp));
+
       const next = nextCandidates.find((candidate) => {
         const minutes = (Date.parse(candidate.timestamp) - Date.parse(cursorTime)) / 1000 / 60;
         return minutes >= 0 && minutes <= HEURISTIC_THRESHOLDS.rapidHopWindowMinutes;
       });
+
       if (!next) {
         break;
       }
 
       path.push(next);
+      visitedNodeIds.add(next.to);
       cursor = next.to;
       cursorTime = next.timestamp;
     }
 
-    if (path.length >= HEURISTIC_THRESHOLDS.rapidHopMinimumEdges) {
-      const signal = createSignal(
-        "rapid-hop-path",
-        "Rapid hop path",
-        `Rapid laundering path spans ${path.length} edges with less than ${HEURISTIC_THRESHOLDS.rapidHopWindowMinutes} minutes between hops.`,
-        18,
-        0.91
-      );
-      accumulator.findings.push(
-        createFinding(signal, "critical", Array.from(new Set(path.flatMap((item) => [item.from, item.to]))), path)
-      );
-      for (const item of path) {
-        upsertNodeAdjustment(accumulator.nodeAdjustments, item.from, signal);
-        upsertNodeAdjustment(accumulator.nodeAdjustments, item.to, signal);
-        upsertEdgeAdjustment(accumulator.edgeAdjustments, item.id, signal, "rapid-hop");
-      }
-      break;
+    if (path.length < HEURISTIC_THRESHOLDS.rapidHopMinimumEdges) {
+      continue;
+    }
+
+    // Mark all edges in this path as covered so they are not re-used
+    for (const item of path) {
+      coveredEdgeIds.add(item.id);
+    }
+
+    const signal = createSignal(
+      "rapid-hop-path",
+      "Rapid hop path",
+      `Rapid laundering path spans ${path.length} hops with less than ` +
+        `${HEURISTIC_THRESHOLDS.rapidHopWindowMinutes} minutes between each hop.`,
+      18,
+      0.91
+    );
+
+    accumulator.findings.push(
+      createFinding(
+        signal,
+        "critical",
+        Array.from(new Set(path.flatMap((item) => [item.from, item.to]))),
+        path
+      )
+    );
+
+    for (const item of path) {
+      upsertNodeAdjustment(accumulator.nodeAdjustments, item.from, signal);
+      upsertNodeAdjustment(accumulator.nodeAdjustments, item.to, signal);
+      upsertEdgeAdjustment(accumulator.edgeAdjustments, item.id, signal, "rapid-hop");
     }
   }
 }
@@ -314,6 +350,292 @@ function applySinkConsolidation(graph: TraceShape, accumulator: ScoredFinding) {
           node.kind === "exchange" ? "exchange-cashout" : "sink"
         );
       }
+    }
+  }
+}
+
+function applyPeelChain(graph: TraceShape, accumulator: ScoredFinding): void {
+  const outboundByNode = new Map<string, GraphEdge[]>();
+
+  for (const edge of graph.edges.filter((candidate) => !isSuppressedEdge(candidate))) {
+    const list = outboundByNode.get(edge.from) ?? [];
+    list.push(edge);
+    outboundByNode.set(edge.from, list);
+  }
+
+  for (const edge of graph.edges.filter((candidate) => !isSuppressedEdge(candidate))) {
+    // Start a peel chain from this edge
+    const chain: GraphEdge[] = [edge];
+    let cursor = edge.to;
+
+    for (let depth = 0; depth < 10; depth++) {
+      const outbound = (outboundByNode.get(cursor) ?? [])
+        .filter((candidate) => !isSuppressedEdge(candidate))
+        .sort((left, right) => left.timestamp.localeCompare(right.timestamp));
+
+      // Peel pattern: exactly one dominant outgoing edge forwarding most funds
+      const dominant = outbound.find((candidate) => {
+        const totalOut = outbound.reduce((sum, item) => sum + item.amount, 0);
+        const retained = totalOut > 0 ? 1 - candidate.amount / totalOut : 1;
+        return (
+          retained <= HEURISTIC_THRESHOLDS.peelChainMaxRetainPct &&
+          outbound.length <= 2 // at most one "change" output
+        );
+      });
+
+      if (!dominant) {
+        break;
+      }
+
+      chain.push(dominant);
+      cursor = dominant.to;
+    }
+
+    if (chain.length < HEURISTIC_THRESHOLDS.peelChainMinHops) {
+      continue;
+    }
+
+    const signal = createSignal(
+      "peel-chain",
+      "Peel chain",
+      `Peel chain of ${chain.length} hops: each hop forwards >85% of funds, ` +
+        `retaining a small amount to obscure the total. Classic layering technique.`,
+      26,
+      0.84
+    );
+
+    accumulator.findings.push(
+      createFinding(
+        signal,
+        "high",
+        Array.from(new Set(chain.flatMap((item) => [item.from, item.to]))),
+        chain
+      )
+    );
+    for (const item of chain) {
+      upsertNodeAdjustment(accumulator.nodeAdjustments, item.from, signal);
+      upsertEdgeAdjustment(accumulator.edgeAdjustments, item.id, signal, "peel-chain");
+    }
+    break; // one peel chain finding per starting edge is enough
+  }
+}
+
+function applyStructuring(graph: TraceShape, accumulator: ScoredFinding): void {
+  const outgoing = new Map<string, GraphEdge[]>();
+
+  for (const edge of graph.edges.filter((candidate) => !isSuppressedEdge(candidate))) {
+    const list = outgoing.get(edge.from) ?? [];
+    list.push(edge);
+    outgoing.set(edge.from, list);
+  }
+
+  for (const [nodeId, edges] of outgoing) {
+    if (edges.length < HEURISTIC_THRESHOLDS.structuringMinTransactions) {
+      continue;
+    }
+
+    const roundEdges = edges.filter((edge) => {
+      const remainder = edge.amount % 1;
+      return (
+        remainder <= HEURISTIC_THRESHOLDS.structuringRoundAmountTolerance ||
+        remainder >= 1 - HEURISTIC_THRESHOLDS.structuringRoundAmountTolerance
+      );
+    });
+
+    const roundRatio = roundEdges.length / edges.length;
+    if (roundRatio < 0.7) {
+      continue;
+    }
+
+    const signal = createSignal(
+      "structuring",
+      "Structuring / smurfing",
+      `${roundEdges.length} of ${edges.length} outgoing transactions use ` +
+        `suspiciously round amounts — a classic structuring pattern used to ` +
+        `evade exchange AML reporting thresholds.`,
+      22,
+      0.78
+    );
+
+    accumulator.findings.push(
+      createFinding(signal, "high", [nodeId, ...roundEdges.map((edge) => edge.to)], roundEdges)
+    );
+    upsertNodeAdjustment(accumulator.nodeAdjustments, nodeId, signal);
+    for (const edge of roundEdges) {
+      upsertEdgeAdjustment(accumulator.edgeAdjustments, edge.id, signal, "structuring");
+    }
+  }
+}
+
+function applyCircularFlow(graph: TraceShape, accumulator: ScoredFinding): void {
+  const candidateEdges = graph.edges.filter((candidate) => !isSuppressedEdge(candidate));
+
+  for (const edge of candidateEdges) {
+    // Find any later edge that returns funds to edge.from
+    const returning = candidateEdges.find((candidate) => {
+      if (candidate.to !== edge.from || candidate.id === edge.id) {
+        return false;
+      }
+      const minutesLater =
+        (Date.parse(candidate.timestamp) - Date.parse(edge.timestamp)) / 1000 / 60;
+      return minutesLater > 0 && minutesLater <= HEURISTIC_THRESHOLDS.circularFlowMaxMinutes;
+    });
+
+    if (!returning) {
+      continue;
+    }
+
+    const signal = createSignal(
+      "circular-flow",
+      "Circular flow",
+      `Funds sent from ${edge.from.split(":")[1]?.slice(0, 10) ?? edge.from} ` +
+        `returned to the same wallet within ${HEURISTIC_THRESHOLDS.circularFlowMaxMinutes} minutes. ` +
+        `Indicates wash trading or self-dealing to create artificial transaction history.`,
+      30,
+      0.88
+    );
+
+    accumulator.findings.push(
+      createFinding(signal, "high", [edge.from, edge.to, returning.from], [edge, returning])
+    );
+    upsertNodeAdjustment(accumulator.nodeAdjustments, edge.from, signal);
+    upsertEdgeAdjustment(accumulator.edgeAdjustments, edge.id, signal, "circular-flow");
+    upsertEdgeAdjustment(accumulator.edgeAdjustments, returning.id, signal, "circular-flow");
+  }
+}
+
+function applyDormantReactivation(graph: TraceShape, accumulator: ScoredFinding): void {
+  const inboundByNode = new Map<string, GraphEdge[]>();
+  const outboundByNode = new Map<string, GraphEdge[]>();
+
+  for (const edge of graph.edges.filter((candidate) => !isSuppressedEdge(candidate))) {
+    const inbound = inboundByNode.get(edge.to) ?? [];
+    inbound.push(edge);
+    inboundByNode.set(edge.to, inbound);
+
+    const outbound = outboundByNode.get(edge.from) ?? [];
+    outbound.push(edge);
+    outboundByNode.set(edge.from, outbound);
+  }
+
+  for (const nodeId of inboundByNode.keys()) {
+    const inbound = inboundByNode.get(nodeId) ?? [];
+    const outbound = outboundByNode.get(nodeId) ?? [];
+
+    if (inbound.length === 0 || outbound.length === 0) {
+      continue;
+    }
+
+    const lastReceived = inbound
+      .map((edge) => edge.timestamp)
+      .sort()
+      .at(-1);
+
+    if (!lastReceived) {
+      continue;
+    }
+
+    const firstSentAfter = outbound
+      .filter((edge) => edge.timestamp > lastReceived)
+      .sort((left, right) => left.timestamp.localeCompare(right.timestamp))[0];
+
+    if (!firstSentAfter) {
+      continue;
+    }
+
+    const dormantDays =
+      (Date.parse(firstSentAfter.timestamp) - Date.parse(lastReceived)) /
+      1000 /
+      60 /
+      60 /
+      24;
+
+    if (dormantDays < HEURISTIC_THRESHOLDS.dormantWalletMinDays) {
+      continue;
+    }
+
+    const signal = createSignal(
+      "dormant-reactivation",
+      "Dormant wallet reactivation",
+      `Wallet was dormant for ${Math.round(dormantDays)} days then suddenly ` +
+        `forwarded funds — a sleeper wallet pattern common in staged long-term laundering.`,
+      28,
+      0.81
+    );
+
+    accumulator.findings.push(
+      createFinding(signal, "high", [nodeId, firstSentAfter.to], [firstSentAfter])
+    );
+    upsertNodeAdjustment(accumulator.nodeAdjustments, nodeId, signal);
+    upsertEdgeAdjustment(
+      accumulator.edgeAdjustments,
+      firstSentAfter.id,
+      signal,
+      "dormant-reactivation"
+    );
+  }
+}
+
+function applyExchangeHopping(graph: TraceShape, accumulator: ScoredFinding): void {
+  const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+  const outboundByNode = new Map<string, GraphEdge[]>();
+
+  for (const edge of graph.edges.filter((candidate) => !isSuppressedEdge(candidate))) {
+    const list = outboundByNode.get(edge.from) ?? [];
+    list.push(edge);
+    outboundByNode.set(edge.from, list);
+  }
+
+  for (const [nodeId, edges] of outboundByNode) {
+    const exchangeEdges = edges.filter((edge) => {
+      const target = nodeById.get(edge.to);
+      return target?.kind === "exchange" || target?.tags.includes("exchange");
+    });
+
+    if (exchangeEdges.length < HEURISTIC_THRESHOLDS.exchangeHoppingMinExchanges) {
+      continue;
+    }
+
+    const sorted = [...exchangeEdges].sort((left, right) =>
+      left.timestamp.localeCompare(right.timestamp)
+    );
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+
+    if (!first || !last) {
+      continue;
+    }
+
+    const windowMinutes =
+      (Date.parse(last.timestamp) - Date.parse(first.timestamp)) / 1000 / 60;
+
+    if (windowMinutes > HEURISTIC_THRESHOLDS.exchangeHoppingWindowMinutes) {
+      continue;
+    }
+
+    const uniqueExchanges = new Set(exchangeEdges.map((edge) => edge.to));
+
+    const signal = createSignal(
+      "exchange-hopping",
+      "Exchange hopping",
+      `Funds deposited into ${uniqueExchanges.size} different exchanges within ` +
+        `${Math.round(windowMinutes)} minutes — fragmenting the KYC trail across ` +
+        `exchange reporting silos to obscure the total amount moved.`,
+      24,
+      0.83
+    );
+
+    accumulator.findings.push(
+      createFinding(
+        signal,
+        "high",
+        [nodeId, ...Array.from(uniqueExchanges)],
+        exchangeEdges
+      )
+    );
+    upsertNodeAdjustment(accumulator.nodeAdjustments, nodeId, signal);
+    for (const edge of exchangeEdges) {
+      upsertEdgeAdjustment(accumulator.edgeAdjustments, edge.id, signal, "exchange-cashout");
     }
   }
 }

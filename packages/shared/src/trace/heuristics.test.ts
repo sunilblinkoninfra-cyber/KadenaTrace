@@ -141,6 +141,66 @@ describe("heuristics", () => {
       assert.ok(result.nodeAdjustments.has("hop3"));
     });
 
+    it("should detect multiple distinct rapid-hop chains", () => {
+      // Two independent chains: A→B→C and D→E→F
+      // Both should be found; the break bug would miss the second
+      const t0 = "2024-01-01T10:00:00Z";
+      const t1 = "2024-01-01T10:05:00Z";
+      const t2 = "2024-01-01T10:10:00Z";
+      const makeEdge = (id: string, from: string, to: string, ts: string): GraphEdge => ({
+        id, from, to, timestamp: ts, amount: 1, asset: "ETH",
+        chain: "ethereum", txHash: id, riskScore: 0, riskConfidence: 0,
+        reasons: [], riskSignals: [], flags: [], valueFromSeedPct: 0,
+        propagatedAmount: 0, evidenceRefs: [], synthetic: false
+      });
+      const edges = [
+        makeEdge("e1", "A", "B", t0),
+        makeEdge("e2", "B", "C", t1),
+        makeEdge("e3", "C", "D", t2),
+        makeEdge("e4", "E", "F", t0),
+        makeEdge("e5", "F", "G", t1),
+        makeEdge("e6", "G", "H", t2),
+      ];
+      const nodes = ["A","B","C","D","E","F","G","H"].map((id) => ({
+        id, chain: "ethereum" as const, address: id, kind: "wallet" as const,
+        label: id, tags: [], riskScore: 0, riskConfidence: 0,
+        riskLevel: "low" as const, reasons: [], riskSignals: [],
+        valueFromSeedPct: 0, evidenceRefs: []
+      }));
+      const result = scoreGraph({ nodes, edges });
+      const rapidHopFindings = result.findings.filter(
+        (f) => f.code === "rapid-hop-path"
+      );
+      assert.equal(rapidHopFindings.length >= 2, true,
+        "should find both independent rapid-hop chains");
+    });
+
+    it("should not produce cycle findings in rapid-hop detection", () => {
+      const t0 = "2024-01-01T10:00:00Z";
+      const t1 = "2024-01-01T10:05:00Z";
+      const makeEdge = (id: string, from: string, to: string, ts: string): GraphEdge => ({
+        id, from, to, timestamp: ts, amount: 1, asset: "ETH",
+        chain: "ethereum", txHash: id, riskScore: 0, riskConfidence: 0,
+        reasons: [], riskSignals: [], flags: [], valueFromSeedPct: 0,
+        propagatedAmount: 0, evidenceRefs: [], synthetic: false
+      });
+      // A→B then B→A — a cycle
+      const edges = [makeEdge("e1", "A", "B", t0), makeEdge("e2", "B", "A", t1)];
+      const nodes = ["A", "B"].map((id) => ({
+        id, chain: "ethereum" as const, address: id, kind: "wallet" as const,
+        label: id, tags: [], riskScore: 0, riskConfidence: 0,
+        riskLevel: "low" as const, reasons: [], riskSignals: [],
+        valueFromSeedPct: 0, evidenceRefs: []
+      }));
+      const result = scoreGraph({ nodes, edges });
+      // A 2-edge cycle must NOT produce a rapid-hop finding (min is 3 edges)
+      const rapidHopFindings = result.findings.filter(
+        (f) => f.code === "rapid-hop-path"
+      );
+      assert.equal(rapidHopFindings.length, 0,
+        "cycle of 2 edges must not produce a rapid-hop finding");
+    });
+
     it("should detect mixer touchpoint", () => {
       const nodes: GraphNode[] = [
         createMockNode({ id: "source", address: "0xsource" }),

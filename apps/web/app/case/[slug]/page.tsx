@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactElement } from "react";
 
 import { AttestationPanel } from "../../../components/attestation-panel";
 import { CaseAnchorCard } from "../../../components/case-anchor-card";
 import { CopyShareLinkButton } from "../../../components/copy-share-link-button";
+import { DisputePanel } from "../../../components/dispute-panel";
 import { RiskBadge } from "../../../components/risk-badge";
 import { SummaryCards } from "../../../components/summary-cards";
 import { TraceGraphPanel } from "../../../components/trace-graph-panel";
@@ -44,7 +46,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function PublicCasePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function PublicCasePage({ params }: { params: Promise<{ slug: string }> }): Promise<ReactElement> {
   const { slug } = await params;
   const fraudCase = await fetchCase(slug);
   const disputeFlowEnabled = process.env.DISPUTE_FLOW_ENABLED === "true";
@@ -189,52 +191,13 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
       {disputeFlowEnabled ? (
         <section id="dispute-flow" className="panel stack">
           <h2 className="section-title">Dispute this case</h2>
-          <p className="muted">
-            If you believe this fraud case was anchored in error, you can raise
-            a formal on-chain dispute. The <code>raise-dispute</code> defpact
-            requires a case ID, a unique dispute ID, and a SHA-256 hash of your
-            reason document. Step 2 of the pact requires the governance keyset
-            to review and mark the dispute.
+          <p className="muted" style={{ marginBottom: 12 }}>
+            If you believe this case was anchored incorrectly, raise a
+            formal on-chain dispute. Your reason is hashed locally before
+            being committed — the raw text never leaves your browser.
+            Step 2 requires the governance keyset to review and resolve.
           </p>
-          <div className="panel card" style={{ marginTop: 12 }}>
-            <h3 style={{ marginBottom: 8 }}>How to raise a dispute</h3>
-            <ol
-              style={{
-                paddingLeft: "1.2rem",
-                fontSize: "13px",
-                color: "var(--color-text-secondary)",
-                lineHeight: 1.8
-              }}
-            >
-              <li>
-                Install the Pact CLI from{" "}
-                <a href="https://github.com/kadena-io/pact/releases" target="_blank" rel="noreferrer">
-                  github.com/kadena-io/pact
-                </a>
-                .
-              </li>
-              <li>
-                Prepare a dispute reason document and compute its SHA-256 hash:
-                <br />
-                <code>echo -n "your reason text" | sha256sum</code>
-              </li>
-              <li>
-                Call <code>raise-dispute</code> on the deployed module with your
-                dispute ID, case ID <code>{fraudCase.caseId}</code>, and the
-                reason hash.
-              </li>
-              <li>
-                After submission, the governance keyset must sign step 2 to
-                mark the dispute as reviewed.
-              </li>
-            </ol>
-            <p className="muted" style={{ marginTop: 8, fontSize: "12px" }}>
-              Case ID: <code>{fraudCase.caseId}</code>
-              {fraudCase.anchor?.requestKey
-                ? ` — Anchored at request key: ${fraudCase.anchor.requestKey}`
-                : ""}
-            </p>
-          </div>
+          <DisputePanel caseId={fraudCase.caseId} caseSlug={fraudCase.slug} />
         </section>
       ) : null}
     </main>
