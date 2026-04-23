@@ -56,6 +56,10 @@ export function GraphView({
       return;
     }
 
+    if (graph.nodes.length === 0) {
+      return;
+    }
+
     const instance = cytoscape({
       container: containerRef.current,
       elements: [
@@ -146,6 +150,16 @@ export function GraphView({
     });
 
     cyRef.current = instance;
+    instance.one("layoutstop", () => {
+      instance.fit(undefined, 24);
+    });
+    const resizeObserver = new ResizeObserver(() => {
+      instance.resize();
+      instance.fit();
+    });
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
     onCyReady?.(instance);
     applyRiskFilter(instance, riskFilter);
 
@@ -169,6 +183,7 @@ export function GraphView({
 
     return () => {
       cyRef.current = null;
+      resizeObserver.disconnect();
       instance.destroy();
     };
   }, [graph, seedValue, suspiciousPaths]);
@@ -270,7 +285,11 @@ export function GraphView({
               Reset view
             </button>
           </div>
-          <div className="graph-canvas" ref={containerRef} />
+          <div
+            className="graph-canvas"
+            ref={containerRef}
+            style={{ height: "540px", minHeight: "540px", width: "100%" }}
+          />
         </div>
       </div>
 
