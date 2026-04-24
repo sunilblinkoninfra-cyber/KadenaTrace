@@ -4,6 +4,7 @@ export interface TraceRepository {
   save(record: TraceRecord): Promise<void>;
   update(record: TraceRecord): Promise<void>;
   findById(id: string): Promise<TraceRecord | null>;
+  findAll(): Promise<TraceRecord[]>;
 }
 
 export interface CaseRepository {
@@ -12,5 +13,6 @@ export interface CaseRepository {
   findById(caseId: string): Promise<CaseRecord | null>;
   findBySlug(slug: string): Promise<CaseRecord | null>;
   listPublicCases(): Promise<CaseRecord[]>;
+  findAll(): Promise<CaseRecord[]>;
 }
 

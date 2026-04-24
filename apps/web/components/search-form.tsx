@@ -3,176 +3,146 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent, type ReactElement } from "react";
 
-import { fetchTrace } from "../lib/api";
-import { TraceStageLoader } from "./trace-stage-loader";
+import { fetchTrace, getApiBaseUrl } from "../lib/api";
 
-const DEMO_WALLET = "0x1111111111111111111111111111111111111111";
-const DEMO_TX = "0x1000000000000000000000000000000000000000000000000000000000000001";
-const GUIDED_CONNECTION_MESSAGE = "Unable to connect to tracing engine.";
-
-interface SearchErrorState {
-  title: string;
-  details: string[];
-}
+const ETH_DEMO_WALLET =
+  "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+const ETH_DEMO_TX =
+  "0xa9d5d7a91d3e3d3e3d3e3d3e3d3e3d3e3d3e3d3e" +
+  "3d3e3d3e3d3e3d3e3d3e3d";
 
 export function SearchForm(): ReactElement {
   const router = useRouter();
-  const [chain, setChain] = useState("ethereum");
-  const [seedType, setSeedType] = useState<"address" | "tx">("address");
-  const [seedValue, setSeedValue] = useState(DEMO_WALLET);
-  const [errorState, setErrorState] = useState<SearchErrorState | null>(null);
+  const [seedType, setSeedType] =
+    useState<"address" | "tx">("address");
+  const [seedValue, setSeedValue] = useState(ETH_DEMO_WALLET);
+  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ): Promise<void> {
     event.preventDefault();
-    setPending(true);
-    setErrorState(null);
+    if (!seedValue.trim()) return;
 
-    const trimmedSeedValue = seedValue.trim();
-    if (!isValidSeedValue(chain, seedType, trimmedSeedValue)) {
-      setPending(false);
-      setErrorState({
-        title: "Enter a valid wallet address or transaction ID.",
-        details: [
-          "Check that the value matches the selected chain and seed type.",
-          "You can also use the demo case to explore the workflow instantly."
-        ]
-      });
-      return;
-    }
+    setPending(true);
+    setError(null);
 
     try {
       const payload = await fetchTrace({
-        chain,
+        chain: "ethereum",
         seedType,
-        seedValue: trimmedSeedValue
+        seedValue: seedValue.trim()
       });
       router.push(`/trace/${payload.traceId}`);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : GUIDED_CONNECTION_MESSAGE;
-      if (message.includes("Unable to connect to tracing engine")) {
-        setErrorState({
-          title: GUIDED_CONNECTION_MESSAGE,
-          details: [
-            "Possible reasons:",
-            "API waking up (cold start)",
-            "Network issue",
-            "Please retry or use the demo case."
-          ]
-        });
-      } else {
-        setErrorState({
-          title: "Unable to start investigation.",
-          details: [message]
-        });
-      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not reach the tracing API."
+      );
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <form className="search-form" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="search-form" onSubmit={(e) => void handleSubmit(e)}>
       <div className="trace-meta">
-        <span className="pill">Live Investigation</span>
-        <span className="muted">Ethereum, BSC, Bitcoin, and Kadena can all be traced from the same workspace.</span>
+        <span className="pill">Ethereum · Live Tracing</span>
+        <span className="muted">
+          Enter a wallet address or transaction hash to begin.
+        </span>
       </div>
-      <label>
-        Chain
-        <select value={chain} onChange={(event) => setChain(event.target.value)}>
-          <option value="ethereum">Ethereum</option>
-          <option value="bsc">BSC</option>
-          <option value="bitcoin">Bitcoin</option>
-          <option value="kadena">Kadena</option>
-        </select>
-      </label>
-      <label>
-        Seed type
-        <select
-          value={seedType}
-          onChange={(event) => {
-            const nextSeedType = event.target.value as "address" | "tx";
-            setSeedType(nextSeedType);
-            setSeedValue(nextSeedType === "address" ? DEMO_WALLET : DEMO_TX);
+
+      <div className="seed-type-tabs">
+        <button
+          type="button"
+          className={
+            seedType === "address"
+              ? "tab-button tab-button--active"
+              : "tab-button"
+          }
+          onClick={() => {
+            setSeedType("address");
+            setSeedValue(ETH_DEMO_WALLET);
           }}
         >
-          <option value="address">Compromised wallet</option>
-          <option value="tx">Transaction hash</option>
-        </select>
-      </label>
-      <label>
-        Seed value
-        <input
-          value={seedValue}
-          onChange={(event) => setSeedValue(event.target.value)}
-          placeholder={seedType === "address" ? DEMO_WALLET : DEMO_TX}
-        />
-      </label>
-      <div className="actions">
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Tracing funds..." : "Trace Funds"}
+          Wallet address
         </button>
         <button
-          className="ghost-button"
           type="button"
-          onClick={() => router.push("/trace/demo")}
+          className={
+            seedType === "tx"
+              ? "tab-button tab-button--active"
+              : "tab-button"
+          }
+          onClick={() => {
+            setSeedType("tx");
+            setSeedValue(ETH_DEMO_TX);
+          }}
         >
-          Use Demo Case
+          Transaction hash
+        </button>
+      </div>
+
+      <label>
+        <span style={{ fontSize: 13, fontWeight: 500 }}>
+          {seedType === "address"
+            ? "Ethereum wallet address (0x...)"
+            : "Transaction hash (0x...)"}
+        </span>
+        <input
+          value={seedValue}
+          onChange={(e) => setSeedValue(e.target.value)}
+          placeholder={
+            seedType === "address"
+              ? ETH_DEMO_WALLET
+              : ETH_DEMO_TX
+          }
+          className="input-full"
+          spellCheck={false}
+          autoComplete="off"
+        />
+      </label>
+
+      {error ? (
+        <div className="error-banner">
+          <strong>Error:</strong> {error}
+        </div>
+      ) : null}
+
+      <div className="actions">
+        <button
+          className="button"
+          type="submit"
+          disabled={pending || !seedValue.trim()}
+        >
+          {pending ? (
+            <>
+              <span className="spinner" aria-hidden />
+              Tracing...
+            </>
+          ) : (
+            "Trace wallet"
+          )}
         </button>
         <button
           className="ghost-button"
           type="button"
           onClick={() => {
-            setSeedType("tx");
-            setChain("ethereum");
-            setSeedValue(DEMO_TX);
-            setErrorState(null);
+            setSeedType("address");
+            setSeedValue(ETH_DEMO_WALLET);
           }}
         >
-          Use demo tx
+          Try demo wallet
         </button>
       </div>
-      {pending ? <TraceStageLoader compact /> : null}
-      {errorState ? (
-        <div className="search-form-error">
-          <h3>{errorState.title}</h3>
-          <ul>
-            {errorState.details.map((detail) => (
-              <li key={detail}>{detail}</li>
-            ))}
-          </ul>
-          <div className="actions">
-            <button className="ghost-button" type="submit" disabled={pending}>
-              Retry
-            </button>
-            <button className="ghost-button" type="button" onClick={() => router.push("/trace/demo")}>
-              Use Demo Case
-            </button>
-          </div>
-        </div>
-      ) : null}
+
+      <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+        Tracing uses public Ethereum nodes.
+        No API key required for basic traces.
+      </p>
     </form>
   );
-}
-
-function isValidSeedValue(chain: string, seedType: "address" | "tx", value: string): boolean {
-  if (value.length < 3 || /\s/.test(value)) {
-    return false;
-  }
-
-  if (seedType === "address") {
-    if (chain === "ethereum" || chain === "bsc") {
-      return /^0x[a-fA-F0-9]{40}$/.test(value);
-    }
-    if (chain === "bitcoin") {
-      return /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{20,90}$/.test(value);
-    }
-    return value.length >= 3;
-  }
-
-  if (chain === "bitcoin") {
-    return /^[a-fA-F0-9]{64}$/.test(value);
-  }
-
-  return /^0x[a-fA-F0-9]{64}$/.test(value) || /^[a-fA-F0-9]{64}$/.test(value);
 }

@@ -10,8 +10,7 @@ import { DEMO_TRACE_REQUEST, NOMAD_TRACE_REQUEST } from "@kadenatrace/shared";
 
 import type { ApiConfig } from "./config.js";
 import { loadConfig } from "./config.js";
-import { InMemoryCaseRepository } from "./repositories/memory-case-repository.js";
-import { InMemoryTraceRepository } from "./repositories/memory-trace-repository.js";
+import { MemoryCaseRepository, MemoryTraceRepository } from "./repositories/memory-repository.js";
 import { PostgresCaseRepository, PostgresTraceRepository, createPostgresPool } from "./repositories/postgres.js";
 import { registerCaseRoutes } from "./routes/cases.js";
 import { registerTraceRoutes } from "./routes/traces.js";
@@ -78,8 +77,8 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
   });
 
   const pool = config.databaseUrl ? await createPostgresPool(config.databaseUrl) : null;
-  const traceRepository = pool ? new PostgresTraceRepository(pool) : new InMemoryTraceRepository();
-  const caseRepository = pool ? new PostgresCaseRepository(pool) : new InMemoryCaseRepository();
+  const traceRepository = pool ? new PostgresTraceRepository(pool) : new MemoryTraceRepository();
+  const caseRepository = pool ? new PostgresCaseRepository(pool) : new MemoryCaseRepository();
   const queue = config.redisUrl ? new BullMqTraceQueue(config.redisUrl) : undefined;
 
   const traceService = new TraceService(
@@ -189,7 +188,7 @@ export async function buildApp(config: ApiConfig = loadConfig()): Promise<Fastif
   });
 
   await registerTraceRoutes(app, traceService);
-  await registerCaseRoutes(app, caseService);
+  await registerCaseRoutes(app, caseService, config);
   await seedDemoCases(caseService, traceService);
 
   app.addHook("onClose", async () => {

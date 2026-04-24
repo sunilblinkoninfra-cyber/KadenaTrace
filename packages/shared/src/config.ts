@@ -27,7 +27,11 @@ export const HEURISTIC_THRESHOLDS = {
   circularFlowMaxMinutes: 120,
   dormantWalletMinDays: 30,
   exchangeHoppingMinExchanges: 2,
-  exchangeHoppingWindowMinutes: 60
+  exchangeHoppingWindowMinutes: 60,
+  largeSplitMinOutputs: 3,
+  largeSplitMinValueUsd: 1000,
+  largeSplitMaxWindowMinutes: 60,
+  largeSplitMinSplitRatio: 0.15
 } as const;
 
 export const ANALYSIS_THRESHOLDS = {

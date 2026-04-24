@@ -238,211 +238,218 @@ class RoutedActivityProvider implements ActivityProvider {
 }
 
 export class EvmRpcActivityProvider implements ActivityProvider {
-  name = "evm-json-rpc";
-  private readonly rpcUrls: Partial<Record<"ethereum" | "bsc", string>>;
-  private readonly tokenMetadataCache = new Map<string, Promise<{ symbol: string; decimals: number }>>();
+  name = "evm-rpc";
+  private readonly ethereumRpcUrl: string;
+  private readonly bscRpcUrl: string;
 
   constructor(options: EvmRpcProviderOptions) {
-    this.rpcUrls = {
-      ethereum: options.ethereumRpcUrl,
-      bsc: options.bscRpcUrl
-    };
+    this.ethereumRpcUrl =
+      options.ethereumRpcUrl ??
+      process.env.ETHEREUM_RPC_URL ??
+      "https://cloudflare-eth.com";
+    this.bscRpcUrl =
+      options.bscRpcUrl ??
+      process.env.BSC_RPC_URL ??
+      "https://rpc.ankr.com/bsc";
   }
 
-  async listAddressActivity(_query: ActivityQuery): Promise<NormalizedTransfer[]> {
-    return [];
-  }
-
-  async getTransactionActivity(query: TransactionQuery): Promise<NormalizedTransfer[]> {
-    if (query.chain !== "ethereum" && query.chain !== "bsc") {
-      return [];
-    }
-
-    const chain = query.chain;
-    const rpcUrl = this.getRpcUrl(query.chain);
-    if (!rpcUrl) {
-      return [];
-    }
-
-    const [transaction, receipt] = await Promise.all([
-      this.rpcRequest<EvmTransaction | null>(rpcUrl, "eth_getTransactionByHash", [query.txHash]),
-      this.rpcRequest<EvmTransactionReceipt | null>(rpcUrl, "eth_getTransactionReceipt", [query.txHash])
-    ]);
-
-    if (!transaction || !receipt) {
-      return [];
-    }
-
-    const block = receipt.blockNumber
-      ? await this.rpcRequest<EvmBlock>(rpcUrl, "eth_getBlockByNumber", [receipt.blockNumber, false])
-      : null;
-    const timestamp = block?.timestamp ? hexTimestampToIso(block.timestamp) : new Date().toISOString();
-    const transfers: NormalizedTransfer[] = [];
-    const blockNumber = receipt.blockNumber ? Number.parseInt(receipt.blockNumber, 16) : undefined;
-
-    if (transaction.from && transaction.to && parseHexToBigInt(transaction.value) > 0n) {
-      transfers.push({
-        id: `${query.chain}:${query.txHash}:${transaction.from}:${transaction.to}:native`,
-        chain,
-        txHash: query.txHash,
-        timestamp,
-        blockNumber,
-        from: transaction.from,
-        to: transaction.to,
-        asset: chain === "bsc" ? "BNB" : "ETH",
-        amount: formatUnitsToNumber(parseHexToBigInt(transaction.value), 18),
-        transferType: "native",
-        source: this.name,
-        sourceUrl: rpcUrl
-      });
-    }
-
-    const erc20Logs = receipt.logs.filter((log) => isErc20TransferLog(log));
-    const metadataEntries = await Promise.all(
-      Array.from(new Set(erc20Logs.map((log) => normalizeAddress(chain, log.address)))).map(async (address) => [
-        address,
-        await this.getTokenMetadata(chain, rpcUrl, address)
-      ] as const)
-    );
-    const metadataIndex = new Map(metadataEntries);
-
-    for (const [index, log] of erc20Logs.entries()) {
-      const from = topicToAddress(log.topics[1]);
-      const to = topicToAddress(log.topics[2]);
-      if (!from || !to) {
-        continue;
-      }
-
-      const metadata = metadataIndex.get(normalizeAddress(chain, log.address)) ?? {
-        symbol: shortenContractAddress(log.address),
-        decimals: 18
-      };
-      transfers.push({
-        id: `${query.chain}:${query.txHash}:${index}:${from}:${to}:${log.address}`,
-        chain,
-        txHash: query.txHash,
-        timestamp,
-        blockNumber,
-        from,
-        to,
-        asset: metadata.symbol,
-        amount: formatUnitsToNumber(parseHexToBigInt(log.data), metadata.decimals),
-        transferType: "token",
-        source: this.name,
-        sourceUrl: rpcUrl
-      });
-    }
-
-    const internalTransfers = await this.getInternalTransfers(chain, rpcUrl, query.txHash, timestamp, blockNumber);
-
-    return [...transfers, ...internalTransfers].sort((left, right) => left.timestamp.localeCompare(right.timestamp));
-  }
-
-  async getBridgeResolution(_bridgeTransferId: string): Promise<BridgeResolution | null> {
+  private getRpcUrl(chain: string): string | null {
+    if (chain === "ethereum") return this.ethereumRpcUrl;
+    if (chain === "bsc") return this.bscRpcUrl;
     return null;
   }
 
-  private getRpcUrl(chain: TransactionQuery["chain"]): string | undefined {
-    if (chain === "ethereum" || chain === "bsc") {
-      return this.rpcUrls[chain];
-    }
-
-    return undefined;
-  }
-
-  private async getTokenMetadata(chain: "ethereum" | "bsc", rpcUrl: string, address: string) {
-    const key = `${chain}:${normalizeAddress(chain, address)}`;
-    const existing = this.tokenMetadataCache.get(key);
-    if (existing) {
-      return existing;
-    }
-
-    const promise = (async () => {
-      const [symbolResult, decimalsResult] = await Promise.allSettled([
-        this.rpcRequest<string>(rpcUrl, "eth_call", [{ to: address, data: "0x95d89b41" }, "latest"]),
-        this.rpcRequest<string>(rpcUrl, "eth_call", [{ to: address, data: "0x313ce567" }, "latest"])
-      ]);
-
-      const symbol =
-        symbolResult.status === "fulfilled" ? decodeTokenSymbol(symbolResult.value) : shortenContractAddress(address);
-      const decimals =
-        decimalsResult.status === "fulfilled" ? decodeTokenDecimals(decimalsResult.value) : 18;
-
-      return {
-        symbol: symbol || shortenContractAddress(address),
-        decimals
-      };
-    })();
-
-    this.tokenMetadataCache.set(key, promise);
-    return promise;
-  }
-
-  private async rpcRequest<T>(rpcUrl: string, method: string, params: unknown[]): Promise<T> {
-    const response = await fetch(rpcUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method,
-        params
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`${method} failed with status ${response.status}`);
-    }
-
-    const payload = (await response.json()) as { result?: T; error?: { message?: string } };
-    if (payload.error) {
-      throw new Error(payload.error.message ?? `${method} failed`);
-    }
-
-    return payload.result as T;
-  }
-
-  private async getInternalTransfers(
-    chain: "ethereum" | "bsc",
-    rpcUrl: string,
-    txHash: string,
-    timestamp: string,
-    blockNumber?: number
-  ): Promise<NormalizedTransfer[]> {
+  private async rpc<T>(
+    url: string,
+    method: string,
+    params: unknown[]
+  ): Promise<T | null> {
     try {
-      const traces = await this.rpcRequest<EvmTraceEntry[]>(rpcUrl, "trace_transaction", [txHash]);
-      const transfers: NormalizedTransfer[] = [];
-      traces
-        .filter((trace) => trace.type === "call" && (trace.traceAddress?.length ?? 0) > 0)
-        .forEach((trace, index) => {
-          const from = trace.action?.from;
-          const to = trace.action?.to;
-          const value = parseHexToBigInt(trace.action?.value);
-          if (!from || !to || value <= 0n) {
-            return;
-          }
-
-          transfers.push({
-            id: `${chain}:${txHash}:internal:${index}:${from}:${to}`,
-            chain,
-            txHash,
-            timestamp,
-            blockNumber,
-            from,
-            to,
-            asset: chain === "bsc" ? "BNB" : "ETH",
-            amount: formatUnitsToNumber(value, 18),
-            transferType: "contract",
-            source: `${this.name}:trace_transaction`,
-            sourceUrl: rpcUrl
-          });
-        });
-      return transfers;
-    } catch {
-      return [];
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method,
+          params
+        })
+      });
+      if (!response.ok) {
+        console.warn(`[EvmRpcProvider] ${method} HTTP ${response.status}`);
+        return null;
+      }
+      const json = (await response.json()) as { result?: T; error?: { message: string } };
+      if (json.error) {
+        console.warn(`[EvmRpcProvider] ${method} error: ${json.error.message}`);
+        return null;
+      }
+      return json.result ?? null;
+    } catch (err) {
+      console.warn(
+        `[EvmRpcProvider] ${method} failed:`,
+        err instanceof Error ? err.message : err
+      );
+      return null;
     }
+  }
+
+  private async getLatestBlockNumber(url: string): Promise<number> {
+    const hex = await this.rpc<string>(url, "eth_blockNumber", []);
+    return hex ? parseInt(hex, 16) : 0;
+  }
+
+  private async getBlockTimestamp(
+    url: string,
+    blockHex: string
+  ): Promise<string> {
+    const block = await this.rpc<{ timestamp: string }>(
+      url,
+      "eth_getBlockByNumber",
+      [blockHex, false]
+    );
+    if (!block?.timestamp) return new Date().toISOString();
+    return new Date(parseInt(block.timestamp, 16) * 1000).toISOString();
+  }
+
+  async listAddressActivity(
+    query: ActivityQuery
+  ): Promise<NormalizedTransfer[]> {
+    const rpcUrl = this.getRpcUrl(query.chain);
+    if (!rpcUrl) return [];
+
+    const address = query.address.toLowerCase();
+
+    const TRANSFER_TOPIC =
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+    const latest = await this.getLatestBlockNumber(rpcUrl);
+    if (!latest) return [];
+
+    const fromBlock = "0x" + Math.max(0, latest - 2000).toString(16);
+    const toBlock = "0x" + latest.toString(16);
+
+    const inboundLogs = await this.rpc<EvmLog[]>(
+      rpcUrl,
+      "eth_getLogs",
+      [{
+        fromBlock,
+        toBlock,
+        topics: [
+          TRANSFER_TOPIC,
+          null,
+          "0x" + address.slice(2).padStart(64, "0")
+        ]
+      }]
+    ) ?? [];
+
+    const outboundLogs = await this.rpc<EvmLog[]>(
+      rpcUrl,
+      "eth_getLogs",
+      [{
+        fromBlock,
+        toBlock,
+        topics: [
+          TRANSFER_TOPIC,
+          "0x" + address.slice(2).padStart(64, "0"),
+          null
+        ]
+      }]
+    ) ?? [];
+
+    const allLogs = [...inboundLogs, ...outboundLogs];
+
+    const seen = new Set<string>();
+    const transfers: NormalizedTransfer[] = [];
+
+    for (const log of allLogs) {
+      const key = `${log.transactionHash}:${log.logIndex}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const from =
+        "0x" + (log.topics[1]?.slice(-40) ?? "0000000000000000000000000000000000000000");
+      const to =
+        "0x" + (log.topics[2]?.slice(-40) ?? "0000000000000000000000000000000000000000");
+
+      if (
+        from.toLowerCase() !== address &&
+        to.toLowerCase() !== address
+      ) {
+        continue;
+      }
+
+      const rawAmount = log.data === "0x" ? "0" : log.data;
+      const amount = Number(BigInt(rawAmount)) / 1e18;
+      if (amount === 0) continue;
+
+      const blockNumber = log.blockNumber ?? "0x0";
+      const timestamp = await this.getBlockTimestamp(rpcUrl, blockNumber);
+
+      transfers.push({
+        id: `${query.chain}:${log.transactionHash}:${log.logIndex}`,
+        chain: query.chain,
+        txHash: log.transactionHash ?? "",
+        from,
+        to,
+        amount,
+        asset: "TOKEN",
+        timestamp,
+        transferType: "token",
+        source: "evm-rpc",
+        sourceUrl: rpcUrl
+      });
+    }
+
+    return transfers.sort((a, b) =>
+      a.timestamp.localeCompare(b.timestamp)
+    );
+  }
+
+  async getTransactionActivity(
+    query: TransactionQuery
+  ): Promise<NormalizedTransfer[]> {
+    const rpcUrl = this.getRpcUrl(query.chain);
+    if (!rpcUrl) return [];
+
+    const tx = await this.rpc<EvmTransaction>(
+      rpcUrl,
+      "eth_getTransactionByHash",
+      [query.txHash]
+    );
+    if (!tx?.from || !tx.to) return [];
+
+    const amount = Number(BigInt(tx.value ?? "0x0")) / 1e18;
+
+    const receipt = await this.rpc<EvmTransactionReceipt>(
+      rpcUrl,
+      "eth_getTransactionReceipt",
+      [query.txHash]
+    );
+    const blockNumber = receipt?.blockNumber ?? "0x0";
+    const timestamp = await this.getBlockTimestamp(rpcUrl, blockNumber);
+
+    return [
+      {
+        id: `${query.chain}:${query.txHash}:0`,
+        chain: query.chain,
+        txHash: query.txHash,
+        from: tx.from,
+        to: tx.to,
+        amount,
+        asset: query.chain === "ethereum" ? "ETH" : "BNB",
+        timestamp,
+        transferType: "native",
+        source: "evm-rpc",
+        sourceUrl: rpcUrl
+      }
+    ];
+  }
+
+  async getBridgeResolution(
+    _bridgeTransferId: string
+  ): Promise<BridgeResolution | null> {
+    return null;
   }
 }
 
@@ -460,12 +467,12 @@ export function createDefaultActivityProvider(options: DefaultProviderOptions = 
 
   return new RoutedActivityProvider(
     {
-      ethereum: [covalentProvider, evmRpcProvider, fixtureProvider],
-      bsc: [covalentProvider, evmRpcProvider, fixtureProvider],
+      ethereum: [evmRpcProvider, covalentProvider, fixtureProvider],
+      bsc: [evmRpcProvider, covalentProvider, fixtureProvider],
       bitcoin: bitcoinProviders,
       kadena: [kadenaProvider, fixtureProvider]
     },
-    [fixtureProvider, covalentProvider, evmRpcProvider, ...(mempoolProvider ? [mempoolProvider] : []), kadenaProvider]
+    [evmRpcProvider, covalentProvider, fixtureProvider, ...(mempoolProvider ? [mempoolProvider] : []), kadenaProvider]
   );
 }
 
@@ -488,6 +495,9 @@ interface EvmLog {
   address: string;
   topics: string[];
   data: string;
+  transactionHash?: string;
+  logIndex?: string;
+  blockNumber?: string;
 }
 
 interface EvmTraceEntry {

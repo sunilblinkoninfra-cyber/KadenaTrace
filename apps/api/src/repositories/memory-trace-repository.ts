@@ -16,5 +16,9 @@ export class InMemoryTraceRepository implements TraceRepository {
   async findById(id: string): Promise<TraceRecord | null> {
     return this.records.get(id) ?? null;
   }
+
+  async findAll(): Promise<TraceRecord[]> {
+    return [...this.records.values()].map((v) => structuredClone(v));
+  }
 }
 

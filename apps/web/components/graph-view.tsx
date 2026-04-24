@@ -99,7 +99,13 @@ export function GraphView({
             id: edge.id,
             source: edge.from,
             target: edge.to,
-            label: `${formatAmount(edge.amount)} ${edge.asset}`,
+            label: `${edge.amount.toFixed(4)} ${edge.asset}`,
+            sublabel: new Date(edge.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              month: "short",
+              day: "numeric"
+            }),
             riskScore: edge.riskScore,
             chain: edge.chain,
             edgeColor: getEdgeColor(edge.riskScore),
@@ -147,20 +153,20 @@ export function GraphView({
         {
           selector: "edge",
           style: {
-            width: "data(edgeWidth)",
-            label: "data(label)",
-            "curve-style": "bezier",
-            "target-arrow-shape": "triangle",
+            width: 2.5,
             "line-color": "data(edgeColor)",
             "target-arrow-color": "data(edgeColor)",
-            "text-rotation": "autorotate",
+            "target-arrow-shape": "triangle",
+            "curve-style": "bezier",
+            content: "data(label)",
             "font-size": "10px",
-            color: "#5e6270",
+            "text-rotation": "autorotate",
             "text-background-color": "#ffffff",
-            "text-background-opacity": 0.7,
-            "text-background-padding": "2px",
-            "text-margin-y": -8,
-            opacity: 0.95
+            "text-background-opacity": 0.85,
+            "text-background-padding": "3px",
+            "text-margin-y": -10,
+            "text-border-width": 0,
+            color: "#333333"
           }
         },
         {
@@ -172,6 +178,18 @@ export function GraphView({
             width: 7,
             opacity: 1,
             "z-index": 9
+          }
+        },
+        {
+          selector: "edge:selected",
+          style: {
+            content: "data(sublabel)",
+            "font-size": "10px",
+            "text-background-color": "#1D9E75",
+            "text-background-opacity": 1,
+            color: "#ffffff",
+            "text-background-padding": "4px",
+            width: 4
           }
         },
         {

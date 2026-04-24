@@ -58,6 +58,7 @@ function createAccumulator(): ScoredFinding {
 export function scoreGraph(graph: TraceShape): ScoredFinding {
   const accumulator = createAccumulator();
   applyFanOut(graph, accumulator);
+  applyLargeSplit(graph, accumulator);
   applyFanIn(graph, accumulator);
   applyRapidHops(graph, accumulator);
   applyBridgeUsage(graph, accumulator);
@@ -107,6 +108,102 @@ function applyFanOut(graph: TraceShape, accumulator: ScoredFinding) {
       for (const edge of ordered) {
         upsertEdgeAdjustment(accumulator.edgeAdjustments, edge.id, { ...signal, weight: 12 }, "fan-out");
       }
+    }
+  }
+}
+
+function applyLargeSplit(
+  graph: TraceShape,
+  accumulator: ScoredFinding
+): void {
+  const outgoing = new Map<string, GraphEdge[]>();
+
+  for (const edge of graph.edges.filter(
+    (e) => !isSuppressedEdge(e)
+  )) {
+    const list = outgoing.get(edge.from) ?? [];
+    list.push(edge);
+    outgoing.set(edge.from, list);
+  }
+
+  for (const [nodeId, edges] of outgoing) {
+    if (
+      edges.length < HEURISTIC_THRESHOLDS.largeSplitMinOutputs
+    ) {
+      continue;
+    }
+
+    const sorted = [...edges].sort((a, b) =>
+      a.timestamp.localeCompare(b.timestamp)
+    );
+    const first = sorted[0]!;
+    const last = sorted[sorted.length - 1]!;
+    const windowMinutes =
+      (Date.parse(last.timestamp) -
+        Date.parse(first.timestamp)) /
+      1000 /
+      60;
+
+    if (
+      windowMinutes >
+      HEURISTIC_THRESHOLDS.largeSplitMaxWindowMinutes
+    ) {
+      continue;
+    }
+
+    const totalAmount = edges.reduce((s, e) => s + e.amount, 0);
+    if (
+      totalAmount <
+      HEURISTIC_THRESHOLDS.largeSplitMinValueUsd
+    ) {
+      continue;
+    }
+
+    const significantSplits = edges.filter(
+      (e) =>
+        e.amount / totalAmount >=
+        HEURISTIC_THRESHOLDS.largeSplitMinSplitRatio
+    );
+
+    if (
+      significantSplits.length <
+      HEURISTIC_THRESHOLDS.largeSplitMinOutputs
+    ) {
+      continue;
+    }
+
+    const signal = createSignal(
+      "large-split",
+      "Large-value split",
+      `${significantSplits.length} large-value outputs within ` +
+        `${Math.round(windowMinutes)} minutes totalling ` +
+        `${totalAmount.toFixed(4)} units — ` +
+        `deliberate fragmentation to stay below AML reporting ` +
+        `thresholds.`,
+      20,
+      0.82
+    );
+
+    accumulator.findings.push(
+      createFinding(
+        signal,
+        "high",
+        [nodeId, ...significantSplits.map((e) => e.to)],
+        significantSplits
+      )
+    );
+    upsertNodeAdjustment(
+      accumulator.nodeAdjustments,
+      nodeId,
+      signal
+    );
+    for (const edge of significantSplits) {
+      upsertEdgeAdjustment(
+        accumulator.edgeAdjustments,
+        edge.id,
+        signal,
+        "large-split"
+      );
     }
   }
 }
