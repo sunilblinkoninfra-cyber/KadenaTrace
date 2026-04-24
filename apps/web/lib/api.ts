@@ -62,7 +62,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 const DEFAULT_RETRIES = 3;
 const DEFAULT_DELAY_MS = 700;
 const ENGINE_UNAVAILABLE_MESSAGE =
-  "Unable to connect to tracing engine.\nPossible reasons:\n- API waking up (cold start)\n- Network issue\nPlease retry.";
+  "Tracing engine temporarily unavailable. Please retry or use the demo case.";
 
 export async function apiFetch<T>(path: string): Promise<T | null> {
   if (!API_BASE_URL) {
