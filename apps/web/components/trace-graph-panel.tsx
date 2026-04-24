@@ -1,7 +1,7 @@
 // TraceGraphPanel -- Couples graph rendering, export controls, and suspicious-path focus state.
 "use client";
 import type { Core } from "cytoscape";
-import { useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 
 import type { Finding, SuspiciousPath, TraceGraph, TraceMetrics } from "@kadenatrace/shared";
 
@@ -18,10 +18,14 @@ interface TraceGraphPanelProps {
   title: string;
   subtitle: string;
   exportBaseName?: string;
+  focusedNodeId?: string;
+  investigationConclusion?: string;
 }
 
 export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
-  const [focusedPathEdgeIds, setFocusedPathEdgeIds] = useState<string[]>([]);
+  const [focusedPathEdgeIds, setFocusedPathEdgeIds] = useState<string[]>(
+    props.suspiciousPaths[0]?.edgeIds ?? []
+  );
   const cyRef = useRef<Core | null>(null);
 
   const downloadJson = (): void => {
@@ -52,6 +56,26 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
       URL.revokeObjectURL(url);
     }
   };
+
+  useEffect(() => {
+    if (props.focusedNodeId) {
+      const focusPath = props.suspiciousPaths
+        .filter((path) => path.nodeIds.includes(props.focusedNodeId ?? ""))
+        .sort((left, right) => right.riskScore - left.riskScore)[0];
+
+      if (focusPath) {
+        setFocusedPathEdgeIds([...focusPath.edgeIds]);
+        return;
+      }
+    }
+
+    if (props.suspiciousPaths[0]) {
+      setFocusedPathEdgeIds([...props.suspiciousPaths[0].edgeIds]);
+      return;
+    }
+
+    setFocusedPathEdgeIds([]);
+  }, [props.focusedNodeId, props.suspiciousPaths]);
 
   return (
     <>
@@ -85,6 +109,8 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
           seedValue={props.seedValue}
           suspiciousPaths={props.suspiciousPaths}
           focusedPathEdgeIds={focusedPathEdgeIds}
+          focusedNodeId={props.focusedNodeId}
+          investigationConclusion={props.investigationConclusion}
           onCyReady={(instance) => { cyRef.current = instance; }}
         />
       </section>

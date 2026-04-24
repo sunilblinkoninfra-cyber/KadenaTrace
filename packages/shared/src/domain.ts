@@ -17,6 +17,7 @@ export type RiskLevel = (typeof riskLevels)[number];
 
 export const edgeFlags = [
   "bridge",
+  "bridge-burst",
   "rapid-hop",
   "fan-out",
   "fan-in",

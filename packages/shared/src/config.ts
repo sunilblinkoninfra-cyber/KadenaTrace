@@ -13,6 +13,8 @@ export const HEURISTIC_THRESHOLDS = {
   rapidHopWindowMinutes: 15,
   rapidHopMinimumEdges: 3,
   rapidHopMaxChainLength: 20,
+  bridgeBurstMinTransfers: 2,
+  bridgeBurstWindowMinutes: 20,
   fanOutRecipients: 5,
   fanInSenders: 4,
   fanOutWindowMinutes: 30,

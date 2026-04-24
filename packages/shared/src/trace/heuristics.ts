@@ -61,6 +61,7 @@ export function scoreGraph(graph: TraceShape): ScoredFinding {
   applyFanIn(graph, accumulator);
   applyRapidHops(graph, accumulator);
   applyBridgeUsage(graph, accumulator);
+  applyBridgeBurst(graph, accumulator);
   applyBridgeObfuscation(graph, accumulator);
   applyMixerInteraction(graph, accumulator);
   applySinkConsolidation(graph, accumulator);
@@ -242,6 +243,113 @@ function applyBridgeUsage(graph: TraceShape, accumulator: ScoredFinding) {
     upsertNodeAdjustment(accumulator.nodeAdjustments, edge.from, { ...signal, weight: Math.max(2, signal.weight - 2) });
     upsertNodeAdjustment(accumulator.nodeAdjustments, edge.to, { ...signal, weight: Math.max(2, signal.weight - 2) });
     upsertEdgeAdjustment(accumulator.edgeAdjustments, edge.id, signal, "bridge");
+  }
+}
+
+function applyBridgeBurst(graph: TraceShape, accumulator: ScoredFinding): void {
+  const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+  const bridgeEventMap = new Map<string, GraphEdge[]>();
+
+  for (const edge of graph.edges.filter((candidate) => !isSuppressedEdge(candidate))) {
+    const fromNode = nodeById.get(edge.from);
+    const toNode = nodeById.get(edge.to);
+    const isBridgeEdge =
+      Boolean(edge.bridgeTransferId) ||
+      edge.flags.includes("bridge") ||
+      fromNode?.kind === "bridge" ||
+      toNode?.kind === "bridge";
+
+    if (!isBridgeEdge) {
+      continue;
+    }
+
+    const eventId = edge.bridgeTransferId ?? edge.id;
+    const current = bridgeEventMap.get(eventId) ?? [];
+    current.push(edge);
+    bridgeEventMap.set(eventId, current);
+  }
+
+  const bridgeEvents = Array.from(bridgeEventMap.values())
+    .map((edges) => ({
+      edges,
+      timestamp: [...edges].sort((left, right) => left.timestamp.localeCompare(right.timestamp))[0]?.timestamp
+    }))
+    .filter((event): event is { edges: GraphEdge[]; timestamp: string } => Boolean(event.timestamp))
+    .sort((left, right) => left.timestamp.localeCompare(right.timestamp));
+
+  const coveredEventIds = new Set<string>();
+
+  for (let index = 0; index < bridgeEvents.length; index += 1) {
+    const startEvent = bridgeEvents[index];
+    if (!startEvent) {
+      continue;
+    }
+    const startEventId = startEvent.edges[0]?.bridgeTransferId ?? startEvent.edges[0]?.id;
+    if (!startEventId || coveredEventIds.has(startEventId)) {
+      continue;
+    }
+
+    const clusteredEvents = [startEvent];
+
+    for (let cursor = index + 1; cursor < bridgeEvents.length; cursor += 1) {
+      const candidate = bridgeEvents[cursor];
+      if (!candidate) {
+        continue;
+      }
+      const minutes =
+        (Date.parse(candidate.timestamp) - Date.parse(startEvent.timestamp)) / 1000 / 60;
+
+      if (minutes < 0 || minutes > HEURISTIC_THRESHOLDS.bridgeBurstWindowMinutes) {
+        break;
+      }
+
+      clusteredEvents.push(candidate);
+    }
+
+    if (clusteredEvents.length < HEURISTIC_THRESHOLDS.bridgeBurstMinTransfers) {
+      continue;
+    }
+
+    const relatedEdges = Array.from(
+      new Map(
+        clusteredEvents
+          .flatMap((event) => event.edges)
+          .map((edge) => [edge.id, edge] as const)
+      ).values()
+    );
+    const relatedNodeIds = Array.from(
+      new Set(relatedEdges.flatMap((edge) => [edge.from, edge.to]))
+    );
+    const uniqueChains = new Set(relatedEdges.map((edge) => edge.chain));
+    const signal = createSignal(
+      "bridge-burst",
+      "Bridge burst",
+      `Detected ${clusteredEvents.length} bridge-driven transfers across ${uniqueChains.size} chain windows ` +
+        `within ${HEURISTIC_THRESHOLDS.bridgeBurstWindowMinutes} minutes — a rapid cross-chain fragmentation pattern ` +
+        `used to break the audit trail.`,
+      26,
+      0.84
+    );
+
+    accumulator.findings.push(
+      createFinding(signal, "high", relatedNodeIds, relatedEdges)
+    );
+
+    for (const edge of relatedEdges) {
+      upsertNodeAdjustment(accumulator.nodeAdjustments, edge.from, signal);
+      upsertNodeAdjustment(accumulator.nodeAdjustments, edge.to, signal);
+      upsertEdgeAdjustment(accumulator.edgeAdjustments, edge.id, signal, "bridge-burst");
+    }
+
+    for (const event of clusteredEvents) {
+      if (!event) {
+        continue;
+      }
+      const eventId = event.edges[0]?.bridgeTransferId ?? event.edges[0]?.id;
+      if (eventId) {
+        coveredEventIds.add(eventId);
+      }
+    }
   }
 }
 
