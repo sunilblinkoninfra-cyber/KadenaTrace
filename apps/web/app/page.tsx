@@ -54,8 +54,8 @@ export default async function HomePage() {
             <span className="pill">Public Investigations</span>
             <h2 className="section-title">Pre-seeded demo investigations</h2>
           </div>
-          <Link className="ghost-button" href="/case/shadow-router-laundering-pattern">
-            Open demo case
+          <Link className="ghost-button" href="/trace/demo">
+            Use Demo Case
           </Link>
         </div>
         <div className="case-list">
@@ -72,10 +72,15 @@ export default async function HomePage() {
             ))
           ) : (
             <div className="case-tile">
-              <h3>API not running yet</h3>
+              <h3>Unable to connect to tracing engine.</h3>
               <p className="muted">
-                Start the Fastify API to see the seeded public case list and the end-to-end tracing flow.
+                Possible reasons:
+                API waking up (cold start), network issue, or the backend is unavailable. The demo case below still
+                works without the API.
               </p>
+              <Link className="ghost-button" href="/trace/demo">
+                Open demo investigation
+              </Link>
             </div>
           )}
         </div>

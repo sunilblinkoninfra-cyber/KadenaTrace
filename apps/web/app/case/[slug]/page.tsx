@@ -7,8 +7,7 @@ import { CaseAnchorCard } from "../../../components/case-anchor-card";
 import { CopyShareLinkButton } from "../../../components/copy-share-link-button";
 import { DisputePanel } from "../../../components/dispute-panel";
 import { RiskBadge } from "../../../components/risk-badge";
-import { SummaryCards } from "../../../components/summary-cards";
-import { TraceGraphPanel } from "../../../components/trace-graph-panel";
+import { TraceOverview } from "../../../components/trace-overview";
 import { WalletConnectionCard } from "../../../components/wallet-connection-card";
 import { fetchCase } from "../../../lib/api";
 
@@ -101,8 +100,6 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
         </div>
       </section>
 
-      <SummaryCards metrics={fraudCase.trace.metrics} graph={fraudCase.trace.graph} seed={fraudCase.seed} />
-
       <section className="grid two-up">
         <article className="panel stack">
           <h2 className="section-title">Case narrative</h2>
@@ -133,31 +130,14 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
         </div>
       </section>
 
-      <TraceGraphPanel
-        graph={fraudCase.trace.graph}
-        findings={fraudCase.trace.findings}
-        metrics={fraudCase.trace.metrics}
-        suspiciousPaths={fraudCase.trace.suspiciousPaths}
-        seedValue={fraudCase.seed.seedValue}
-        title="Frozen trace snapshot"
-        subtitle="This public case view replays the frozen graph, risk findings, and path explanations that back the published narrative."
+      <TraceOverview
+        trace={fraudCase.trace}
+        traceId={fraudCase.trace.traceId}
+        graphTitle="Frozen trace snapshot"
+        graphSubtitle="This public case view replays the frozen graph, risk findings, and path explanations that back the published narrative."
+        showVerificationStrip={false}
+        autoScrollSummary={false}
       />
-
-      <section className="panel stack">
-        <h2 className="section-title">Risk findings</h2>
-        <div className="findings-list">
-          {fraudCase.trace.findings.map((finding, index) => (
-            <article key={`${finding.code}-${index}`} className="finding">
-              <div className="trace-meta">
-                <span className="pill">{finding.code}</span>
-                <RiskBadge level={finding.severity === "critical" ? "critical" : finding.severity} />
-                <span className="muted">{(finding.confidence * 100).toFixed(0)}% confidence</span>
-              </div>
-              <p>{finding.explanation}</p>
-            </article>
-          ))}
-        </div>
-      </section>
 
       <section className="grid two-up">
         <AttestationPanel fraudCase={fraudCase} />
@@ -192,10 +172,9 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
         <section id="dispute-flow" className="panel stack">
           <h2 className="section-title">Dispute this case</h2>
           <p className="muted" style={{ marginBottom: 12 }}>
-            If you believe this case was anchored incorrectly, raise a
-            formal on-chain dispute. Your reason is hashed locally before
-            being committed — the raw text never leaves your browser.
-            Step 2 requires the governance keyset to review and resolve.
+            If you believe this case was anchored incorrectly, raise a formal on-chain dispute. Your reason is hashed
+            locally before being committed — the raw text never leaves your browser. Step 2 requires the governance
+            keyset to review and resolve.
           </p>
           <DisputePanel caseId={fraudCase.caseId} caseSlug={fraudCase.slug} />
         </section>

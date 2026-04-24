@@ -261,6 +261,131 @@ describe("heuristics", () => {
       assert.ok(bridgeFinding, "Should detect bridge usage");
     });
 
+    it("should detect rapid clustered bridge transfers", () => {
+      const nodes: GraphNode[] = [
+        createMockNode({ id: "source", address: "0xsource" }),
+        createMockNode({ id: "bridge-1", address: "0xbridge1", kind: "bridge", tags: ["bridge"] }),
+        createMockNode({ id: "bridge-2", address: "0xbridge2", kind: "bridge", tags: ["bridge"] }),
+        createMockNode({ id: "dest-1", address: "0xdest1" }),
+        createMockNode({ id: "dest-2", address: "0xdest2" })
+      ];
+
+      const edges: GraphEdge[] = [
+        createMockEdge({
+          id: "bridge-a",
+          from: "source",
+          to: "bridge-1",
+          bridgeTransferId: "bridge-hop-a",
+          flags: ["bridge"],
+          timestamp: "2024-01-01T10:00:00Z"
+        }),
+        createMockEdge({
+          id: "bridge-a-exit",
+          from: "bridge-1",
+          to: "dest-1",
+          bridgeTransferId: "bridge-hop-a",
+          flags: ["bridge"],
+          synthetic: true,
+          timestamp: "2024-01-01T10:03:00Z"
+        }),
+        createMockEdge({
+          id: "bridge-b",
+          from: "source",
+          to: "bridge-2",
+          bridgeTransferId: "bridge-hop-b",
+          flags: ["bridge"],
+          timestamp: "2024-01-01T10:12:00Z"
+        }),
+        createMockEdge({
+          id: "bridge-b-exit",
+          from: "bridge-2",
+          to: "dest-2",
+          bridgeTransferId: "bridge-hop-b",
+          flags: ["bridge"],
+          synthetic: true,
+          timestamp: "2024-01-01T10:15:00Z"
+        })
+      ];
+
+      const result = scoreGraph({ nodes, edges });
+
+      const finding = result.findings.find((item) => item.code === "bridge-burst");
+      assert.ok(finding, "Should detect bridge burst");
+      assert.equal(result.edgeAdjustments.get("bridge-a")?.flags.includes("bridge-burst"), true);
+      assert.equal(result.edgeAdjustments.get("bridge-b-exit")?.flags.includes("bridge-burst"), true);
+    });
+
+    it("should not detect bridge burst when transfers are outside the time window", () => {
+      const nodes: GraphNode[] = [
+        createMockNode({ id: "source", address: "0xsource" }),
+        createMockNode({ id: "bridge-1", address: "0xbridge1", kind: "bridge", tags: ["bridge"] }),
+        createMockNode({ id: "bridge-2", address: "0xbridge2", kind: "bridge", tags: ["bridge"] })
+      ];
+
+      const edges: GraphEdge[] = [
+        createMockEdge({
+          id: "bridge-a",
+          from: "source",
+          to: "bridge-1",
+          bridgeTransferId: "bridge-hop-a",
+          flags: ["bridge"],
+          timestamp: "2024-01-01T10:00:00Z"
+        }),
+        createMockEdge({
+          id: "bridge-b",
+          from: "source",
+          to: "bridge-2",
+          bridgeTransferId: "bridge-hop-b",
+          flags: ["bridge"],
+          timestamp: "2024-01-01T11:00:00Z"
+        })
+      ];
+
+      const result = scoreGraph({ nodes, edges });
+
+      assert.equal(
+        result.findings.some((item) => item.code === "bridge-burst"),
+        false,
+        "Should not detect bridge burst when transfers are too far apart"
+      );
+    });
+
+    it("should not count multiple edges from the same bridge transfer as multiple bridge-burst events", () => {
+      const nodes: GraphNode[] = [
+        createMockNode({ id: "source", address: "0xsource" }),
+        createMockNode({ id: "bridge", address: "0xbridge", kind: "bridge", tags: ["bridge"] }),
+        createMockNode({ id: "dest", address: "0xdest" })
+      ];
+
+      const edges: GraphEdge[] = [
+        createMockEdge({
+          id: "bridge-a",
+          from: "source",
+          to: "bridge",
+          bridgeTransferId: "bridge-hop-a",
+          flags: ["bridge"],
+          timestamp: "2024-01-01T10:00:00Z"
+        }),
+        createMockEdge({
+          id: "bridge-a-exit",
+          from: "bridge",
+          to: "dest",
+          bridgeTransferId: "bridge-hop-a",
+          flags: ["bridge"],
+          synthetic: true,
+          timestamp: "2024-01-01T10:04:00Z"
+        })
+      ];
+
+      const result = scoreGraph({ nodes, edges });
+
+      assert.equal(
+        result.findings.some((item) => item.code === "bridge-burst"),
+        false,
+        "Should treat a single bridge transfer as one event"
+      );
+    });
+
     it("should detect sink consolidation", () => {
       const nodes: GraphNode[] = [
         ...Array.from({ length: 5 }, (_, i) =>
