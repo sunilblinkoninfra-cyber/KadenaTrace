@@ -34,6 +34,16 @@ export interface PrepareWalletAttestationInput {
   networkId: string;
 }
 
+export interface PrepareDisputeInput {
+  disputeId: string;
+  caseId: string;
+  disputer: string;
+  reasonHash: string;
+  signer: WalletSignerDescriptor;
+  chainId: string;
+  networkId: string;
+}
+
 export interface PreparedCaseAnchorPayload {
   unsignedCommand: IUnsignedCommand;
   txPreview: string;
@@ -55,6 +65,17 @@ export interface PreparedWalletAttestationPayload {
   attestationId: string;
   evidenceHash: string;
   timestamp: string;
+  signer: WalletSignerDescriptor;
+}
+
+export interface PreparedDisputePayload {
+  unsignedCommand: IUnsignedCommand;
+  txPreview: string;
+  chainId: string;
+  networkId: string;
+  disputeId: string;
+  caseId: string;
+  reasonHash: string;
   signer: WalletSignerDescriptor;
 }
 

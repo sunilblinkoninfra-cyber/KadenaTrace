@@ -26,7 +26,7 @@ type DisputeStep =
   | { kind: "error"; message: string };
 
 export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElement {
-  const { signer, signTransaction } = useKadenaWalletSession();
+  const { networkMismatch, signer, signTransaction, targetNetworkId } = useKadenaWalletSession();
   const isConnected = Boolean(signer);
   const [reason, setReason] = useState("");
   const [step, setStep] = useState<DisputeStep>({ kind: "idle" });
@@ -45,6 +45,13 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
     if (!reason.trim() || !isConnected || !signer) {
       return;
     }
+    if (networkMismatch) {
+      setStep({
+        kind: "error",
+        message: `Switch the wallet to ${targetNetworkId} before preparing the dispute.`
+      });
+      return;
+    }
 
     setStep({ kind: "preparing" });
 
@@ -52,15 +59,14 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
       const hash = await computeHash(reason.trim());
       setReasonHash(hash);
 
-      const requestBody = {
-        reason: reason.trim(),
+      const payload = await prepareDisputePayload(caseId, {
+        reasonHash: hash,
         signer: {
           accountName: signer.accountName,
           publicKey: signer.publicKey,
           adapterName: signer.adapterName
         }
-      };
-      const payload = await prepareDisputePayload(caseId, requestBody);
+      });
 
       setStep({ kind: "awaiting-signature", payload });
     } catch (err) {
@@ -73,6 +79,13 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
 
   const handleSign = async (): Promise<void> => {
     if (step.kind !== "awaiting-signature" || !signer) {
+      return;
+    }
+    if (networkMismatch) {
+      setStep({
+        kind: "error",
+        message: `Switch the wallet to ${targetNetworkId} before signing the dispute.`
+      });
       return;
     }
 
@@ -93,7 +106,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
       setStep({
         kind: "success",
         disputeId: result.disputeId,
-        requestKey: result.requestKey
+        requestKey: result.requestKey ?? signedCommand.hash
       });
     } catch (err) {
       setStep({

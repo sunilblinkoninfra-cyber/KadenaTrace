@@ -1,8 +1,15 @@
 import { randomUUID } from "node:crypto";
 
-import type { ICommand } from "@kadena/client";
+import { createClient, type ICommand, type ICommandResult, type IPreflightResult } from "@kadena/client";
+import {
+  assertSignedCommandMatches,
+  buildPactApiUrl,
+  deriveChainwebBaseUrl,
+  prepareDisputeTransaction
+} from "@kadenatrace/pact";
 import type {
   PreparedCaseAnchorPayload,
+  PreparedDisputePayload,
   PreparedWalletAttestationPayload,
   WalletSignerDescriptor
 } from "@kadenatrace/pact";
@@ -28,16 +35,35 @@ import { TraceService } from "./trace-service.js";
 
 // In-memory storage for disputes (would be persisted in production)
 const disputesMap = new Map<string, DisputeRecord[]>();
+const preparedDisputesMap = new Map<string, PreparedDisputeSession>();
+const DISPUTE_REQUEST_TIMEOUT_MS = 5000;
 
 export interface DisputeRecord {
   disputeId: string;
   caseId: string;
   disputer: string;
   reasonHash: string;
-  reason: string;
   status: "pending" | "reviewed";
   createdAt: string;
+  requestKey?: string;
+  chainId?: string;
+  networkId?: string;
+  blockHeight?: number;
   reviewedAt?: string;
+}
+
+interface PreparedDisputeSession {
+  disputeId: string;
+  caseId: string;
+  reasonHash: string;
+  signer: WalletSignerDescriptor;
+  preparedPayload: PreparedDisputePayload;
+}
+
+interface DisputeSubmitResult {
+  disputeId: string;
+  requestKey: string;
+  status: "pending";
 }
 
 export class CaseService {
@@ -188,66 +214,107 @@ export class CaseService {
   // Dispute methods
   async prepareDispute(
     caseId: string,
-    reason: string,
+    reasonHash: string,
     signer: WalletSignerDescriptor
-  ): Promise<{
-    disputeId: string;
-    unsignedCommand: unknown;
-    txPreview: string;
-  }> {
+  ): Promise<PreparedDisputePayload> {
     const record = await this.caseRepository.findById(caseId);
     if (!record) {
       throw Errors.caseNotFound(caseId);
     }
 
-    const disputeId = sha256Hex(`${caseId}:${signer.accountName}:${Date.now()}`).slice(0, 32);
-    const reasonHash = sha256Hex(reason);
-
-    // Build a simulated unsigned command
-    const unsignedCommand = {
-      pactCode: `(${process.env.PACT_MODULE ?? "kadenatrace.fraud-registry"}.raise-dispute "${disputeId}" "${caseId}" "${signer.accountName}" "${reasonHash}")`,
-      data: { reason },
-      meta: {
-        sender: signer.accountName,
-        chainId: "1",
-        gasLimit: 1500,
-        gasPrice: 0.000001
-      }
-    };
-
-    return {
+    const disputeId = sha256Hex(
+      JSON.stringify({
+        caseId,
+        disputer: signer.accountName,
+        reasonHash,
+        preparedAt: new Date().toISOString()
+      })
+    ).slice(0, 32);
+    const { chainId, networkId } = getDisputeNetworkConfig();
+    const preparedPayload = prepareDisputeTransaction({
       disputeId,
-      unsignedCommand,
-      txPreview: `raise-dispute: ${disputeId} for case ${caseId}`
-    };
+      caseId,
+      disputer: signer.accountName,
+      reasonHash,
+      signer,
+      chainId,
+      networkId
+    });
+
+    preparedDisputesMap.set(makePreparedDisputeKey(caseId, disputeId), {
+      disputeId,
+      caseId,
+      reasonHash,
+      signer,
+      preparedPayload
+    });
+
+    return preparedPayload;
   }
 
   async submitDispute(
     caseId: string,
     disputeId: string,
-    _signedCommand: ICommand
-  ): Promise<DisputeRecord> {
+    signedCommand: ICommand
+  ): Promise<DisputeSubmitResult> {
     const record = await this.caseRepository.findById(caseId);
     if (!record) {
       throw Errors.caseNotFound(caseId);
     }
 
-    // Simulate on-chain submission
+    const prepared = preparedDisputesMap.get(makePreparedDisputeKey(caseId, disputeId));
+    if (!prepared) {
+      throw Errors.validationError(
+        "disputeId",
+        "Prepared dispute payload expired or was not found. Prepare the dispute again before signing."
+      );
+    }
+
+    assertSignedCommandMatches(signedCommand, prepared.preparedPayload.unsignedCommand);
+    const client = createDisputeClient();
+
+    const preflight = await withTimeout(
+      client.preflight(signedCommand),
+      "Dispute preflight timed out.",
+      DISPUTE_REQUEST_TIMEOUT_MS
+    );
+    ensurePactSuccess(preflight, "Dispute preflight failed.");
+
+    const descriptor = await withTimeout(
+      client.submit(signedCommand),
+      "Dispute submission timed out.",
+      DISPUTE_REQUEST_TIMEOUT_MS
+    );
+    const result = await withTimeout(
+      client.listen(descriptor),
+      "Dispute confirmation timed out.",
+      DISPUTE_REQUEST_TIMEOUT_MS
+    );
+    const confirmed = ensurePactSuccess(result, "Dispute transaction failed.");
+
     const dispute: DisputeRecord = {
       disputeId,
       caseId,
-      disputer: "unknown",
-      reasonHash: sha256Hex("Disputed"),
-      reason: "Case under dispute review",
+      disputer: prepared.signer.accountName,
+      reasonHash: prepared.reasonHash,
       status: "pending",
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      requestKey: descriptor.requestKey,
+      chainId: descriptor.chainId,
+      networkId: descriptor.networkId,
+      blockHeight: confirmed.metaData?.blockHeight
     };
 
     const existing = disputesMap.get(caseId) ?? [];
     existing.push(dispute);
     disputesMap.set(caseId, existing);
+    preparedDisputesMap.delete(makePreparedDisputeKey(caseId, disputeId));
 
-    return dispute;
+    return {
+      disputeId,
+      requestKey: descriptor.requestKey,
+      status: "pending"
+    };
   }
 
   async listDisputesForCase(caseId: string): Promise<DisputeRecord[]> {
@@ -432,4 +499,45 @@ function toPactAttestationListRow(caseId: string, attestation: RiskAttestation):
     "evidence-hash": attestation.evidenceHash,
     signer: attestation.signer
   };
+}
+
+function makePreparedDisputeKey(caseId: string, disputeId: string): string {
+  return `${caseId}:${disputeId}`;
+}
+
+function getDisputeNetworkConfig(): { chainId: string; networkId: string; chainwebBaseUrl: string } {
+  const kadenaNodeUrl =
+    process.env.KADENA_NODE_URL ??
+    "https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact";
+
+  return {
+    chainId: process.env.KADENA_CHAIN_ID ?? "1",
+    networkId: process.env.KADENA_NETWORK_ID ?? "testnet04",
+    chainwebBaseUrl: deriveChainwebBaseUrl(process.env.KADENA_CHAINWEB_BASE_URL ?? kadenaNodeUrl)
+  };
+}
+
+function createDisputeClient() {
+  return createClient(({ chainId, networkId }) => {
+    const config = getDisputeNetworkConfig();
+    return buildPactApiUrl(config.chainwebBaseUrl, networkId, chainId);
+  });
+}
+
+function ensurePactSuccess(result: ICommandResult | IPreflightResult, fallbackMessage: string): ICommandResult {
+  const commandResult = "preflightResult" in result ? result.preflightResult : result;
+  if (commandResult.result.status === "failure") {
+    throw new Error(commandResult.result.error.message || fallbackMessage);
+  }
+
+  return commandResult;
+}
+
+async function withTimeout<T>(promise: Promise<T>, message: string, timeoutMs: number): Promise<T> {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(message)), timeoutMs);
+    })
+  ]);
 }

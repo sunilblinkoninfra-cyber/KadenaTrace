@@ -293,6 +293,135 @@ describe("heuristics", () => {
       assert.ok(sinkFinding, "Should detect sink consolidation");
     });
 
+    it("should detect peel-chain layering", () => {
+      const nodes: GraphNode[] = [
+        createMockNode({ id: "a", address: "0xa" }),
+        createMockNode({ id: "b", address: "0xb" }),
+        createMockNode({ id: "c", address: "0xc" }),
+        createMockNode({ id: "d", address: "0xd" }),
+        createMockNode({ id: "change-1", address: "0xchange1" }),
+        createMockNode({ id: "change-2", address: "0xchange2" })
+      ];
+
+      const edges: GraphEdge[] = [
+        createMockEdge({ id: "ab", from: "a", to: "b", amount: 10, timestamp: "2024-01-01T10:00:00Z" }),
+        createMockEdge({ id: "bc", from: "b", to: "c", amount: 8.7, timestamp: "2024-01-01T10:05:00Z" }),
+        createMockEdge({ id: "b-change", from: "b", to: "change-1", amount: 1.3, timestamp: "2024-01-01T10:06:00Z" }),
+        createMockEdge({ id: "cd", from: "c", to: "d", amount: 7.5, timestamp: "2024-01-01T10:10:00Z" }),
+        createMockEdge({ id: "c-change", from: "c", to: "change-2", amount: 0.8, timestamp: "2024-01-01T10:11:00Z" })
+      ];
+
+      const result = scoreGraph({ nodes, edges });
+
+      const finding = result.findings.find((item) => item.code === "peel-chain");
+      assert.ok(finding, "Should detect peel-chain layering");
+      assert.equal(result.edgeAdjustments.get("bc")?.flags.includes("peel-chain"), true);
+      assert.equal(result.edgeAdjustments.get("cd")?.flags.includes("peel-chain"), true);
+    });
+
+    it("should detect structuring with round-amount transfers", () => {
+      const nodes: GraphNode[] = [
+        createMockNode({ id: "source", address: "0xsource" }),
+        createMockNode({ id: "r1", address: "0xr1" }),
+        createMockNode({ id: "r2", address: "0xr2" }),
+        createMockNode({ id: "r3", address: "0xr3" })
+      ];
+
+      const edges: GraphEdge[] = [
+        createMockEdge({ id: "s1", from: "source", to: "r1", amount: 1.0 }),
+        createMockEdge({ id: "s2", from: "source", to: "r2", amount: 2.0 }),
+        createMockEdge({ id: "s3", from: "source", to: "r3", amount: 10.0 })
+      ];
+
+      const result = scoreGraph({ nodes, edges });
+
+      const finding = result.findings.find((item) => item.code === "structuring");
+      assert.ok(finding, "Should detect structuring");
+      assert.equal(result.edgeAdjustments.get("s1")?.flags.includes("structuring"), true);
+    });
+
+    it("should detect circular flow returning to a prior wallet", () => {
+      const nodes: GraphNode[] = [
+        createMockNode({ id: "a", address: "0xa" }),
+        createMockNode({ id: "b", address: "0xb" })
+      ];
+
+      const edges: GraphEdge[] = [
+        createMockEdge({ id: "cycle-1", from: "a", to: "b", timestamp: "2024-01-01T10:00:00Z" }),
+        createMockEdge({ id: "cycle-2", from: "b", to: "a", timestamp: "2024-01-01T10:30:00Z" })
+      ];
+
+      const result = scoreGraph({ nodes, edges });
+
+      const finding = result.findings.find((item) => item.code === "circular-flow");
+      assert.ok(finding, "Should detect circular flow");
+      assert.equal(result.edgeAdjustments.get("cycle-1")?.flags.includes("circular-flow"), true);
+      assert.equal(result.edgeAdjustments.get("cycle-2")?.flags.includes("circular-flow"), true);
+    });
+
+    it("should detect dormant wallet reactivation", () => {
+      const nodes: GraphNode[] = [
+        createMockNode({ id: "source", address: "0xsource" }),
+        createMockNode({ id: "dormant", address: "0xdormant" }),
+        createMockNode({ id: "exit", address: "0xexit" })
+      ];
+
+      const edges: GraphEdge[] = [
+        createMockEdge({
+          id: "inbound",
+          from: "source",
+          to: "dormant",
+          amount: 5,
+          timestamp: "2024-01-01T10:00:00Z"
+        }),
+        createMockEdge({
+          id: "outbound",
+          from: "dormant",
+          to: "exit",
+          amount: 4.9,
+          timestamp: "2024-02-15T10:00:00Z"
+        })
+      ];
+
+      const result = scoreGraph({ nodes, edges });
+
+      const finding = result.findings.find((item) => item.code === "dormant-reactivation");
+      assert.ok(finding, "Should detect dormant wallet reactivation");
+      assert.equal(result.edgeAdjustments.get("outbound")?.flags.includes("dormant-reactivation"), true);
+    });
+
+    it("should detect exchange hopping across multiple exchange deposits", () => {
+      const nodes: GraphNode[] = [
+        createMockNode({ id: "source", address: "0xsource" }),
+        createMockNode({ id: "exchange-1", address: "0xexchange1", kind: "exchange", tags: ["exchange"] }),
+        createMockNode({ id: "exchange-2", address: "0xexchange2", kind: "exchange", tags: ["exchange"] })
+      ];
+
+      const edges: GraphEdge[] = [
+        createMockEdge({
+          id: "hop-1",
+          from: "source",
+          to: "exchange-1",
+          amount: 12,
+          timestamp: "2024-01-01T10:00:00Z"
+        }),
+        createMockEdge({
+          id: "hop-2",
+          from: "source",
+          to: "exchange-2",
+          amount: 11,
+          timestamp: "2024-01-01T10:20:00Z"
+        })
+      ];
+
+      const result = scoreGraph({ nodes, edges });
+
+      const finding = result.findings.find((item) => item.code === "exchange-hopping");
+      assert.ok(finding, "Should detect exchange hopping");
+      assert.equal(result.edgeAdjustments.get("hop-1")?.flags.includes("exchange-hopping"), true);
+      assert.equal(result.edgeAdjustments.get("hop-2")?.flags.includes("exchange-hopping"), true);
+    });
+
     it("should not flag dust transactions", () => {
       const nodes: GraphNode[] = [
         createMockNode({ id: "source", address: "0xsource" }),
