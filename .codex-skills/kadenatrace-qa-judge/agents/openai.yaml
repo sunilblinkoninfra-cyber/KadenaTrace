@@ -1,0 +1,4 @@
+interface:
+  display_name: "KadenaTrace QA Judge"
+  short_description: "Manual QA and hackathon judging workflow"
+  default_prompt: "Use $kadenatrace-qa-judge to run a complete QA and judge evaluation of KadenaTrace and return the required report."

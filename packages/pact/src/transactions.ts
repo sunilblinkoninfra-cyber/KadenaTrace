@@ -1,11 +1,13 @@
 import { Pact, isSignedTransaction, type ChainId, type ICommand, type IUnsignedCommand } from "@kadena/client";
 import { sha256Hex } from "@kadenatrace/shared";
 
-import { buildAttestationCommand, buildCreateCaseCommand } from "./client.js";
+import { buildAttestationCommand, buildCreateCaseCommand, buildRaiseDisputeCommand } from "./client.js";
 import { FRAUD_REGISTRY_MODULE, TRACE_REGISTRY_MODULE } from "./contracts.js";
 import type {
   PrepareCaseAnchorInput,
+  PrepareDisputeInput,
   PreparedCaseAnchorPayload,
+  PreparedDisputePayload,
   PreparedWalletAttestationPayload,
   PrepareWalletAttestationInput
 } from "./types.js";
@@ -135,6 +137,36 @@ export function prepareWalletAttestationTransaction(
   };
 }
 
+export function prepareDisputeTransaction(input: PrepareDisputeInput): PreparedDisputePayload {
+  const txPreview = buildRaiseDisputeCommand({
+    disputeId: input.disputeId,
+    caseId: input.caseId,
+    disputer: input.disputer,
+    reasonHash: input.reasonHash
+  });
+
+  const unsignedCommand = buildGasSignedTransaction(txPreview, {
+    chainId: input.chainId,
+    networkId: input.networkId,
+    senderAccount: input.signer.accountName,
+    publicKey: input.signer.publicKey,
+    nonce: createDisputeNonce(input),
+    creationTime: Math.floor(Date.now() / 1000),
+    capabilities: [{ name: `${FRAUD_REGISTRY_MODULE}.DISPUTE`, args: [input.caseId] }]
+  });
+
+  return {
+    unsignedCommand,
+    txPreview,
+    chainId: input.chainId,
+    networkId: input.networkId,
+    disputeId: input.disputeId,
+    caseId: input.caseId,
+    reasonHash: input.reasonHash,
+    signer: input.signer
+  };
+}
+
 export function assertSignedCommandMatches(
   signedCommand: ICommand,
   unsignedCommand: IUnsignedCommand
@@ -154,6 +186,10 @@ function createCaseAnchorNonce(input: PrepareCaseAnchorInput) {
 
 function createWalletAttestationNonce(input: PrepareWalletAttestationInput) {
   return `kadenatrace:attestation:${input.attestationId}:${input.signer.accountName}`;
+}
+
+function createDisputeNonce(input: PrepareDisputeInput) {
+  return `kadenatrace:dispute:${input.disputeId}:${input.signer.accountName}`;
 }
 
 function toCreationTime(timestamp: string): number {

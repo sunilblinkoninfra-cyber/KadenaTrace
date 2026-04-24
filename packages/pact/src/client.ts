@@ -18,6 +18,13 @@ interface AttestationCommandInput {
   signer: string;
 }
 
+interface RaiseDisputeCommandInput {
+  disputeId: string;
+  caseId: string;
+  disputer: string;
+  reasonHash: string;
+}
+
 function quote(value: string) {
   return JSON.stringify(value);
 }
@@ -46,4 +53,10 @@ export function buildAttestationCommand(input: AttestationCommandInput) {
   return `(${TRACE_REGISTRY_MODULE}.attest-wallet-risk ${quote(input.caseId)} ${quote(input.wallet)} ${Math.round(
     input.riskScore
   )} ${quote(input.timestamp)} ${quote(input.signer)} ${readKeyset("submitter-guard")()})`;
+}
+
+export function buildRaiseDisputeCommand(input: RaiseDisputeCommandInput) {
+  return `(${FRAUD_REGISTRY_MODULE}.raise-dispute ${quote(input.disputeId)} ${quote(input.caseId)} ${quote(
+    input.disputer
+  )} ${quote(input.reasonHash)} ${readKeyset("submitter-guard")()})`;
 }
