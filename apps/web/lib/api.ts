@@ -126,7 +126,7 @@ export async function getTrace(traceId: string): Promise<TraceRecord | null> {
 
 export async function fetchTrace(payload: unknown): Promise<TraceSubmissionResponse> {
   if (!API_BASE_URL) {
-    console.error("fetchTrace aborted: NEXT_PUBLIC_API_URL is not configured.");
+    console.error("fetchTrace aborted: NEXT_PUBLIC_API_BASE_URL is not configured.");
     throw new Error(ENGINE_UNAVAILABLE_MESSAGE);
   }
 
@@ -143,7 +143,7 @@ export async function fetchTrace(payload: unknown): Promise<TraceSubmissionRespo
       { retries: DEFAULT_RETRIES, delayMs: DEFAULT_DELAY_MS, cache: "no-store" }
     );
 
-    if (!isTraceSubmissionResponse(result)) {
+    if (!result || typeof (result as { traceId?: unknown }).traceId !== "string") {
       console.error("fetchTrace received an invalid response payload", { url, result });
       throw new Error("Tracing engine returned an invalid response. Please retry.");
     }
@@ -151,7 +151,7 @@ export async function fetchTrace(payload: unknown): Promise<TraceSubmissionRespo
     return result;
   } catch (error) {
     console.error("fetchTrace failed", { url, error });
-    throw error;
+    throw error instanceof Error ? error : new Error(ENGINE_UNAVAILABLE_MESSAGE);
   }
 }
 

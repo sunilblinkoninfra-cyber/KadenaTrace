@@ -35,9 +35,18 @@ export async function registerTraceRoutes(app: FastifyInstance, traceService: Tr
         return reply.code(statusCode).send(body);
       }
 
-      try {
+try {
         const trace = await traceService.createTrace(parsed.data);
-        return reply.send({ traceId: trace.id, status: trace.status });
+        return reply.send({
+          traceId: trace.id,
+          id: trace.id,
+          createdAt: trace.createdAt,
+          updatedAt: trace.updatedAt,
+          status: trace.status,
+          request: trace.request,
+          result: trace.result ?? undefined,
+          error: trace.error ?? undefined
+        });
       } catch (error) {
         request.log.error(error);
         const { statusCode, body } = buildErrorResponse(error);
