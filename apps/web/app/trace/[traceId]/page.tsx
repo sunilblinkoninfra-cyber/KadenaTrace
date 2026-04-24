@@ -5,6 +5,7 @@ import { CaseAnchorCard } from "../../../components/case-anchor-card";
 import { PublishCasePanel } from "../../../components/publish-case-panel";
 import { TraceOverview } from "../../../components/trace-overview";
 import { TraceStageLoader } from "../../../components/trace-stage-loader";
+import { TraceErrorState } from "../../../components/trace-error-state";
 import { WalletConnectionCard } from "../../../components/wallet-connection-card";
 import { getDemoTraceRecord, isDemoTraceId } from "../../../lib/demo-trace";
 import { getTrace } from "../../../lib/api";
@@ -17,47 +18,11 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
   const trace = isDemo ? await getDemoTraceRecord() : await getTrace(traceId);
 
   if (!trace) {
-    return (
-      <main className="shell grid" style={{ gap: 22 }}>
-        <div className="panel card">
-          <h1 className="section-title">Trace unavailable</h1>
-          <p className="muted">
-            No saved trace was available for this ID. The API may still be waking up, the network may be unavailable,
-            or the trace ID may be invalid.
-          </p>
-          <div className="actions">
-            <Link href={`/trace/${traceId}`} className="ghost-button">
-              Retry
-            </Link>
-            <Link href="/trace/demo" className="ghost-button">
-              Use Demo Case
-            </Link>
-            <Link href="/" className="ghost-button">
-              Back to search
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
+    return <TraceErrorState traceId={traceId} />;
   }
 
   if (trace.status === "failed") {
-    return (
-      <main className="shell grid" style={{ gap: 22 }}>
-        <div className="panel card">
-          <h1 className="section-title">Investigation failed to load</h1>
-          <p className="muted">{trace.error ?? "The tracing engine could not complete this request."}</p>
-          <div className="actions">
-            <Link href={`/trace/${traceId}`} className="ghost-button">
-              Retry
-            </Link>
-            <Link href="/trace/demo" className="ghost-button">
-              Use Demo Case
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
+    return <TraceErrorState traceId={traceId} />;
   }
 
   if (trace.status !== "completed" || !trace.result) {

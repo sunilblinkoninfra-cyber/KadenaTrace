@@ -294,7 +294,7 @@ export function GraphView({
 
   const primaryReason = selection ? getPrimaryReason(selection.payload, relatedFindings) : null;
 
-  if (graph.nodes.length === 0) {
+  if (graph.nodes.length === 0 && findings.length === 0) {
     return (
       <div className="graph-shell">
         <section className="graph-empty-state panel">
