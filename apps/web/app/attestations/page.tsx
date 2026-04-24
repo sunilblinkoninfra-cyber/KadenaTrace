@@ -11,8 +11,20 @@ export default async function AttestationsPage() {
       <main className="shell stack">
         <h1 className="section-title">Attestations Dashboard</h1>
         <div className="panel card">
-          <h3 style={{ color: "#ff4d4f" }}>API not connected — Retry</h3>
-          <p className="muted">Could not load attestations. Ensure the backend is running and reachable.</p>
+          <h3 style={{ color: "#ff4d4f" }}>Unable to connect to tracing engine.</h3>
+          <p className="muted">
+            Possible reasons:
+            API waking up (cold start), network issue, or the backend is temporarily unreachable.
+            Please retry or use the demo investigation.
+          </p>
+          <div className="actions">
+            <Link href="/attestations" className="ghost-button">
+              Retry
+            </Link>
+            <Link href="/trace/demo" className="ghost-button">
+              Use Demo Case
+            </Link>
+          </div>
         </div>
       </main>
     );

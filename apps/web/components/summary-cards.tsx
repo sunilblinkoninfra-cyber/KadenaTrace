@@ -1,7 +1,6 @@
 import { type ReactElement } from "react";
 
 import type { TraceGraph, TraceMetrics, TraceRequest } from "@kadenatrace/shared";
-import { makeNodeId } from "@kadenatrace/shared";
 
 export function SummaryCards({
   metrics,
@@ -73,7 +72,7 @@ function getHopsToMixer(graph: TraceGraph, seed: TraceRequest): number | null {
 
   const seedNodeIds =
     seed.seedType === "address"
-      ? [makeNodeId(seed.chain, seed.seedValue)]
+      ? [buildNodeId(seed.chain, seed.seedValue)]
       : Array.from(
           new Set(
             graph.edges
@@ -128,4 +127,8 @@ function formatMinutes(value: number): string {
   }
 
   return `${(value / (24 * 60)).toFixed(1)} d`;
+}
+
+function buildNodeId(chain: TraceRequest["chain"], address: string): string {
+  return `${chain}:${address.toLowerCase()}`;
 }
