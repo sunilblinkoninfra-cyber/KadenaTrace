@@ -9,6 +9,30 @@ import {
 } from "@kadenatrace/shared";
 
 import type { CaseService } from "../services/case-service.js";
+import type { ApiConfig } from "../config.js";
+import { buildGetCasePublicCommand, buildListPublicCasesCommand } from "@kadenatrace/pact";
+
+async function kadenaLocalQuery(
+  command: unknown,
+  cfg: ApiConfig
+): Promise<unknown> {
+  const url = `${cfg.kadenaNodeUrl ?? "https://api.testnet.chainweb.com"}/chainweb/0.0/${cfg.kadenaNetworkId ?? "testnet04"}/chain/${cfg.kadenaChainId ?? "1"}/pact/api/v1/local`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(command)
+  });
+  if (!response.ok) {
+    throw new Error(`Kadena local query failed: HTTP ${response.status}`);
+  }
+  const json = (await response.json()) as {
+    result?: { status?: string; data?: unknown; error?: { message: string } }
+  };
+  if (json.result?.status === "failure") {
+    throw new Error(json.result.error?.message ?? "Pact execution failed");
+  }
+  return json.result?.data;
+}
 
 const walletSignerSchema = z.object({
   accountName: z.string().min(3),
@@ -61,7 +85,47 @@ const disputeSubmitSchema = z.object({
   signedCommand: signedCommandSchema
 });
 
-export async function registerCaseRoutes(app: FastifyInstance, caseService: CaseService) {
+export async function registerCaseRoutes(app: FastifyInstance, caseService: CaseService, config: ApiConfig) {
+  app.get("/api/pact/cases/:caseId", async (request, reply) => {
+    const { caseId } = request.params as { caseId: string };
+    try {
+      const command = buildGetCasePublicCommand(
+        caseId,
+        config.kadenaNetworkId ?? "testnet04",
+        config.kadenaChainId ?? "1"
+      );
+      const result = await kadenaLocalQuery(command, config);
+      return reply.send({ source: "pact", data: result });
+    } catch {
+      const record = await caseService.findById(caseId);
+      if (!record) {
+        return reply.code(404).send({ error: "Case not found" });
+      }
+      return reply.send({ source: "offchain", data: record });
+    }
+  });
+
+  app.get("/api/pact/cases", async (request, reply) => {
+    const query = request.query as {
+      limit?: string;
+      offset?: string;
+    };
+    const limit = Math.min(parseInt(query.limit ?? "20", 10), 50);
+    const offset = parseInt(query.offset ?? "0", 10);
+    try {
+      const command = buildListPublicCasesCommand(
+        limit,
+        offset,
+        config.kadenaNetworkId ?? "testnet04",
+        config.kadenaChainId ?? "1"
+      );
+      const result = await kadenaLocalQuery(command, config);
+      return reply.send({ source: "pact", data: result });
+    } catch {
+      const records = await caseService.listPublicCases();
+      return reply.send({ source: "offchain", data: records });
+    }
+  });
   app.get("/api/cases/by-chain/:chain", async (request, reply) => {
     try {
       const params = request.params as { chain: string };

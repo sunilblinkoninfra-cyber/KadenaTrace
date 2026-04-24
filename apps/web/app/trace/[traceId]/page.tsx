@@ -69,6 +69,30 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
         </div>
       </section>
 
+      <div className="hop-ribbon">
+        <span>
+          Graph depth:{" "}
+          <strong>{trace.result.metrics.maxDepth ?? 2} hops</strong>
+        </span>
+        <span>
+          Nodes: <strong>{trace.result.graph.nodes.length}</strong>
+        </span>
+        <span>
+          Edges: <strong>{trace.result.graph.edges.length}</strong>
+        </span>
+        <a
+          href={`https://etherscan.io/address/${
+            trace.result.seed.seedValue
+          }`}
+          target="_blank"
+          rel="noreferrer"
+          className="ghost-button"
+          style={{ fontSize: 12, padding: "4px 10px" }}
+        >
+          View on Etherscan ↗
+        </a>
+      </div>
+
       <TraceOverview
         trace={trace.result}
         traceId={trace.id}

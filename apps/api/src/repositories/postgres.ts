@@ -60,6 +60,19 @@ export class PostgresTraceRepository implements TraceRepository {
       updatedAt: row.updated_at.toISOString()
     };
   }
+
+  async findAll(): Promise<TraceRecord[]> {
+    const result = await this.pool.query("select * from trace_runs order by created_at desc");
+    return result.rows.map((row) => ({
+      id: row.id,
+      status: row.status,
+      request: row.request,
+      result: row.result ?? undefined,
+      error: row.error ?? undefined,
+      createdAt: row.created_at.toISOString(),
+      updatedAt: row.updated_at.toISOString()
+    }));
+  }
 }
 
 export class PostgresCaseRepository implements CaseRepository {
@@ -125,6 +138,11 @@ export class PostgresCaseRepository implements CaseRepository {
   async findBySlug(slug: string): Promise<CaseRecord | null> {
     const result = await this.pool.query("select * from fraud_cases where slug = $1 limit 1", [slug]);
     return result.rowCount ? hydrateCaseRow(result.rows[0]) : null;
+  }
+
+  async findAll(): Promise<CaseRecord[]> {
+    const result = await this.pool.query("select * from fraud_cases order by updated_at desc");
+    return result.rows.map(hydrateCaseRow);
   }
 
   async listPublicCases(): Promise<CaseRecord[]> {

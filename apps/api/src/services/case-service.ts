@@ -326,6 +326,10 @@ export class CaseService {
     return record ? toPublicCase(record) : null;
   }
 
+  async findById(caseId: string): Promise<CaseRecord | null> {
+    return this.caseRepository.findById(caseId);
+  }
+
   async listPublicCases(params?: PaginationParams): Promise<PaginatedResult<PublicCaseView>> {
     const allRecords = await this.caseRepository.listPublicCases();
     const limit = Math.min(params?.limit ?? 20, 100);

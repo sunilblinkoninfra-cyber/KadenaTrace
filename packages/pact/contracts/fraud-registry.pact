@@ -152,6 +152,37 @@
     @doc "Retrieves a wallet attestation by its attestation-id."
     (read wallet-attestations attestation-id))
 
+  (defun get-case-public (case-id:string)
+    @doc "Returns public case fields only. No capability required.
+         Safe for anyone to call via a local query."
+    (let ((record (read cases case-id)))
+      {
+        "case-id":       (at "case-id"       record),
+        "subject-chain":  (at "subject-chain"  record),
+        "subject-kind": (at "subject-kind"   record),
+        "subject-hash": (at "subject-hash"  record),
+        "public-uri-hash": (at "public-uri-hash" record),
+        "created-at":   (at "reporter"      record)
+      }))
+
+  (defun list-public-cases (limit:integer offset:integer)
+    @doc "Returns up to limit public case summaries starting at offset.
+         No capability required. Safe for public dashboards."
+    (enforce (>= limit 0)  "limit must be non-negative")
+    (enforce (>= offset 0) "offset must be non-negative")
+    (enforce (<= limit 50) "limit must not exceed 50")
+    (let ((all-cases
+           (fold-db cases
+             (lambda (k obj) true)
+             (lambda (k obj) {
+               "case-id":       (at "case-id"        obj),
+               "subject-chain": (at "subject-chain"  obj),
+               "subject-kind": (at "subject-kind"   obj),
+               "subject-hash": (at "subject-hash"   obj),
+               "created-at":   (at "reporter"       obj)
+             }))))
+      (take limit (drop offset all-cases))))
+
   (defun verify-subject-hash (subject-hash:string)
     @doc "Returns true if any case exists for the given subject-hash.
          Public read — no capability required. Allows third-party
