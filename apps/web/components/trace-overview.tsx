@@ -33,6 +33,10 @@ export function TraceOverview({
   isDemo = false,
   autoScrollSummary = false
 }: TraceOverviewProps): ReactElement {
+  if (!trace?.graph || trace.graph.nodes.length === 0) {
+    return <></>;
+  }
+
   const summary = useMemo(() => buildInvestigationSummary(trace), [trace]);
   const timeline = useMemo(() => buildInvestigationTimeline(trace), [trace]);
   const [focusedNodeId, setFocusedNodeId] = useState<string | undefined>(summary.topRiskWallet?.id);
