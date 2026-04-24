@@ -19,22 +19,46 @@ export function TraceErrorState({ traceId }: TraceErrorStateProps): ReactElement
   };
 
   return (
-    <main className="shell grid" style={{ gap: 22 }}>
-      <div className="panel card">
-        <h1 className="section-title">Unable to connect to tracing engine.</h1>
-        <p className="muted">
+    <main className="shell">
+      <div
+        className="panel"
+        style={{
+          maxWidth: "560px",
+          margin: "80px auto",
+          textAlign: "center",
+          padding: "40px"
+        }}
+      >
+        <div
+          style={{
+            fontSize: "48px",
+            marginBottom: "20px"
+          }}
+        >
+          ⚠️
+        </div>
+        
+        <h1
+          className="section-title"
+          style={{ fontSize: "1.5rem", marginBottom: "12px" }}
+        >
+          Unable to connect to tracing engine
+        </h1>
+        
+        <p className="muted" style={{ marginBottom: "24px", lineHeight: 1.6 }}>
           The tracing engine is temporarily unavailable (cold start or network issue). Please retry or use the demo case.
         </p>
-        <div className="actions">
+
+        <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
           <button
-            className="ghost-button"
+            className="button"
             onClick={handleRetry}
-            type="button"
             disabled={isPending}
           >
-            Retry
+            {isPending ? "Retrying..." : "Retry"}
           </button>
-          <Link className="ghost-button" href="/trace/demo">
+          
+          <Link href="/trace/demo" className="ghost-button">
             Use Demo Case
           </Link>
         </div>
