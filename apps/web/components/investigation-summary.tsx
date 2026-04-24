@@ -17,11 +17,13 @@ const RISK_COLORS: Record<string, { bg: string; text: string }> = {
   low: { bg: "var(--risk-low-bg)", text: "var(--risk-low)" }
 };
 
+const DEFAULT_RISK_STYLE = { bg: "var(--risk-medium-bg)", text: "var(--risk-medium)" };
+
 export function InvestigationSummary({
   summary,
   onFocusTopRiskWallet
 }: InvestigationSummaryProps): ReactElement {
-  const riskStyle = RISK_COLORS[summary.overallRisk.toLowerCase()] || RISK_COLORS.medium;
+  const riskStyle = RISK_COLORS[summary.overallRisk.toLowerCase()] ?? DEFAULT_RISK_STYLE;
 
   return (
     <section className="panel investigation-summary animate-fade-in">
