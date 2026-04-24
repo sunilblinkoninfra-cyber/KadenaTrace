@@ -355,22 +355,31 @@ function applySinkConsolidation(graph: TraceShape, accumulator: ScoredFinding) {
 }
 
 function applyPeelChain(graph: TraceShape, accumulator: ScoredFinding): void {
+  const candidateEdges = graph.edges.filter((candidate) => !isSuppressedEdge(candidate));
   const outboundByNode = new Map<string, GraphEdge[]>();
+  const coveredEdgeIds = new Set<string>();
 
-  for (const edge of graph.edges.filter((candidate) => !isSuppressedEdge(candidate))) {
+  for (const edge of candidateEdges) {
     const list = outboundByNode.get(edge.from) ?? [];
     list.push(edge);
     outboundByNode.set(edge.from, list);
   }
 
-  for (const edge of graph.edges.filter((candidate) => !isSuppressedEdge(candidate))) {
+  for (const edge of candidateEdges) {
+    if (coveredEdgeIds.has(edge.id)) {
+      continue;
+    }
+
     // Start a peel chain from this edge
     const chain: GraphEdge[] = [edge];
+    const visitedNodeIds = new Set<string>([edge.from, edge.to]);
     let cursor = edge.to;
 
     for (let depth = 0; depth < 10; depth++) {
       const outbound = (outboundByNode.get(cursor) ?? [])
         .filter((candidate) => !isSuppressedEdge(candidate))
+        .filter((candidate) => !coveredEdgeIds.has(candidate.id))
+        .filter((candidate) => !visitedNodeIds.has(candidate.to))
         .sort((left, right) => left.timestamp.localeCompare(right.timestamp));
 
       // Peel pattern: exactly one dominant outgoing edge forwarding most funds
@@ -388,6 +397,7 @@ function applyPeelChain(graph: TraceShape, accumulator: ScoredFinding): void {
       }
 
       chain.push(dominant);
+      visitedNodeIds.add(dominant.to);
       cursor = dominant.to;
     }
 
@@ -413,10 +423,13 @@ function applyPeelChain(graph: TraceShape, accumulator: ScoredFinding): void {
       )
     );
     for (const item of chain) {
+      coveredEdgeIds.add(item.id);
+    }
+    for (const item of chain) {
       upsertNodeAdjustment(accumulator.nodeAdjustments, item.from, signal);
+      upsertNodeAdjustment(accumulator.nodeAdjustments, item.to, signal);
       upsertEdgeAdjustment(accumulator.edgeAdjustments, item.id, signal, "peel-chain");
     }
-    break; // one peel chain finding per starting edge is enough
   }
 }
 
@@ -635,7 +648,7 @@ function applyExchangeHopping(graph: TraceShape, accumulator: ScoredFinding): vo
     );
     upsertNodeAdjustment(accumulator.nodeAdjustments, nodeId, signal);
     for (const edge of exchangeEdges) {
-      upsertEdgeAdjustment(accumulator.edgeAdjustments, edge.id, signal, "exchange-cashout");
+      upsertEdgeAdjustment(accumulator.edgeAdjustments, edge.id, signal, "exchange-hopping");
     }
   }
 }

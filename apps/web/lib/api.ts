@@ -4,10 +4,49 @@ type TraceSubmissionResponse = TraceRecord & {
   traceId: string;
 };
 
+type PublicCaseListResponse =
+  | PublicCaseView[]
+  | {
+      items: PublicCaseView[];
+      nextCursor?: string;
+      hasMore: boolean;
+    };
+
+interface DisputePayloadRequest {
+  reasonHash: string;
+  signer: {
+    accountName: string;
+    publicKey: string;
+    adapterName?: string;
+  };
+}
+
+interface PreparedDisputePayloadResponse {
+  disputeId: string;
+  unsignedCommand: unknown;
+  txPreview: string;
+}
+
+interface DisputeSubmitRequest {
+  disputeId: string;
+  signer: {
+    accountName: string;
+    publicKey: string;
+  };
+  signedCommand: unknown;
+}
+
+interface DisputeSubmitResponse {
+  disputeId: string;
+  requestKey?: string;
+}
+
+const DEFAULT_PRODUCTION_API_BASE_URL = "https://kadenatrace-api.onrender.com";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:4000";
+  (process.env.NODE_ENV === "development" ? "http://localhost:4000" : DEFAULT_PRODUCTION_API_BASE_URL);
 
 export async function apiFetch<T>(path: string): Promise<T | null> {
   try {
@@ -29,7 +68,12 @@ export function getApiBaseUrl(): string {
 }
 
 export async function getPublicCases(): Promise<PublicCaseView[] | null> {
-  return apiFetch<PublicCaseView[]>("/api/public/cases");
+  const response = await apiFetch<PublicCaseListResponse>("/api/public/cases");
+  if (!response) {
+    return null;
+  }
+
+  return Array.isArray(response) ? response : response.items;
 }
 
 export async function getPublicCase(slug: string): Promise<PublicCaseView | null> {
@@ -68,10 +112,9 @@ export async function fetchTrace(payload: unknown): Promise<TraceSubmissionRespo
 
 export async function prepareDisputePayload(
   caseId: string,
-  body: { signer: { accountName: string; publicKey: string; adapterName?: string } }
-): Promise<unknown> {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
-  const response = await fetch(`${base}/api/cases/${encodeURIComponent(caseId)}/disputes/payload`, {
+  body: DisputePayloadRequest
+): Promise<PreparedDisputePayloadResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/cases/${encodeURIComponent(caseId)}/disputes/payload`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
@@ -80,19 +123,14 @@ export async function prepareDisputePayload(
     const err = await response.json().catch(() => ({}));
     throw new Error((err as { message?: string }).message ?? "Failed to prepare dispute payload.");
   }
-  return response.json();
+  return (await response.json()) as PreparedDisputePayloadResponse;
 }
 
 export async function submitDisputeCommand(
   caseId: string,
-  body: {
-    disputeId: string;
-    signer: { accountName: string; publicKey: string };
-    signedCommand: unknown;
-  }
-): Promise<{ disputeId: string; requestKey: string }> {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
-  const response = await fetch(`${base}/api/cases/${encodeURIComponent(caseId)}/disputes/submit`, {
+  body: DisputeSubmitRequest
+): Promise<DisputeSubmitResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/cases/${encodeURIComponent(caseId)}/disputes/submit`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
@@ -101,5 +139,5 @@ export async function submitDisputeCommand(
     const err = await response.json().catch(() => ({}));
     throw new Error((err as { message?: string }).message ?? "Dispute submission failed.");
   }
-  return response.json() as Promise<{ disputeId: string; requestKey: string }>;
+  return (await response.json()) as DisputeSubmitResponse;
 }

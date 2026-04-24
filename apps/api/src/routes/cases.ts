@@ -51,12 +51,13 @@ const attestationSubmitSchema = z.object({
 });
 
 const disputeCreateSchema = z.object({
-  reason: z.string().min(10).max(1000),
+  reasonHash: z.string().regex(/^[a-f0-9]{64}$/i, "reasonHash must be a SHA-256 hex string"),
   signer: walletSignerSchema
 });
 
 const disputeSubmitSchema = z.object({
   disputeId: z.string().min(3),
+  signer: walletSignerSchema.optional(),
   signedCommand: signedCommandSchema
 });
 
@@ -258,7 +259,7 @@ export async function registerCaseRoutes(app: FastifyInstance, caseService: Case
     }
 
     try {
-      const payload = await caseService.prepareDispute(params.caseId, parsed.data.reason, parsed.data.signer);
+      const payload = await caseService.prepareDispute(params.caseId, parsed.data.reasonHash, parsed.data.signer);
       return reply.send(payload);
     } catch (error) {
       request.log.error(error);

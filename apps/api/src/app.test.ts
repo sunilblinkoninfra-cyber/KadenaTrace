@@ -21,9 +21,13 @@ test("api exposes health and demo cases", async () => {
 
   const demoCases = await app.inject({ method: "GET", url: "/api/public/cases" });
   assert.equal(demoCases.statusCode, 200);
-  const payload = demoCases.json() as Array<{ caseId: string; slug: string }>;
-  assert.equal(payload.some((item) => item.slug === "shadow-router-laundering-pattern"), true);
-  assert.equal(payload.some((item) => item.slug === "nomad-bridge-exploit-demo"), true);
+  const payload = demoCases.json() as {
+    items?: Array<{ caseId: string; slug: string }>;
+    nextCursor?: string;
+    hasMore?: boolean;
+  };
+  assert.equal(payload.items?.some((item) => item.slug === "shadow-router-laundering-pattern"), true);
+  assert.equal(payload.items?.some((item) => item.slug === "nomad-bridge-exploit-demo"), true);
 
   const byChain = await app.inject({ method: "GET", url: "/api/cases/by-chain/ethereum" });
   assert.equal(byChain.statusCode, 200);
@@ -33,7 +37,7 @@ test("api exposes health and demo cases", async () => {
 
   const prepared = await app.inject({
     method: "POST",
-    url: `/api/cases/${payload[0]?.caseId}/anchor/payload`,
+    url: `/api/cases/${payload.items?.[0]?.caseId}/anchor/payload`,
     payload: {
       signer: {
         accountName: "k:test-public-key-0001",
@@ -308,8 +312,9 @@ test("new endpoint integrations and edge cases", async () => {
     }
   });
   assert.equal(invalidCase.statusCode, 400);
-  const invalidPayload = invalidCase.json() as { error?: unknown };
-  assert.ok(invalidPayload.error);
+  const invalidPayload = invalidCase.json() as { code?: string; message?: string };
+  assert.equal(invalidPayload.code, "VALIDATION_ERROR");
+  assert.equal(typeof invalidPayload.message, "string");
 
   await app.close();
 });
