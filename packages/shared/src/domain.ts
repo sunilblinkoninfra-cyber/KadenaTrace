@@ -34,7 +34,8 @@ export const edgeFlags = [
   "exchange-cashout",
   "bridge-obfuscated",
   "path-highlight",
-  "internal-transfer"
+  "internal-transfer",
+  "large-split"
 ] as const;
 export type EdgeFlag = (typeof edgeFlags)[number];
 
@@ -229,6 +230,7 @@ export interface TraceMetrics {
   prunedNodes: number;
   prunedEdges: number;
   suspiciousPathCount: number;
+  maxDepth?: number;
   velocity: VelocityMetrics;
 }
 

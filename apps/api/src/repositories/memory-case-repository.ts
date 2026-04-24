@@ -20,9 +20,13 @@ export class InMemoryCaseRepository implements CaseRepository {
     return this.records.get(caseId) ?? null;
   }
 
-  async findBySlug(slug: string): Promise<CaseRecord | null> {
+async findBySlug(slug: string): Promise<CaseRecord | null> {
     const caseId = this.slugs.get(slug);
     return caseId ? this.records.get(caseId) ?? null : null;
+  }
+
+  async findAll(): Promise<CaseRecord[]> {
+    return Array.from(this.records.values()).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   }
 
   async listPublicCases(): Promise<CaseRecord[]> {

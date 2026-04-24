@@ -58,24 +58,36 @@ class ApiRequestError extends Error {
   }
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
+const API_BASE_URL =
+  (typeof window !== "undefined"
+    ? (window as unknown as { __NEXT_DATA__?: { env?: { NEXT_PUBLIC_API_BASE_URL?: string } } }).__NEXT_DATA__?.env?.NEXT_PUBLIC_API_BASE_URL
+    : undefined) ??
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  "http://localhost:4000";
 const DEFAULT_RETRIES = 3;
 const DEFAULT_DELAY_MS = 700;
 const ENGINE_UNAVAILABLE_MESSAGE =
   "Tracing engine temporarily unavailable. Please retry or use the demo case.";
 
-export async function apiFetch<T>(path: string): Promise<T | null> {
-  if (!API_BASE_URL) {
-    console.warn("KadenaTrace API URL is not configured. Set NEXT_PUBLIC_API_URL to enable live tracing.");
-    return null;
-  }
-
-  const url = `${API_BASE_URL}${path}`;
-
+export async function apiFetch<T>(
+  path: string,
+  options?: RequestInit
+): Promise<T | null> {
   try {
-    return await fetchJson<T>(url, { method: "GET" }, { cache: "no-store" });
-  } catch (error) {
-    console.error("apiFetch failed", { url, error });
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      cache: "no-store",
+      ...options
+    });
+    if (!response.ok) {
+      console.error(`[apiFetch] ${path} returned HTTP ${response.status}`);
+      return null;
+    }
+    return (await response.json()) as T;
+  } catch (err) {
+    console.error(
+      `[apiFetch] Network error fetching ${path}:`,
+      err instanceof Error ? err.message : err
+    );
     return null;
   }
 }

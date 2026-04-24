@@ -262,3 +262,22 @@ function buildReadOnlyQueryCommand(code: string, networkId: string, chainId: str
     .setNonce(`kadenatrace:query:${sha256Hex(`${networkId}:${chainId}:${code}`).slice(0, 16)}`)
     .createTransaction();
 }
+
+export function buildGetCasePublicCommand(
+  caseId: string,
+  networkId: string,
+  chainId: string
+): IUnsignedCommand {
+  const code = `(${FRAUD_REGISTRY_MODULE}.get-case-public ${JSON.stringify(caseId)})`;
+  return buildReadOnlyQueryCommand(code, networkId, chainId);
+}
+
+export function buildListPublicCasesCommand(
+  limit: number,
+  offset: number,
+  networkId: string,
+  chainId: string
+): IUnsignedCommand {
+  const code = `(${FRAUD_REGISTRY_MODULE}.list-public-cases ${limit} ${offset})`;
+  return buildReadOnlyQueryCommand(code, networkId, chainId);
+}
