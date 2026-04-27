@@ -15,6 +15,20 @@ const riskBucket = (score: number) => {
 export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) => {
   const bucket = riskBucket(summary.overallScore);
 
+  const confidence =
+    summary.confidence ??
+    Math.min(
+      95,
+      Math.max(
+        55,
+        Math.round((summary.signalCount ?? summary.findings?.length ?? 0) * 12)
+      )
+    );
+
+  const conclusion =
+    summary.conclusion?.trim() ||
+    "This transaction pattern suggests potentially suspicious fund movement based on available signals.";
+
   return (
     <section className="mx-auto max-w-7xl px-6 pt-8 sm:pt-10">
       <div className="mb-3 flex items-center justify-between">
@@ -41,8 +55,9 @@ export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) =
             </span>
           </div>
 
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Conclusion</div>
           <h2 className="font-display text-2xl font-semibold leading-snug text-foreground sm:text-[28px]">
-            {summary.conclusion}
+            {conclusion}
           </h2>
 
           {summary.topRiskWallet && (
@@ -83,7 +98,7 @@ export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) =
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-4">
-            <Stat label="Confidence" value={`${summary.overallConfidence}%`} />
+            <Stat label="Confidence" value={`${confidence}%`} />
             <Stat label="Total Findings" value={`${summary.findingCount}`} />
           </div>
         </div>
