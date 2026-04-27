@@ -7,8 +7,7 @@ import { buildInvestigationSummary, buildInvestigationTimeline } from "../lib/in
 import { FindingHistogram } from "./finding-histogram";
 import { InvestigationSummary } from "./investigation-summary";
 import { InvestigationTimeline } from "./investigation-timeline";
-import { RiskBadge } from "./risk-badge";
-import { SummaryCards } from "./summary-cards";
+import { RiskFlags } from "./risk-flags";
 import { TraceGraphPanel } from "./trace-graph-panel";
 import { VerificationStrip } from "./verification-strip";
 
@@ -38,8 +37,22 @@ export function TraceOverview({
   }
 
   const summary = useMemo(() => buildInvestigationSummary(trace), [trace]);
-  const timeline = useMemo(() => buildInvestigationTimeline(trace), [trace]);
+  const timelineRaw = useMemo(() => buildInvestigationTimeline(trace), [trace]);
+  
+  const timeline = useMemo(() => {
+    return timelineRaw.map((step, idx) => ({
+      step: idx + 1,
+      title: step.title,
+      description: step.description,
+      risk: (step.confidencePct && step.confidencePct > 80 ? "high" : "medium") as "high" | "medium" | "low",
+      tPlus: step.offsetLabel,
+      amountEth: undefined
+    }));
+  }, [timelineRaw]);
+
   const [focusedNodeId, setFocusedNodeId] = useState<string | undefined>(summary.topRiskWallet?.id);
+  const [activeRiskFilters, setActiveRiskFilters] = useState<string | null>(null);
+
   const summaryRef = useRef<HTMLDivElement | null>(null);
   const graphRef = useRef<HTMLDivElement | null>(null);
   const didAutoScrollRef = useRef(false);
@@ -79,34 +92,28 @@ export function TraceOverview({
   };
 
   return (
-    <div className="grid" style={{ gap: 18 }}>
+    <div className="flex flex-col w-full bg-background" style={{ gap: 24, paddingBottom: 64 }}>
       {showVerificationStrip && trace.traceHash ? <VerificationStrip traceHash={trace.traceHash} /> : null}
 
       {isDemo ? (
-        <section className="demo-banner panel">
-          <div className="trace-meta">
-            <span className="pill">Demo Investigation (preloaded example)</span>
-            <span className="muted">No live blockchain data required</span>
+        <div className="mx-auto max-w-7xl px-6 pt-6">
+          <div className="flex items-center gap-3 rounded-xl border border-risk-med/30 bg-risk-med/10 p-4 text-risk-med">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <div className="font-semibold text-sm">Live tracing unavailable — showing demo investigation</div>
+              <div className="text-xs opacity-80">This walkthrough uses bundled example data, not live blockchain activity.</div>
+            </div>
           </div>
-          <p className="muted">
-            This walkthrough uses bundled example data, not live blockchain activity.
-          </p>
-        </section>
+        </div>
       ) : null}
 
       <div ref={summaryRef}>
         <InvestigationSummary summary={summary} onFocusTopRiskWallet={handleFocusTopRiskWallet} />
       </div>
 
-      <SummaryCards metrics={trace.metrics} graph={trace.graph} seed={trace.seed} />
+      <RiskFlags flags={trace.findings} active={activeRiskFilters} onToggle={setActiveRiskFilters} />
 
-      <div className="grid two-up">
-        <InvestigationTimeline steps={timeline} />
-        <section className={`risk-verdict-banner risk-verdict-banner--${summary.overallRisk.toLowerCase()}`}>
-          Overall trace risk: <strong>{summary.overallRisk}</strong> ({summary.overallScore}%).
-          This conclusion is based on explainable heuristics, cross-chain path analysis, and the highest-risk wallet cluster in view.
-        </section>
-      </div>
+      <InvestigationTimeline steps={timeline} />
 
       <div ref={graphRef}>
         <TraceGraphPanel
@@ -119,26 +126,11 @@ export function TraceOverview({
           subtitle={graphSubtitle}
           exportBaseName={exportBaseName}
           focusedNodeId={focusedNodeId}
+          onNodeSelect={setFocusedNodeId}
           investigationConclusion={summary.conclusion}
+          activeRiskFilters={activeRiskFilters}
         />
       </div>
-
-      <section className="panel stack">
-        <h2 className="section-title">Risk findings</h2>
-        <FindingHistogram findings={trace.findings} />
-        <div className="findings-list">
-          {trace.findings.map((finding, index) => (
-            <article key={`${traceId}-${finding.code}-${index}`} className="finding">
-              <div className="trace-meta">
-                <span className="pill">{finding.code}</span>
-                <RiskBadge level={finding.severity === "critical" ? "critical" : finding.severity} />
-                <span className="muted">{(finding.confidence * 100).toFixed(0)}% confidence</span>
-              </div>
-              <p>{finding.explanation}</p>
-            </article>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

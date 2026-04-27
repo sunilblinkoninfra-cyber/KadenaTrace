@@ -16,9 +16,12 @@
     "@kadena/wallet-adapter-react": "^0.0.7",
     "@kadenatrace/pact": "0.1.0",
     "@kadenatrace/shared": "0.1.0",
+    "clsx": "^2.1.1",
     "cytoscape": "^3.31.2",
+    "lucide-react": "^1.11.0",
     "next": "^15.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.5.0"
   }
 }
