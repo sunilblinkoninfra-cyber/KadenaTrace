@@ -23,16 +23,18 @@ interface GraphViewProps {
   suspiciousPaths: SuspiciousPath[];
   focusedPathEdgeIds?: string[];
   focusedNodeId?: string;
+  onNodeSelect?: (id: string | undefined) => void;
   investigationConclusion?: string;
+  activeRiskFilters?: string | null;
   onCyReady?: (instance: Core) => void;
 }
 
 const RISK_COLORS = {
-  critical: "#B42318",
-  high: "#D92D20",
-  medium: "#F4B400",
-  low: "#16A34A",
-  unscored: "#94A3B8"
+  critical: "hsl(350, 89%, 60%)",
+  high: "hsl(350, 89%, 60%)",
+  medium: "hsl(35, 92%, 50%)",
+  low: "hsl(160, 84%, 39%)",
+  unscored: "hsl(215, 16%, 47%)"
 } as const;
 
 export function GraphView({
@@ -42,14 +44,14 @@ export function GraphView({
   suspiciousPaths,
   focusedPathEdgeIds,
   focusedNodeId,
+  onNodeSelect,
   investigationConclusion,
+  activeRiskFilters,
   onCyReady
 }: GraphViewProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<Core | null>(null);
   const [selection, setSelection] = useState<SelectionState | null>(null);
-  const [riskFilter, setRiskFilter] = useState<RiskFilterValue>("all");
-  const [chainFilter, setChainFilter] = useState<ChainFilterValue>("all");
   const [focusSuspiciousPaths, setFocusSuspiciousPaths] = useState(Boolean(focusedPathEdgeIds?.length));
 
   const availableChains = Array.from(new Set(graph.nodes.map((node) => node.chain)));
@@ -79,6 +81,8 @@ export function GraphView({
     }
 
     const maxEdgeAmount = Math.max(...graph.edges.map((edge) => edge.amount), 1);
+    const minTime = Math.min(...graph.edges.map((edge) => Date.parse(edge.timestamp)));
+    
     const instance = cytoscape({
       container: containerRef.current,
       elements: [
@@ -94,24 +98,21 @@ export function GraphView({
             nodeSize: getNodeSize(node.riskScore)
           }
         })),
-        ...graph.edges.map((edge) => ({
-          data: {
-            id: edge.id,
-            source: edge.from,
-            target: edge.to,
-            label: `${edge.amount.toFixed(4)} ${edge.asset}`,
-            sublabel: new Date(edge.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              month: "short",
-              day: "numeric"
-            }),
-            riskScore: edge.riskScore,
-            chain: edge.chain,
-            edgeColor: getEdgeColor(edge.riskScore),
-            edgeWidth: getEdgeWidth(edge.amount, maxEdgeAmount)
-          }
-        }))
+        ...graph.edges.map((edge) => {
+          const minAfter = Math.max(0, Math.floor((Date.parse(edge.timestamp) - minTime) / 60000));
+          return {
+            data: {
+              id: edge.id,
+              source: edge.from,
+              target: edge.to,
+              label: `${edge.amount.toFixed(2)} ${edge.asset} • ${minAfter} min`,
+              riskScore: edge.riskScore,
+              chain: edge.chain,
+              edgeColor: getEdgeColor(edge.riskScore),
+              edgeWidth: getEdgeWidth(edge.amount, maxEdgeAmount)
+            }
+          };
+        })
       ],
       layout: {
         name: "breadthfirst",
@@ -159,43 +160,31 @@ export function GraphView({
             "target-arrow-shape": "triangle",
             "curve-style": "bezier",
             content: "data(label)",
-            "font-size": "10px",
+            "font-size": "10.5px",
+            "font-family": "monospace",
             "text-rotation": "autorotate",
-            "text-background-color": "#ffffff",
-            "text-background-opacity": 0.85,
+            "text-background-color": "rgba(255, 255, 255, 0.85)",
+            "text-background-opacity": 1,
             "text-background-padding": "3px",
             "text-margin-y": -10,
-            "text-border-width": 0,
-            color: "#333333"
+            color: "hsl(var(--foreground))"
           }
         },
         {
           selector: ".highlighted",
           style: {
-            "line-color": "#7C3AED",
-            "target-arrow-color": "#7C3AED",
+            "line-color": "hsl(350, 89%, 60%)",
+            "target-arrow-color": "hsl(350, 89%, 60%)",
             "line-style": "solid",
-            width: 7,
+            width: 4,
             opacity: 1,
             "z-index": 9
           }
         },
         {
-          selector: "edge:selected",
-          style: {
-            content: "data(sublabel)",
-            "font-size": "10px",
-            "text-background-color": "#1D9E75",
-            "text-background-opacity": 1,
-            color: "#ffffff",
-            "text-background-padding": "4px",
-            width: 4
-          }
-        },
-        {
           selector: ".path-node",
           style: {
-            "border-color": "#7C3AED",
+            "border-color": "hsl(350, 89%, 60%)",
             "border-width": 4,
             opacity: 1,
             "z-index": 10
@@ -204,14 +193,16 @@ export function GraphView({
         {
           selector: ".node-focused",
           style: {
-            "border-color": "#0F766E",
-            "border-width": 5
+            "border-color": "hsl(var(--foreground))",
+            "border-style": "dashed",
+            "border-width": 2,
+            "padding": "5px"
           }
         },
         {
           selector: ".dimmed",
           style: {
-            opacity: 0.18
+            opacity: 0.15
           }
         }
       ]
@@ -229,7 +220,7 @@ export function GraphView({
       resizeObserver.observe(containerRef.current);
     }
     onCyReady?.(instance);
-    applyGraphVisibility(instance, riskFilter, chainFilter);
+    applyGraphVisibility(instance, activeRiskFilters);
     applyPathHighlight(instance, initialFocusedPathEdgeIds, focusSuspiciousPaths);
     applyNodeFocus(instance, focusedNodeId);
 
@@ -242,6 +233,7 @@ export function GraphView({
           .sort((left, right) => right.riskScore - left.riskScore)[0];
         applyPathHighlight(instance, path?.edgeIds ?? [], focusSuspiciousPaths);
         applyNodeFocus(instance, node.id);
+        if (onNodeSelect) onNodeSelect(node.id);
       }
     });
 
@@ -264,8 +256,14 @@ export function GraphView({
       return;
     }
 
-    applyGraphVisibility(cyRef.current, riskFilter, chainFilter);
-  }, [riskFilter, chainFilter]);
+    if (activeRiskFilters) {
+      const activeFindings = findings.filter(f => f.code === activeRiskFilters);
+      const edgeIdsToHighlight = activeFindings.flatMap(f => f.relatedEdgeIds);
+      applyPathHighlight(cyRef.current, edgeIdsToHighlight, true);
+    } else {
+      applyPathHighlight(cyRef.current, initialFocusedPathEdgeIds, focusSuspiciousPaths);
+    }
+  }, [activeRiskFilters, findings, initialFocusedPathEdgeIds, focusSuspiciousPaths]);
 
   useEffect(() => {
     if (!cyRef.current) {
@@ -336,40 +334,9 @@ export function GraphView({
   }
 
   return (
-    <div className="graph-shell">
-      <div className="graph-main">
-        <div className="graph-filters">
-          <label className="graph-filter" htmlFor="risk-filter">
-            <span>Risk</span>
-            <select
-              id="risk-filter"
-              value={riskFilter}
-              onChange={(event) => setRiskFilter(event.target.value as RiskFilterValue)}
-            >
-              <option value="all">All</option>
-              <option value="low">Low+</option>
-              <option value="medium">Medium+</option>
-              <option value="high">High+</option>
-              <option value="critical">Critical</option>
-            </select>
-          </label>
-
-          <label className="graph-filter" htmlFor="chain-filter">
-            <span>Chain</span>
-            <select
-              id="chain-filter"
-              value={chainFilter}
-              onChange={(event) => setChainFilter(event.target.value as ChainFilterValue)}
-            >
-              <option value="all">All chains</option>
-              {availableChains.map((chain) => (
-                <option key={chain} value={chain}>
-                  {formatChainLabel(chain)}
-                </option>
-              ))}
-            </select>
-          </label>
-
+    <div className="graph-shell border-none shadow-none bg-surface-subtle p-0 m-0">
+      <div className="graph-main" style={{ width: "100%", position: "relative" }}>
+        <div className="graph-filters absolute top-3 left-3 z-10 hidden">
           <label className="graph-toggle">
             <input
               checked={focusSuspiciousPaths}
@@ -380,218 +347,37 @@ export function GraphView({
           </label>
         </div>
 
-        <div className="risk-legend risk-legend--graph">
-          {[
-            ["Red", RISK_COLORS.high, "High risk"],
-            ["Yellow", RISK_COLORS.medium, "Medium risk"],
-            ["Green", RISK_COLORS.low, "Low risk"],
-            ["Thicker edge", "#475467", "Higher value transfer"]
-          ].map(([label, color, description]) => (
-            <span key={label} className="risk-legend-item">
-              <span className="risk-legend-swatch" style={{ backgroundColor: color }} />
-              <strong>{label}</strong> = {description}
-            </span>
-          ))}
+        <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-2.5 rounded-md border border-border bg-card/95 px-2.5 py-1.5 text-[10px] shadow-xs backdrop-blur z-10">
+          <span className="font-semibold uppercase tracking-wider text-muted-foreground">Risk</span>
+          <LegendDot color={RISK_COLORS.high} label="High" />
+          <LegendDot color={RISK_COLORS.medium} label="Med" />
+          <LegendDot color={RISK_COLORS.low} label="Low" />
+          <span className="text-muted-foreground">·</span>
+          <span className="text-muted-foreground">node = risk · edge = amount</span>
         </div>
 
-        <div className="graph-canvas-wrap">
+        <div className="graph-canvas-wrap border-none" style={{ background: "transparent" }}>
           <div className="graph-controls">
-            <button
-              aria-label="Zoom in"
-              className="graph-control-button"
-              type="button"
-              onClick={() => {
-                const instance = cyRef.current;
-                if (!instance) {
-                  return;
-                }
-                instance.zoom(instance.zoom() * 1.2);
-              }}
-            >
-              +
-            </button>
-            <button
-              aria-label="Zoom out"
-              className="graph-control-button"
-              type="button"
-              onClick={() => {
-                const instance = cyRef.current;
-                if (!instance) {
-                  return;
-                }
-                instance.zoom(instance.zoom() * 0.8);
-              }}
-            >
-              -
-            </button>
-            <button
-              className="graph-control-button graph-control-reset"
-              type="button"
-              onClick={() => {
-                cyRef.current?.fit(undefined, 24);
-              }}
-            >
-              Reset view
-            </button>
+            <button aria-label="Zoom in" className="graph-control-button" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 1.2)}>+</button>
+            <button aria-label="Zoom out" className="graph-control-button" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 0.8)}>-</button>
+            <button className="graph-control-button graph-control-reset" type="button" onClick={() => cyRef.current?.fit(undefined, 24)}>Reset view</button>
           </div>
-          <div
-            className="graph-canvas"
-            ref={containerRef}
-            style={{ height: "540px", minHeight: "540px", width: "100%" }}
-          />
+          <div className="graph-canvas" ref={containerRef} style={{ height: "580px", minHeight: "580px", width: "100%" }} />
         </div>
       </div>
-
-      <aside className="detail-panel">
-        {selection ? (
-          <>
-            {investigationConclusion ? (
-              <article className="detail-callout">
-                <span className="pill">Investigation conclusion</span>
-                <p>{investigationConclusion}</p>
-              </article>
-            ) : null}
-
-            <div className="trace-meta">
-              <span className="pill">{selection.type}</span>
-              {selection.type === "node" ? <RiskBadge level={selection.payload.riskLevel} /> : null}
-              <span className="muted">
-                Confidence {(selection.payload.riskConfidence * 100).toFixed(0)}%
-              </span>
-            </div>
-
-            <h3>
-              Risk: {selection.type === "node" ? selection.payload.riskLevel.toUpperCase() : inferEdgeRiskLevel(selection.payload)}
-              {" "}
-              ({Math.round(selection.payload.riskScore)}%)
-            </h3>
-            {primaryReason ? <p className="detail-primary-reason">{primaryReason}</p> : null}
-
-            <details className="detail-advanced" open={selection.type === "edge"}>
-              <summary>Show details</summary>
-
-              {selection.type === "node" ? (
-                <div className="facts">
-                  <span className="code">{selection.payload.address}</span>
-                  <span className="muted">Kind: {selection.payload.kind}</span>
-                  <span className="muted">Tags: {selection.payload.tags.join(", ") || "none"}</span>
-                  <span className="muted">Seed exposure: {selection.payload.valueFromSeedPct.toFixed(1)}%</span>
-                  {selection.payload.riskScore > 0 ? (
-                    <details className="score-breakdown">
-                      <summary>Score breakdown</summary>
-                      <table className="score-table">
-                        <thead>
-                          <tr>
-                            <th>Signal</th>
-                            <th>Weight</th>
-                            <th>Confidence</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selection.payload.riskSignals.map((signal) => (
-                            <tr key={`${signal.code}-${signal.reason}`}>
-                              <td>{signal.title}</td>
-                              <td>+{signal.weight}</td>
-                              <td>{(signal.confidence * 100).toFixed(0)}%</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </details>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="facts">
-                  <span className="code">{selection.payload.txHash}</span>
-                  <span className="muted">
-                    {formatAmount(selection.payload.amount)} {selection.payload.asset}
-                  </span>
-                  <span className="muted">
-                    Propagated: {selection.payload.propagatedAmount.toFixed(4)} {selection.payload.asset}
-                  </span>
-                  <span className="muted">
-                    Seed exposure: {selection.payload.valueFromSeedPct.toFixed(1)}%
-                  </span>
-                  <span className="muted">{new Date(selection.payload.timestamp).toLocaleString()}</span>
-                </div>
-              )}
-
-              {selection.type === "edge" && selection.payload.flags.length > 0 ? (
-                <>
-                  <h4>Flags</h4>
-                  <div className="trace-meta">
-                    {selection.payload.flags.map((flag) => (
-                      <span key={flag} className="pill">
-                        {flag}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-
-              {selection.payload.riskSignals.length > 0 ? (
-                <>
-                  <h4>Signals</h4>
-                  <div className="findings-list">
-                    {selection.payload.riskSignals.map((signal) => (
-                      <article key={`${signal.code}-${signal.reason}`} className="finding">
-                        <div className="trace-meta">
-                          <span className="pill">{signal.title}</span>
-                          <span className="muted">{(signal.confidence * 100).toFixed(0)}% confidence</span>
-                        </div>
-                        <p>{signal.reason}</p>
-                      </article>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-
-              {relatedFindings.length > 0 ? (
-                <>
-                  <h4>Related findings</h4>
-                  <div className="findings-list">
-                    {relatedFindings.map((finding, index) => (
-                      <article key={`${finding.code}-${finding.explanation}-${index}`} className="finding">
-                        <div className="trace-meta">
-                          <span className="pill">{finding.code}</span>
-                          <RiskBadge level={finding.severity === "critical" ? "critical" : finding.severity} />
-                          <span className="muted">{(finding.confidence * 100).toFixed(0)}% confidence</span>
-                        </div>
-                        <p>{finding.explanation}</p>
-                      </article>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-            </details>
-          </>
-        ) : (
-          <p className="muted">Select a node or edge to inspect its evidence, confidence, and why it was highlighted.</p>
-        )}
-      </aside>
     </div>
   );
 }
 
-function applyGraphVisibility(instance: Core, riskFilter: RiskFilterValue, chainFilter: ChainFilterValue): void {
-  const minimumLevel = getRiskThreshold(riskFilter);
+const LegendDot = ({ color, label }: { color: string; label: string }) => (
+  <span className="inline-flex items-center gap-1">
+    <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+    <span className="font-medium text-foreground">{label}</span>
+  </span>
+);
 
-  instance.nodes().forEach((node) => {
-    const displayLevel = node.data("filterLevel") as string;
-    const nodeChain = node.data("chain") as Chain;
-    const passesRisk =
-      riskFilter === "all" || getRiskThreshold(displayLevel as RiskFilterValue | "unscored") >= minimumLevel;
-    const passesChain = chainFilter === "all" || nodeChain === chainFilter;
-    node.style("display", passesRisk && passesChain ? "element" : "none");
-  });
-
-  instance.edges().forEach((edge) => {
-    const edgeChain = edge.data("chain") as Chain;
-    const sourceVisible = edge.source().style("display") !== "none";
-    const targetVisible = edge.target().style("display") !== "none";
-    const passesChain = chainFilter === "all" || edgeChain === chainFilter;
-    edge.style("display", sourceVisible && targetVisible && passesChain ? "element" : "none");
-  });
+function applyGraphVisibility(instance: Core, activeRiskFilter: string | null | undefined): void {
+  // We handle visibility via applyPathHighlight now.
 }
 
 function applyPathHighlight(instance: Core, edgeIds: string[], focusOnly: boolean): void {

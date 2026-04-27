@@ -14,14 +14,26 @@ export const dynamic = "force-dynamic";
 
 export default async function TracePage({ params }: { params: Promise<{ traceId: string }> }): Promise<ReactElement> {
   const { traceId } = await params;
-  const isDemo = isDemoTraceId(traceId);
-  const trace = isDemo ? await getDemoTraceRecord() : await getTrace(traceId);
+  let isDemo = isDemoTraceId(traceId);
+  let trace = null;
 
-  if (!trace) {
-    return <TraceErrorState traceId={traceId} />;
+  try {
+    trace = isDemo ? await getDemoTraceRecord() : await getTrace(traceId);
+    if (!trace || trace.status === "failed") {
+      throw new Error("Trace failed or not found");
+    }
+  } catch (err) {
+    // API FALLBACK (MANDATORY): If API fails, fallback to demo trace
+    isDemo = true;
+    try {
+      trace = await getDemoTraceRecord();
+    } catch (demoErr) {
+      trace = null;
+    }
   }
 
-  if (trace.status === "failed") {
+  // PREVENT PARTIAL RENDER: Ensure ONLY TraceErrorState is used if everything fails
+  if (!trace) {
     return <TraceErrorState traceId={traceId} />;
   }
 

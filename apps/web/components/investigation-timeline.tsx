@@ -1,37 +1,63 @@
-import type { ReactElement } from "react";
+import { Clock } from "lucide-react";
+import { cn } from "../lib/utils";
 
-import type { InvestigationTimelineStep } from "../lib/investigation";
+interface TimelineStep {
+  step: number;
+  title: string;
+  description: string;
+  risk: "high" | "medium" | "low";
+  tPlus: string;
+  amountEth?: number;
+}
 
-export function InvestigationTimeline({ steps }: { steps: InvestigationTimelineStep[] }): ReactElement {
+const dot = {
+  high: "bg-risk-high ring-risk-high/20",
+  medium: "bg-risk-med ring-risk-med/20",
+  low: "bg-risk-low ring-risk-low/20",
+};
+
+export const InvestigationTimeline = ({ steps }: { steps: TimelineStep[] }) => {
+  if (!steps || steps.length === 0) return null;
+
   return (
-    <section className="timeline-sidebar">
-      <div>
-        <span className="pill">Story Mode</span>
-        <h2 className="section-title">Investigation Timeline</h2>
-        <p className="muted">Follow the laundering path as a time-ordered narrative instead of decoding the full graph at once.</p>
+    <section className="mx-auto max-w-7xl px-6 pt-10 w-full">
+      <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="h-px w-6 bg-border" />
+        Story Timeline
       </div>
 
-      <div className="timeline-list">
-        {steps.length > 0 ? (
-          steps.map((step, index) => (
-            <article key={step.id} className="timeline-entry">
-              <div className="trace-meta">
-                <span className="timeline-gap">
-                  Step {index + 1} ({step.offsetLabel})
-                </span>
-                {step.confidencePct ? <span className="muted">{step.confidencePct}% confidence</span> : null}
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8">
+        <ol className="relative space-y-7">
+          <span className="absolute left-[11px] top-1 h-[calc(100%-1rem)] w-px bg-gradient-to-b from-border via-border to-transparent" />
+          {steps.map((s, idx) => (
+            <li key={idx} className="relative flex gap-5 pl-8">
+              <span
+                className={cn(
+                  "absolute left-0 top-1 flex h-6 w-6 items-center justify-center rounded-full ring-4",
+                  dot[s.risk]
+                )}
+              >
+                <span className="text-[10px] font-bold text-primary-foreground">{s.step}</span>
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h3 className="font-display text-base font-semibold text-foreground">{s.title}</h3>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {s.tPlus}
+                  </span>
+                  {s.amountEth !== undefined && (
+                    <span className="font-mono text-xs font-medium text-foreground/80">
+                      {s.amountEth.toFixed(2)} ETH
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{s.description}</p>
               </div>
-              <h3 className="timeline-title">{step.title}</h3>
-              <p className="muted">{step.description}</p>
-            </article>
-          ))
-        ) : (
-          <article className="timeline-entry">
-            <h3 className="timeline-title">No timeline was generated</h3>
-            <p className="muted">The trace needs at least one rendered movement to convert the graph into a readable investigation story.</p>
-          </article>
-        )}
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
-}
+};
