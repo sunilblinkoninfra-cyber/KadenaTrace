@@ -8,6 +8,7 @@ import type { Finding, SuspiciousPath, TraceGraph, TraceMetrics } from "@kadenat
 import { serializeEdgesCsv, serializeGraphExportJson, serializeNodesCsv } from "../lib/export";
 import { GraphView } from "./graph-view";
 import { SuspiciousPaths } from "./suspicious-paths";
+import { DetailPanel } from "./detail-panel";
 
 interface TraceGraphPanelProps {
   graph: TraceGraph;
@@ -19,7 +20,9 @@ interface TraceGraphPanelProps {
   subtitle: string;
   exportBaseName?: string;
   focusedNodeId?: string;
+  onNodeSelect?: (id: string | undefined) => void;
   investigationConclusion?: string;
+  activeRiskFilters?: string | null;
 }
 
 export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
@@ -103,16 +106,25 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
             </details>
           ) : null}
         </div>
-        <GraphView
-          graph={props.graph}
-          findings={props.findings}
-          seedValue={props.seedValue}
-          suspiciousPaths={props.suspiciousPaths}
-          focusedPathEdgeIds={focusedPathEdgeIds}
-          focusedNodeId={props.focusedNodeId}
-          investigationConclusion={props.investigationConclusion}
-          onCyReady={(instance) => { cyRef.current = instance; }}
-        />
+        <div className="grid gap-3 lg:grid-cols-12">
+          <div className="rounded-xl border border-border bg-card shadow-card lg:col-span-8 overflow-hidden">
+            <GraphView
+              graph={props.graph}
+              findings={props.findings}
+              seedValue={props.seedValue}
+              suspiciousPaths={props.suspiciousPaths}
+              focusedPathEdgeIds={focusedPathEdgeIds}
+              focusedNodeId={props.focusedNodeId}
+              onNodeSelect={props.onNodeSelect}
+              investigationConclusion={props.investigationConclusion}
+              activeRiskFilters={props.activeRiskFilters}
+              onCyReady={(instance) => { cyRef.current = instance; }}
+            />
+          </div>
+          <aside className="lg:col-span-4 h-[580px]">
+            <DetailPanel graph={props.graph} findings={props.findings} selectedId={props.focusedNodeId || null} />
+          </aside>
+        </div>
       </section>
 
       <SuspiciousPaths

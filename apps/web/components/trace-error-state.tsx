@@ -1,11 +1,12 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactElement, useTransition } from "react";
 
 interface TraceErrorStateProps {
-  traceId: string;
+  traceId?: string;
 }
 
 export function TraceErrorState({ traceId }: TraceErrorStateProps): ReactElement {
@@ -20,47 +21,36 @@ export function TraceErrorState({ traceId }: TraceErrorStateProps): ReactElement
 
   return (
     <main className="shell">
-      <div
-        className="panel"
-        style={{
-          maxWidth: "560px",
-          margin: "80px auto",
-          textAlign: "center",
-          padding: "40px"
-        }}
-      >
-        <div
-          style={{
-            fontSize: "48px",
-            marginBottom: "20px"
-          }}
-        >
-          ⚠️
-        </div>
-        
-        <h1
-          className="section-title"
-          style={{ fontSize: "1.5rem", marginBottom: "12px" }}
-        >
-          Unable to connect to tracing engine
-        </h1>
-        
-        <p className="muted" style={{ marginBottom: "24px", lineHeight: 1.6 }}>
-          The tracing engine is temporarily unavailable (cold start or network issue). Please retry or use the demo case.
-        </p>
-
-        <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-          <button
-            className="button"
-            onClick={handleRetry}
-            disabled={isPending}
-          >
-            {isPending ? "Retrying..." : "Retry"}
-          </button>
-          
-          <Link href="/trace/demo" className="ghost-button">
-            Use Demo Case
-          </Link>
+      <div className="mx-auto max-w-7xl px-6 pt-6 mt-12">
+        <div className="flex flex-col items-start gap-3 rounded-xl border border-risk-med/20 bg-risk-med-bg/50 p-6 sm:flex-row sm:items-center sm:justify-between shadow-card">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-risk-med/15 text-risk-med">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="font-display text-[16px] font-semibold text-foreground">
+                Live tracing unavailable
+              </div>
+              <p className="text-[13px] text-muted-foreground mt-1 max-w-md">
+                We couldn't reach the live network or the trace could not be completed. You can retry, or explore the verifiable demo case below.
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 gap-3 mt-4 sm:mt-0">
+            <button
+              onClick={handleRetry}
+              disabled={isPending}
+              className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2 text-[13px] font-medium transition-colors hover:bg-secondary disabled:opacity-50"
+            >
+              {isPending ? "Retrying..." : "Retry"}
+            </button>
+            <Link
+              href="/trace/demo"
+              className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-4 py-2 text-[13px] font-medium transition-colors hover:opacity-90"
+            >
+              Use demo case
+            </Link>
+          </div>
         </div>
       </div>
     </main>
