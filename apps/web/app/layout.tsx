@@ -38,6 +38,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <Link href="/" className="text-muted-foreground transition-colors hover:text-foreground">
                   Trace
                 </Link>
+                <Link href="/waterfall" className="text-muted-foreground transition-colors hover:text-foreground">
+                  Waterfall
+                </Link>
                 <Link href="/attestations" className="text-muted-foreground transition-colors hover:text-foreground">
                   Attestations
                 </Link>
