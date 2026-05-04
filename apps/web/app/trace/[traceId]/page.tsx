@@ -68,11 +68,11 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
       <section className="panel stack">
         <div className="page-header">
           <div>
-            <span className="pill">{isDemo ? "Demo Investigation" : "Investigation Trace"}</span>
-            <h1 className="section-title">Trace {trace.id}</h1>
-            <div className="trace-meta">
-              <span className="code">{trace.result.seed.seedValue}</span>
-              <span className="muted">{trace.result.seed.seedType}</span>
+            <span className="inline-flex items-center rounded-full bg-cyan/10 px-2.5 py-0.5 text-xs font-semibold text-cyan mb-2">{isDemo ? "Demo Investigation" : "Investigation Trace"}</span>
+            <h1 className="font-display text-3xl font-bold text-foreground mb-2">Trace {trace.id}</h1>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm text-foreground bg-secondary px-2 py-1 rounded">{trace.result.seed.seedValue}</span>
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">{trace.result.seed.seedType}</span>
             </div>
           </div>
           <Link href="/" className="ghost-button">
@@ -81,16 +81,16 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
         </div>
       </section>
 
-      <div className="hop-ribbon">
-        <span>
+      <div className="flex flex-wrap items-center gap-4 border-y border-border py-4 text-sm">
+        <span className="text-muted-foreground">
           Graph depth:{" "}
-          <strong>{trace.result.metrics.maxDepth ?? 2} hops</strong>
+          <strong className="text-foreground">{trace.result.metrics.maxDepth ?? 2} hops</strong>
         </span>
-        <span>
-          Nodes: <strong>{trace.result.graph.nodes.length}</strong>
+        <span className="text-muted-foreground">
+          Nodes: <strong className="text-foreground">{trace.result.graph.nodes.length}</strong>
         </span>
-        <span>
-          Edges: <strong>{trace.result.graph.edges.length}</strong>
+        <span className="text-muted-foreground">
+          Edges: <strong className="text-foreground">{trace.result.graph.edges.length}</strong>
         </span>
         <a
           href={`https://etherscan.io/address/${
@@ -98,8 +98,7 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
           }`}
           target="_blank"
           rel="noreferrer"
-          className="ghost-button"
-          style={{ fontSize: 12, padding: "4px 10px" }}
+          className="ml-auto inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary/80"
         >
           View on Etherscan ↗
         </a>

@@ -1,69 +1,349 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 
 @layer base {
   :root {
-    --background: 228 23% 5%; /* #0a0b10 */
-    --foreground: 0 0% 100%;
-    
-    --card: 228 23% 8%; /* Slightly lighter than bg */
-    --card-foreground: 0 0% 100%;
-    
-    --popover: 228 23% 8%;
-    --popover-foreground: 0 0% 100%;
-    
-    --primary: 188 100% 50%; /* #00E5FF cyan */
-    --primary-foreground: 228 23% 5%;
-    
-    --secondary: 228 23% 15%;
-    --secondary-foreground: 0 0% 100%;
-    
-    --muted: 228 23% 15%;
-    --muted-foreground: 215 20% 65%;
-    
-    --accent: 188 100% 50%;
+    --background: 210 56% 97%;
+    --foreground: 221 45% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 221 45% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 221 45% 17%;
+
+    --primary: 214 91% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 44% 96%;
+    --secondary-foreground: 221 45% 17%;
+
+    --muted: 210 38% 96%;
+    --muted-foreground: 215 19% 45%;
+
+    --accent: 214 91% 56%;
     --accent-foreground: 0 0% 100%;
-    
-    --destructive: 0 62.8% 30.6%;
+
+    --destructive: 0 80% 56%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: 228 23% 20%;
-    --input: 228 23% 20%;
-    --ring: 188 100% 50%;
-    
-    --radius: 0.75rem;
 
-    /* Semantic Risk Colors */
-    --risk-high: 350 89% 60%; /* #ef4444 */
-    --risk-high-bg: 350 89% 15%;
-    
-    --risk-med: 35 92% 50%; /* #f97316 */
-    --risk-med-bg: 35 92% 15%;
-    
-    --risk-low: 160 84% 39%; /* #10b981 */
-    --risk-low-bg: 160 84% 15%;
+    --border: 214 32% 88%;
+    --input: 214 33% 91%;
+    --ring: 214 91% 56%;
 
-    --cyan: 188 100% 50%;
+    --radius: 1rem;
+
+    --risk-high: 0 80% 58%;
+    --risk-high-bg: 0 100% 97%;
+
+    --risk-med: 39 96% 52%;
+    --risk-med-bg: 45 100% 96%;
+
+    --risk-low: 154 67% 38%;
+    --risk-low-bg: 152 60% 96%;
+
+    --cyan: 190 90% 42%;
+    --surface: 0 0% 100%;
+    --surface-subtle: 210 40% 98%;
+    --verified: 191 88% 36%;
+    --verified-bg: 191 100% 96%;
   }
-}
 
-@layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
+
+  html {
+    min-height: 100%;
+    background:
+      radial-gradient(circle at top center, rgba(56, 189, 248, 0.14), transparent 34%),
+      radial-gradient(circle at 15% 22%, rgba(20, 184, 166, 0.08), transparent 24%),
+      linear-gradient(180deg, #f8fbff 0%, #f2f7fc 45%, #eef4fa 100%);
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top center, rgba(56, 189, 248, 0.1), transparent 28%),
+      radial-gradient(circle at right 10%, rgba(20, 184, 166, 0.08), transparent 20%),
+      linear-gradient(180deg, rgba(248, 251, 255, 0.92) 0%, rgba(241, 247, 252, 0.98) 100%);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
   }
 }
 
-/* Animations */
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8;
+  }
+
+  .stack {
+    @apply flex flex-col gap-6;
+  }
+
+  .grid {
+    @apply grid;
+  }
+
+  .panel {
+    @apply rounded-3xl border border-border/80 bg-card/90 backdrop-blur-xl shadow-card;
+  }
+
+  .card {
+    @apply p-6;
+  }
+
+  .section-title {
+    @apply font-display text-2xl font-semibold tracking-tight text-foreground sm:text-[2rem];
+  }
+
+  .lede {
+    @apply max-w-3xl text-base leading-7 text-muted-foreground;
+  }
+
+  .muted {
+    @apply text-sm leading-relaxed text-muted-foreground;
+  }
+
+  .actions {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .pill {
+    @apply inline-flex items-center rounded-full border border-cyan/15 bg-cyan/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan;
+  }
+
+  .code {
+    @apply inline-flex max-w-full items-center rounded-lg border border-border bg-secondary/80 px-2.5 py-1 font-mono text-xs text-foreground/80 break-all;
+  }
+
+  .summary-cards {
+    @apply grid gap-4 md:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .summary-card {
+    @apply rounded-2xl border border-border/80 bg-card/95 p-5 shadow-card;
+  }
+
+  .summary-card strong {
+    @apply mt-2 block font-display text-3xl font-semibold tracking-tight text-foreground;
+  }
+
+  .findings-list {
+    @apply grid gap-4;
+  }
+
+  .finding {
+    @apply rounded-2xl border border-border/80 bg-card/95 p-5 shadow-card;
+  }
+
+  .trace-meta {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .page-header {
+    @apply flex flex-wrap items-start justify-between gap-5;
+  }
+
+  .two-up {
+    @apply gap-5 lg:grid-cols-2;
+  }
+
+  .facts {
+    @apply grid gap-2.5;
+  }
+
+  .graph-shell {
+    @apply grid gap-4;
+  }
+
+  .graph-main {
+    @apply relative;
+  }
+
+  .graph-empty-state {
+    @apply rounded-3xl p-8;
+  }
+
+  .graph-empty-list {
+    @apply ml-5 list-disc space-y-1 text-sm text-muted-foreground;
+  }
+
+  .graph-canvas-wrap {
+    @apply relative overflow-hidden rounded-[1.5rem] border border-border/80 bg-card/95 shadow-card;
+  }
+
+  .graph-canvas {
+    @apply relative w-full overflow-hidden rounded-[1.5rem];
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 251, 255, 0.96) 100%);
+  }
+
+  .graph-canvas::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6), transparent 100%);
+  }
+
+  .ghost-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card/95 px-4 py-2 text-[13px] font-medium text-muted-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan/30 hover:bg-secondary hover:text-foreground;
+  }
+
+  .button {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-gradient px-4 py-2 text-[13px] font-semibold text-white shadow-glow transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95;
+  }
+
+  .input {
+    @apply w-full rounded-2xl border border-input bg-white/90 px-4 py-3 text-sm text-foreground shadow-sm outline-none transition-all duration-200 placeholder:text-muted-foreground/70 focus:border-cyan/40 focus:ring-2 focus:ring-cyan/15;
+  }
+
+  .verification-banner {
+    @apply rounded-2xl border px-4 py-3 text-sm font-medium shadow-card;
+  }
+
+  .verification-banner--confirmed {
+    @apply border-cyan/20 bg-verified-bg text-verified;
+  }
+
+  .verification-banner--pending {
+    @apply border-risk-med/25 bg-risk-med-bg text-risk-med;
+  }
+
+  .verification-banner--missing {
+    @apply border-border bg-card/95 text-muted-foreground;
+  }
+
+  .timeline-sidebar {
+    @apply rounded-2xl border border-border/80 bg-card/95 p-5 shadow-card;
+  }
+
+  .timeline-list {
+    @apply grid gap-3;
+  }
+
+  .timeline-entry {
+    @apply rounded-2xl border border-border/70 bg-secondary/60 p-4;
+  }
+
+  .timeline-gap {
+    @apply inline-flex w-fit rounded-full bg-cyan/10 px-2 py-1 text-[11px] font-semibold text-cyan;
+  }
+
+  .audit-url-row {
+    @apply flex flex-wrap items-start justify-between gap-4;
+  }
+
+  .audit-url-copy {
+    @apply grid gap-2;
+  }
+
+  .urgency-gauge {
+    @apply rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm;
+  }
+
+  .urgency-gauge--critical {
+    @apply border-risk-high/20 bg-risk-high-bg text-risk-high;
+  }
+
+  .urgency-gauge--active {
+    @apply border-risk-med/20 bg-risk-med-bg text-risk-med;
+  }
+
+  .urgency-gauge--manual,
+  .urgency-gauge--open {
+    @apply border-cyan/20 bg-verified-bg text-verified;
+  }
+
+  .share-button-shell {
+    @apply relative inline-flex;
+  }
+
+  .share-tooltip {
+    @apply absolute left-1/2 top-[calc(100%+10px)] -translate-x-1/2 rounded-full bg-foreground px-3 py-1 text-xs font-medium text-white shadow-lg;
+  }
+
+  .risk-verdict-banner {
+    @apply rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm;
+  }
+
+  .risk-verdict-banner--critical {
+    @apply border-risk-high/20 bg-risk-high-bg text-risk-high;
+  }
+
+  .risk-verdict-banner--high {
+    @apply border-risk-high/15 bg-risk-high-bg text-risk-high;
+  }
+
+  .risk-verdict-banner--medium {
+    @apply border-risk-med/20 bg-risk-med-bg text-risk-med;
+  }
+
+  .risk-verdict-banner--low {
+    @apply border-risk-low/20 bg-risk-low-bg text-risk-low;
+  }
+
+  .score-table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .score-table th {
+    @apply border-b border-border pb-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground;
+  }
+
+  .score-table td {
+    @apply border-b border-border/60 py-3 align-top text-foreground;
+  }
+}
+
+@layer utilities {
+  .bg-surface {
+    background-color: hsl(var(--surface));
+  }
+
+  .bg-surface-subtle {
+    background-color: hsl(var(--surface-subtle));
+  }
+
+  .bg-verified-bg {
+    background-color: hsl(var(--verified-bg));
+  }
+
+  .text-verified {
+    color: hsl(var(--verified));
+  }
+
+  .transition-smooth {
+    transition-duration: 220ms;
+    transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .border-none {
+    border: none;
+  }
+
+  .shadow-none {
+    box-shadow: none;
+  }
+}
+
 @keyframes slide-in {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -74,35 +354,41 @@
   animation: slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Keep previous essential non-tailwind legacy overrides just in case */
-.ghost-button {
-  @apply inline-flex items-center justify-center gap-2 px-[18px] py-[10px] bg-transparent text-muted-foreground font-medium text-[13px] border border-border rounded-md cursor-pointer transition-all hover:bg-secondary hover:text-foreground hover:border-primary/50;
-}
-
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 2px solid rgba(15, 23, 42, 0.12);
+  border-top-color: hsl(var(--primary));
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 3px;
+  background: rgba(148, 163, 184, 0.55);
+  border-radius: 999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
+  background: rgba(100, 116, 139, 0.7);
+}
+
+@media (max-width: 1024px) {
+  .page-header {
+    align-items: flex-start;
+  }
 }

@@ -57,8 +57,8 @@ const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Find
         <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold", m.bg, m.color)}>
           ● {m.label} · {Math.round(node.riskScore)}/100
         </span>
-        <h3 className="mt-3 font-display text-lg font-semibold text-foreground">{node.label}</h3>
-        <p className="mt-1 break-all font-mono text-xs text-muted-foreground">{node.address}</p>
+        <h3 className="mt-4 font-display text-xl font-semibold text-foreground">{node.label}</h3>
+        <p className="mt-1 break-all font-mono text-[13px] text-muted-foreground">{node.address}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-secondary/40 p-3">
@@ -78,15 +78,15 @@ const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Find
       </div>
 
       {relatedFindings.length > 0 && (
-        <div>
-          <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="mt-2">
+          <div className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <Sparkles className="h-3 w-3" /> Signals & findings
           </div>
-          <ul className="space-y-1.5 text-sm text-foreground/85">
+          <ul className="space-y-2.5 text-sm text-foreground/90">
             {relatedFindings.map((f, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground/40" />
-                {f.explanation}
+              <li key={i} className="flex gap-2.5">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan" />
+                <span className="leading-relaxed">{f.explanation}</span>
               </li>
             ))}
           </ul>
@@ -95,12 +95,12 @@ const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Find
 
       {node.riskSignals.length > 0 && (
         <div className="mt-4">
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Detailed Signals</div>
-          <div className="space-y-2">
-            {node.riskSignals.map(sig => (
-              <div key={sig.code} className="bg-secondary/40 rounded p-2 text-xs">
-                <div className="font-semibold">{sig.title} (+{sig.weight})</div>
-                <div className="text-muted-foreground mt-0.5">{sig.reason}</div>
+          <div className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Detailed Signals</div>
+          <div className="space-y-2.5">
+            {node.riskSignals.map((sig, idx) => (
+              <div key={`${sig.code}-${idx}`} className="bg-secondary/30 border border-border/50 rounded-lg p-3 text-xs">
+                <div className="font-semibold text-foreground">{sig.title} <span className="text-risk-high ml-1">(+{sig.weight})</span></div>
+                <div className="text-muted-foreground mt-1 leading-relaxed">{sig.reason}</div>
               </div>
             ))}
           </div>
@@ -138,10 +138,10 @@ const EdgeDetail = ({ edge, graph, findings }: { edge: GraphEdge; graph: TraceGr
         <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold", suspicious ? "bg-risk-high-bg text-risk-high" : "bg-risk-low-bg text-risk-low")}>
           {suspicious ? "Suspicious transfer" : "Normal transfer"}
         </span>
-        <div className="mt-3 flex items-center gap-2 font-mono text-xs">
-          <span className="rounded bg-secondary px-2 py-1 truncate max-w-[120px]">{from.address}</span>
-          <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-          <span className="rounded bg-secondary px-2 py-1 truncate max-w-[120px]">{to.address}</span>
+        <div className="mt-4 flex items-center gap-2 font-mono text-[13px]">
+          <span className="rounded-md bg-secondary px-2.5 py-1.5 truncate max-w-[120px]">{from.address}</span>
+          <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          <span className="rounded-md bg-secondary px-2.5 py-1.5 truncate max-w-[120px]">{to.address}</span>
         </div>
       </div>
 
@@ -154,8 +154,8 @@ const EdgeDetail = ({ edge, graph, findings }: { edge: GraphEdge; graph: TraceGr
         <div>
           <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Flags on this transfer</div>
           <div className="flex flex-wrap gap-1.5">
-            {edge.flags.map((f) => (
-              <span key={f} className="rounded-md bg-risk-high-bg px-2 py-1 text-xs font-medium text-risk-high">
+            {edge.flags.map((f, idx) => (
+              <span key={`${f}-${idx}`} className="rounded-md bg-risk-high-bg px-2 py-1 text-xs font-medium text-risk-high">
                 {f}
               </span>
             ))}
