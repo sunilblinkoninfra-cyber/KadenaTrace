@@ -228,12 +228,28 @@
     @apply rounded-2xl border border-border/80 bg-card/95 p-5 shadow-card;
   }
 
+  .timeline-header {
+    @apply grid gap-2 border-b border-border/70 pb-4;
+  }
+
   .timeline-list {
-    @apply grid gap-3;
+    @apply grid gap-3 pt-4;
   }
 
   .timeline-entry {
     @apply rounded-2xl border border-border/70 bg-secondary/60 p-4;
+  }
+
+  .timeline-entry strong {
+    @apply text-base font-semibold text-foreground;
+  }
+
+  .timeline-entry-copy {
+    @apply text-sm leading-relaxed text-muted-foreground;
+  }
+
+  .timeline-entry--empty {
+    @apply bg-surface-subtle;
   }
 
   .timeline-gap {
@@ -248,8 +264,67 @@
     @apply grid gap-2;
   }
 
+  .audit-url-card {
+    @apply rounded-2xl border border-border/80 bg-card/95 p-4 shadow-sm;
+  }
+
+  .publish-layout {
+    @apply grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.9fr)];
+  }
+
+  .publish-form {
+    @apply grid gap-4;
+  }
+
+  .publish-form-grid {
+    @apply grid gap-4 lg:grid-cols-2;
+  }
+
+  .publish-form label {
+    @apply grid gap-2;
+  }
+
+  .publish-form input,
+  .publish-form select,
+  .publish-form textarea {
+    @apply w-full rounded-2xl border border-input bg-white/90 px-4 py-3 text-sm text-foreground shadow-sm outline-none transition-all duration-200 placeholder:text-muted-foreground/70 focus:border-cyan/40 focus:ring-2 focus:ring-cyan/15;
+  }
+
+  .publish-form textarea {
+    min-height: 220px;
+    resize: vertical;
+  }
+
+  .form-meta-card {
+    @apply rounded-2xl border border-border/80 bg-card/95 p-4 shadow-sm;
+  }
+
+  .form-section-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground;
+  }
+
+  .form-label-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .form-label-copy {
+    @apply text-xs leading-relaxed text-muted-foreground;
+  }
+
+  .publish-status {
+    @apply rounded-2xl border border-cyan/20 bg-verified-bg px-4 py-3 text-sm text-verified;
+  }
+
   .urgency-gauge {
-    @apply rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm;
+    @apply rounded-2xl border px-4 py-4 text-sm shadow-sm;
+  }
+
+  .urgency-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.16em];
+  }
+
+  .urgency-copy {
+    @apply mt-1 text-sm leading-6;
   }
 
   .urgency-gauge--critical {
