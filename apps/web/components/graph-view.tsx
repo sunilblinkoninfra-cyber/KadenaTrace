@@ -2,12 +2,9 @@
 
 import cytoscape, { type Core } from "cytoscape";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, useMemo, type ReactElement } from "react";
 
 import type { Chain, Finding, GraphEdge, GraphNode, SuspiciousPath, TraceGraph } from "@kadenatrace/shared";
-
-import { formatChainLabel } from "../lib/investigation";
-import { RiskBadge } from "./risk-badge";
 
 type SelectionState =
   | { type: "node"; payload: GraphNode }
@@ -30,11 +27,13 @@ interface GraphViewProps {
 }
 
 const RISK_COLORS = {
-  critical: "hsl(350, 89%, 60%)",
-  high: "hsl(350, 89%, 60%)",
-  medium: "hsl(35, 92%, 50%)",
-  low: "hsl(160, 84%, 39%)",
-  unscored: "hsl(215, 16%, 47%)"
+  critical: "#E5484D",
+  high: "#E5484D",
+  medium: "#F5B43B",
+  low: "#1F9D68",
+  unscored: "#94A3B8",
+  focus: "#1D9BF0",
+  focusDeep: "#1D4ED8"
 } as const;
 
 export function GraphView({
@@ -55,10 +54,12 @@ export function GraphView({
   const [focusSuspiciousPaths, setFocusSuspiciousPaths] = useState(Boolean(focusedPathEdgeIds?.length));
 
   const availableChains = Array.from(new Set(graph.nodes.map((node) => node.chain)));
-  const initialFocusedPathEdgeIds =
+  const initialFocusedPathEdgeIds = useMemo(() => 
     focusedPathEdgeIds && focusedPathEdgeIds.length > 0
       ? focusedPathEdgeIds
-      : suspiciousPaths[0]?.edgeIds ?? [];
+      : suspiciousPaths[0]?.edgeIds ?? [],
+    [focusedPathEdgeIds, suspiciousPaths]
+  );
 
   useEffect(() => {
     const preferred = graph.nodes.find((node) => node.address.toLowerCase() === seedValue.toLowerCase()) ?? graph.nodes[0];
@@ -127,15 +128,15 @@ export function GraphView({
             label: "data(label)",
             "font-size": "12px",
             "background-color": "data(nodeColor)",
-            color: "#1b1d27",
+            color: "#10203A",
             width: "data(nodeSize)",
             height: "data(nodeSize)",
             "text-wrap": "wrap",
             "text-max-width": "120px",
             "text-valign": "bottom",
             "text-margin-y": 12,
-            "border-width": "2px",
-            "border-color": "#fff9f2",
+            "border-width": "2.5px",
+            "border-color": "#F8FBFF",
             opacity: 1
           }
         },
@@ -154,7 +155,7 @@ export function GraphView({
         {
           selector: "edge",
           style: {
-            width: 2.5,
+            width: "data(edgeWidth)",
             "line-color": "data(edgeColor)",
             "target-arrow-color": "data(edgeColor)",
             "target-arrow-shape": "triangle",
@@ -163,20 +164,21 @@ export function GraphView({
             "font-size": "10.5px",
             "font-family": "monospace",
             "text-rotation": "autorotate",
-            "text-background-color": "rgba(255, 255, 255, 0.85)",
+            "text-background-color": "rgba(255, 255, 255, 0.94)",
             "text-background-opacity": 1,
-            "text-background-padding": "3px",
+            "text-background-padding": "4px",
             "text-margin-y": -10,
-            color: "hsl(var(--foreground))"
+            color: "#344256",
+            opacity: 0.82
           }
         },
         {
           selector: ".highlighted",
           style: {
-            "line-color": "hsl(350, 89%, 60%)",
-            "target-arrow-color": "hsl(350, 89%, 60%)",
+            "line-color": RISK_COLORS.focus,
+            "target-arrow-color": RISK_COLORS.focus,
             "line-style": "solid",
-            width: 4,
+            width: 4.5,
             opacity: 1,
             "z-index": 9
           }
@@ -184,7 +186,7 @@ export function GraphView({
         {
           selector: ".path-node",
           style: {
-            "border-color": "hsl(350, 89%, 60%)",
+            "border-color": RISK_COLORS.focus,
             "border-width": 4,
             opacity: 1,
             "z-index": 10
@@ -193,16 +195,16 @@ export function GraphView({
         {
           selector: ".node-focused",
           style: {
-            "border-color": "hsl(var(--foreground))",
-            "border-style": "dashed",
-            "border-width": 2,
-            "padding": "5px"
+            "border-color": RISK_COLORS.focusDeep,
+            "border-style": "solid",
+            "border-width": 5,
+            "padding": "6px"
           }
         },
         {
           selector: ".dimmed",
           style: {
-            opacity: 0.15
+            opacity: 0.18
           }
         }
       ]
@@ -283,7 +285,11 @@ export function GraphView({
       return;
     }
 
-    setSelection({ type: "node", payload: node });
+    setSelection((prev) => 
+      prev?.type === "node" && prev.payload.id === node.id 
+        ? prev 
+        : { type: "node", payload: node }
+    );
     applyNodeFocus(cyRef.current, focusedNodeId);
 
     const matchingPath = suspiciousPaths
@@ -347,20 +353,22 @@ export function GraphView({
           </label>
         </div>
 
-        <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-2.5 rounded-md border border-border bg-card/95 px-2.5 py-1.5 text-[10px] shadow-xs backdrop-blur z-10">
+        <div className="absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-2.5 rounded-md border border-border bg-card/95 px-2.5 py-1.5 text-[10px] shadow-sm backdrop-blur">
           <span className="font-semibold uppercase tracking-wider text-muted-foreground">Risk</span>
           <LegendDot color={RISK_COLORS.high} label="High" />
           <LegendDot color={RISK_COLORS.medium} label="Med" />
           <LegendDot color={RISK_COLORS.low} label="Low" />
           <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">node = risk · edge = amount</span>
+          <span className="text-muted-foreground">Thicker edge = higher value</span>
         </div>
 
         <div className="graph-canvas-wrap border-none" style={{ background: "transparent" }}>
-          <div className="graph-controls">
-            <button aria-label="Zoom in" className="graph-control-button" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 1.2)}>+</button>
-            <button aria-label="Zoom out" className="graph-control-button" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 0.8)}>-</button>
-            <button className="graph-control-button graph-control-reset" type="button" onClick={() => cyRef.current?.fit(undefined, 24)}>Reset view</button>
+          <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+            <div className="flex flex-col overflow-hidden rounded-md border border-border bg-card/90 shadow-sm backdrop-blur">
+              <button aria-label="Zoom in" className="flex h-8 w-8 items-center justify-center border-b border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 1.2)}>+</button>
+              <button aria-label="Zoom out" className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 0.8)}>-</button>
+            </div>
+            <button className="rounded-md border border-border bg-card/90 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur hover:bg-secondary hover:text-foreground transition-colors" type="button" onClick={() => cyRef.current?.fit(undefined, 24)}>Reset</button>
           </div>
           <div className="graph-canvas" ref={containerRef} style={{ height: "580px", minHeight: "580px", width: "100%" }} />
         </div>
@@ -465,17 +473,17 @@ function getEdgeColor(riskScore: number): string {
     return RISK_COLORS.high;
   }
   if (riskScore >= 30) {
-    return "#F59E0B";
+    return RISK_COLORS.medium;
   }
   if (riskScore >= 10) {
-    return "#84CC16";
+    return "#73C48F";
   }
-  return "#94A3B8";
+  return "#B7C4D7";
 }
 
 function getEdgeWidth(amount: number, maxAmount: number): number {
   const normalized = maxAmount <= 0 ? 0 : amount / maxAmount;
-  return Number((2.5 + normalized * 5).toFixed(2));
+  return Number((1.0 + normalized * 1.5).toFixed(2));
 }
 
 function getRiskThreshold(value: RiskFilterValue | "unscored"): number {

@@ -42,6 +42,14 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          subtle: "hsl(var(--surface-subtle))",
+        },
+        verified: {
+          DEFAULT: "hsl(var(--verified))",
+          bg: "hsl(var(--verified-bg))",
+        },
         cyan: {
           DEFAULT: "hsl(var(--cyan))",
         },
@@ -64,12 +72,12 @@ const config: Config = {
         display: ["var(--font-inter)", "sans-serif"],
       },
       boxShadow: {
-        glow: "0 0 20px rgba(0, 229, 255, 0.2)",
-        "glow-cyan": "0 0 20px rgba(0, 229, 255, 0.4)",
-        card: "0 4px 20px -2px rgba(0, 0, 0, 0.5)",
+        glow: "0 18px 40px rgba(59, 130, 246, 0.18)",
+        "glow-cyan": "0 22px 44px rgba(20, 184, 166, 0.18)",
+        card: "0 18px 48px rgba(15, 23, 42, 0.08)",
       },
       backgroundImage: {
-        "cyan-gradient": "linear-gradient(135deg, #00E5FF, #00B4D8)",
+        "cyan-gradient": "linear-gradient(135deg, #14B8A6, #3B82F6)",
       },
     },
   },

@@ -27,6 +27,7 @@ export interface InvestigationSummaryModel {
   chainFlowLabel: string;
   estimatedTimeLabel: string;
   walletCount: number;
+  findingCount: number;
 }
 
 export interface InvestigationTimelineStep {
@@ -72,7 +73,8 @@ export function buildInvestigationSummary(trace: TraceResult): InvestigationSumm
     overallScore: Math.round(overallScore),
     chainFlowLabel,
     estimatedTimeLabel,
-    walletCount
+    walletCount,
+    findingCount: trace.findings.length
   };
 }
 

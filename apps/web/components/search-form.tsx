@@ -49,14 +49,14 @@ export function SearchForm(): ReactElement {
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl rounded-2xl border border-white/10 bg-card/40 p-2 shadow-2xl backdrop-blur-xl transition-all">
+    <div className="mx-auto w-full max-w-2xl rounded-3xl border border-border/80 bg-card/95 p-2 shadow-card backdrop-blur-xl transition-all">
       <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-2 relative">
         
         {/* Tabs */}
-        <div className="absolute -top-12 left-2 flex gap-1 rounded-lg bg-black/40 p-1 backdrop-blur-md border border-white/5">
+        <div className="absolute -top-12 left-2 flex gap-1 rounded-xl border border-border bg-card/95 p-1 shadow-sm backdrop-blur-md">
           <button
             type="button"
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${seedType === "address" ? "bg-white/10 text-white shadow-sm" : "text-white/50 hover:text-white"}`}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${seedType === "address" ? "bg-secondary text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
             onClick={() => {
               setSeedType("address");
               setSeedValue(ETH_DEMO_WALLET);
@@ -66,7 +66,7 @@ export function SearchForm(): ReactElement {
           </button>
           <button
             type="button"
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${seedType === "tx" ? "bg-white/10 text-white shadow-sm" : "text-white/50 hover:text-white"}`}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${seedType === "tx" ? "bg-secondary text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
             onClick={() => {
               setSeedType("tx");
               setSeedValue(ETH_DEMO_TX);
@@ -78,7 +78,7 @@ export function SearchForm(): ReactElement {
 
         {/* Input area */}
         <div className="relative flex items-center">
-          <div className="pointer-events-none absolute left-4 flex items-center justify-center text-white/40">
+          <div className="pointer-events-none absolute left-4 flex items-center justify-center text-muted-foreground">
             <Search className="h-5 w-5" />
           </div>
           <input
@@ -86,7 +86,7 @@ export function SearchForm(): ReactElement {
             value={seedValue}
             onChange={(e) => setSeedValue(e.target.value)}
             placeholder={seedType === "address" ? "0x..." : "0x..."}
-            className="w-full rounded-xl border-none bg-transparent py-4 pl-12 pr-32 text-base font-mono text-white placeholder:text-white/30 focus:outline-none focus:ring-0"
+            className="w-full rounded-[1.25rem] border border-transparent bg-white/75 py-4 pl-12 pr-36 text-base font-mono text-foreground placeholder:text-muted-foreground/70 shadow-inner focus:border-cyan/25 focus:outline-none focus:ring-2 focus:ring-cyan/10"
             spellCheck={false}
             autoComplete="off"
             disabled={pending}
@@ -94,7 +94,7 @@ export function SearchForm(): ReactElement {
           <button
             type="submit"
             disabled={pending || !seedValue.trim()}
-            className="absolute right-2 top-2 bottom-2 flex items-center justify-center gap-2 rounded-lg bg-cyan-gradient px-6 font-semibold text-background transition-all hover:opacity-90 disabled:opacity-50"
+            className="absolute bottom-2 right-2 top-2 flex items-center justify-center gap-2 rounded-xl bg-cyan-gradient px-6 font-semibold text-white shadow-glow transition-all hover:-translate-y-0.5 hover:opacity-95 disabled:translate-y-0 disabled:opacity-50"
           >
             {pending ? (
               <>
@@ -103,7 +103,7 @@ export function SearchForm(): ReactElement {
               </>
             ) : (
               <>
-                Trace
+                Trace Funds
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -111,7 +111,7 @@ export function SearchForm(): ReactElement {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl bg-orange-500/10 px-4 py-3 text-sm text-orange-400 border border-orange-500/20 mx-2 mb-2 animate-slide-in">
+          <div className="mx-2 mb-2 flex items-center gap-2 rounded-2xl border border-risk-med/20 bg-risk-med-bg px-4 py-3 text-sm text-risk-med animate-slide-in">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <p>{error}</p>
           </div>
