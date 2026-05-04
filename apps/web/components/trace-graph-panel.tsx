@@ -82,12 +82,12 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
 
   return (
     <>
-      <section className="panel stack">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
-          <div className="space-y-2">
-            <span className="inline-flex items-center rounded-full bg-cyan/10 px-2.5 py-0.5 text-xs font-semibold text-cyan">Graph Investigation</span>
-            <h2 className="font-display text-2xl font-bold text-foreground">{props.title}</h2>
-            <p className="text-sm text-muted-foreground">{props.subtitle}</p>
+      <section className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 px-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <span className="pill">Graph Investigation</span>
+            <h2 className="mt-2 text-xl font-semibold text-foreground">{props.title}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{props.subtitle}</p>
           </div>
           {props.exportBaseName ? (
             <details className="relative group">
@@ -102,8 +102,9 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
             </details>
           ) : null}
         </div>
-        <div className="grid gap-3 lg:grid-cols-12">
-          <div className="rounded-xl border border-border bg-card shadow-card lg:col-span-8 overflow-hidden">
+
+        <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="min-h-[520px] overflow-hidden rounded-xl border border-border bg-card p-4 shadow-card">
             <GraphView
               graph={props.graph}
               findings={props.findings}
@@ -117,7 +118,8 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
               onCyReady={(instance) => { cyRef.current = instance; }}
             />
           </div>
-          <aside className="lg:col-span-4 h-[580px]">
+
+          <aside className="h-full min-h-[520px] w-full self-stretch lg:w-[360px]">
             <DetailPanel graph={props.graph} findings={props.findings} selectedId={props.focusedNodeId || null} />
           </aside>
         </div>
