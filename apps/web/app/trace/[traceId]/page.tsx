@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 
 import { CaseAnchorCard } from "../../../components/case-anchor-card";
 import { PublishCasePanel } from "../../../components/publish-case-panel";
-import { TraceOverview } from "../../../components/trace-overview";
+import { HybridInvestigationDashboard } from "../../../components/hybrid-investigation-dashboard";
 import { TraceStageLoader } from "../../../components/trace-stage-loader";
 import { TraceErrorState } from "../../../components/trace-error-state";
 import { WalletConnectionCard } from "../../../components/wallet-connection-card";
@@ -104,14 +104,11 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
         </a>
       </div>
 
-      <TraceOverview
+      <HybridInvestigationDashboard
         trace={trace.result}
         traceId={trace.id}
         exportBaseName={`kadenatrace-${traceId}`}
-        graphTitle="Branching flow and suspicious path highlights"
-        graphSubtitle="Use the filters, suspicious-path focus, and top-risk-wallet shortcut to inspect the laundering branches."
         isDemo={isDemo}
-        autoScrollSummary
       />
 
       <div className="grid" style={{ gap: 16 }}>
