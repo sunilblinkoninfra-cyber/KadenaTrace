@@ -2,14 +2,14 @@
 
 import type { PreparedWalletAttestationPayload } from "@kadenatrace/pact";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 
 import type { Chain, PublicCaseView, RiskLevel } from "@kadenatrace/shared";
 
 import { getApiBaseUrl } from "../lib/api";
 import { useKadenaWalletSession } from "../lib/use-kadena-wallet-session";
 
-export function AttestationPanel({ fraudCase }: { fraudCase: PublicCaseView }) {
+export function AttestationPanel({ fraudCase }: { fraudCase: PublicCaseView }): ReactElement {
   const wallet = useKadenaWalletSession();
   const router = useRouter();
   const [subjectWallet, setSubjectWallet] = useState(fraudCase.seed.seedValue);
