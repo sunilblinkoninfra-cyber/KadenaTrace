@@ -51,7 +51,7 @@ export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) =
               Automated Analysis
             </span>
             <span className="rounded-full border border-border bg-secondary px-2.5 py-1 font-mono text-[11px] text-muted-foreground">
-              source {summary.seedAddress.slice(0,8)}...
+              source {summary.seedAddress ? summary.seedAddress.slice(0,8) : "unknown"}...
             </span>
           </div>
 

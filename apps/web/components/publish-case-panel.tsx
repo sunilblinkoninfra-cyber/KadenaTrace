@@ -1,7 +1,7 @@
 "use client";
 
 import type { PreparedCaseAnchorPayload } from "@kadenatrace/pact";
-import { useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent, type ReactElement } from "react";
 
 import type { Finding, TraceRecord } from "@kadenatrace/shared";
 
@@ -19,7 +19,7 @@ interface TimelineSidebarEntry {
   txHash: string;
 }
 
-export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
+export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElement {
   const wallet = useKadenaWalletSession();
   const [title, setTitle] = useState("Shadow Router Investigation");
   const [summary, setSummary] = useState("A suspicious stolen-funds trace showing fan-out, bridge usage, and exchange sink behavior.");
@@ -36,7 +36,7 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
     slug
   );
 
-  async function createCase() {
+  async function createCase(): Promise<void> {
     setPending(true);
     setStatus(null);
     try {
@@ -67,7 +67,7 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
     }
   }
 
-  async function anchorCase() {
+  async function anchorCase(): Promise<void> {
     if (!caseId) {
       return;
     }
@@ -126,38 +126,81 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
         <div>
           <span className="pill">Publish Investigation</span>
           <h2 className="section-title">Turn this trace into a public fraud case</h2>
+          <p className="lede" style={{ marginTop: 10 }}>
+            Create a public investigation page, then optionally anchor the final snapshot on Kadena for external verification.
+          </p>
         </div>
       </div>
       <div className="publish-layout">
-        <div className="publish-form grid">
-          <div className="trace-meta">
-            <span className="pill">{wallet.currentAdapterName ?? "Wallet not selected"}</span>
-            <span className="muted">{wallet.signer?.accountName ?? "Connect a Kadena wallet to sign"}</span>
-          </div>
-          <div className="audit-url-row">
-            <div className="audit-url-copy">
-              <span className="muted">Public Audit URL</span>
-              <span className="code">{publicAuditUrl ?? "Create a public case to generate a shareable permalink."}</span>
+        <div className="publish-form">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="form-meta-card">
+              <div className="trace-meta" style={{ marginBottom: 10 }}>
+                <span className="pill">{wallet.currentAdapterName ?? "Wallet not selected"}</span>
+                <span className="muted">{wallet.signer?.accountName ?? "Connect a Kadena wallet to sign"}</span>
+              </div>
+              <p className="muted" style={{ margin: 0 }}>
+                {wallet.signer
+                  ? "Your connected Kadena wallet will sign the publication and anchoring flow."
+                  : "Connect a Kadena wallet when you are ready to sign the investigation record."}
+              </p>
             </div>
+
             <div className={urgencyGauge.toneClass}>
-              <span className="muted">{urgencyGauge.label}</span>
+              <span className="urgency-label">{urgencyGauge.label}</span>
               <strong>{urgencyGauge.value}</strong>
-              <span>{urgencyGauge.descriptor}</span>
+              <p className="urgency-copy">{urgencyGauge.descriptor}</p>
             </div>
           </div>
+
+          <div className="audit-url-card">
+            <div className="audit-url-copy">
+              <span className="form-section-label">Public Audit URL</span>
+              <span className="code">
+                {publicAuditUrl ?? "Create a public case to generate a shareable permalink."}
+              </span>
+              <p className="muted" style={{ margin: 0 }}>
+                Once created, this becomes the shareable public case page for investigators, partners, and reviewers.
+              </p>
+            </div>
+          </div>
+
           <p className="velocity-warning">{urgencyGauge.warning}</p>
+
+          <div className="publish-form-grid">
+            <label>
+              <span className="form-label-title">Case Title</span>
+              <input
+                className="input"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
+            </label>
+
+            <label>
+              <span className="form-label-title">Executive Summary</span>
+              <input
+                className="input"
+                value={summary}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setSummary(event.target.value)}
+              />
+            </label>
+          </div>
+
           <label>
-            Title
-            <input value={title} onChange={(event) => setTitle(event.target.value)} />
+            <span className="form-label-title">Public Narrative</span>
+            <span className="form-label-copy">
+              Keep this readable for reviewers. Focus on the laundering pattern, affected branches, and why the case matters.
+            </span>
+            <textarea
+              className="input"
+              value={narrative}
+              onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNarrative(event.target.value)}
+            />
           </label>
-          <label>
-            Summary
-            <input value={summary} onChange={(event: ChangeEvent<HTMLInputElement>) => setSummary(event.target.value)} />
-          </label>
-          <label>
-            Narrative
-            <textarea value={narrative} onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNarrative(event.target.value)} />
-          </label>
+
+          {status ? <p className="publish-status">{status}</p> : null}
+
           <div className="actions">
             <button className="button" type="button" disabled={pending} onClick={createCase}>
               {pending ? "Working..." : "Create Public Case"}
@@ -173,32 +216,39 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
               </a>
             ) : null}
           </div>
-          {status ? <p className="muted">{status}</p> : null}
         </div>
 
         <aside className="timeline-sidebar">
-          <div className="trace-meta">
-            <span className="pill">Hop Timeline</span>
-            <span className="muted">
-              {velocityMetrics?.terminalPathCount ?? 0} terminal branch{velocityMetrics?.terminalPathCount === 1 ? "" : "es"}
-            </span>
+          <div className="timeline-header">
+            <div className="trace-meta">
+              <span className="pill">Hop Timeline</span>
+              <span className="muted">
+                {velocityMetrics?.terminalPathCount ?? 0} terminal branch{velocityMetrics?.terminalPathCount === 1 ? "" : "es"}
+              </span>
+            </div>
+            <p className="muted" style={{ margin: 0 }}>
+              Follow how quickly the trace reaches bridges, exchanges, or other terminal destinations.
+            </p>
           </div>
+
           <div className="timeline-list">
             {timelineEntries.length > 0 ? (
               timelineEntries.map((entry) => (
                 <article key={entry.id} className="timeline-entry">
                   <span className="timeline-gap">{entry.gapLabel}</span>
                   <strong>{entry.title}</strong>
-                  <span className="muted">{entry.subtitle}</span>
-                  <span className="muted">{entry.timestampLabel}</span>
+                  <span className="timeline-entry-copy">{entry.subtitle}</span>
+                  <span className="timeline-entry-copy">{entry.timestampLabel}</span>
                   {entry.terminalLabel ? <span className="pill">{entry.terminalLabel}</span> : null}
                   <span className="code">{entry.txHash}</span>
                 </article>
               ))
             ) : (
-              <article className="timeline-entry">
+              <article className="timeline-entry timeline-entry--empty">
                 <strong>No terminal exit timeline yet</strong>
-                <span className="muted">As soon as the crawler sees a bridge or exchange endpoint, the hop history will appear here.</span>
+                <span className="timeline-entry-copy">
+                  As soon as the crawler sees a bridge or exchange endpoint, the hop history will appear here.
+                </span>
               </article>
             )}
           </div>
@@ -208,7 +258,7 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }) {
   );
 }
 
-function defaultNarrative(findings: Finding[]) {
+function defaultNarrative(findings: Finding[]): string {
   const signalList = findings.slice(0, 4).map((finding) => finding.code.replace(/-/g, " "));
   return `This investigation follows stolen funds from the seed transaction into a branching laundering flow. Key signals observed: ${signalList.join(
     ", "
