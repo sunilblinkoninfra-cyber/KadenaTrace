@@ -14,27 +14,33 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ClearHop | Verifiable Blockchain Forensics",
+  title: "KadenaTrace | Verifiable Blockchain Forensics",
   description: "Advanced trace analysis and fraud tracking across chains."
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased`}>
-      <body className="min-h-screen bg-background text-foreground selection:bg-cyan-500/30 font-sans">
+    <html lang="en" className={`${inter.variable} antialiased`} suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground font-sans selection:bg-cyan/20 selection:text-foreground" suppressHydrationWarning>
         <WalletProviders>
-          <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-md">
-            <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-              <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-gradient text-background shadow-glow">
+          <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/80 backdrop-blur-xl">
+            <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+              <Link href="/" className="flex items-center gap-2 sm:gap-2.5 transition-opacity hover:opacity-80 min-w-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-gradient text-primary-foreground shadow-glow">
                   <Activity className="h-5 w-5" />
                 </div>
-                <span className="font-display text-lg font-bold tracking-tight text-white">ClearHop</span>
+                <span className="font-display text-base sm:text-lg font-bold tracking-tight text-foreground truncate">
+                  KadenaTrace
+                </span>
               </Link>
               
-              <nav className="flex items-center gap-6 text-sm font-medium">
-                <Link href="/" className="text-white/70 transition-colors hover:text-white">Trace</Link>
-                <Link href="/attestations" className="text-white/70 transition-colors hover:text-white">Attestations</Link>
+              <nav className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium shrink-0">
+                <Link href="/" className="text-muted-foreground transition-colors hover:text-foreground">
+                  Trace
+                </Link>
+                <Link href="/attestations" className="text-muted-foreground transition-colors hover:text-foreground">
+                  Attestations
+                </Link>
               </nav>
             </div>
           </header>
