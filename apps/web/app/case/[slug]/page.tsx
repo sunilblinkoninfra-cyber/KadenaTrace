@@ -8,6 +8,7 @@ import { CopyShareLinkButton } from "../../../components/copy-share-link-button"
 import { DisputePanel } from "../../../components/dispute-panel";
 import { RiskBadge } from "../../../components/risk-badge";
 import { TraceOverview } from "../../../components/trace-overview";
+import { ErrorStateCard, PageShell, buttonStyles } from "../../../components/ui";
 import { WalletConnectionCard } from "../../../components/wallet-connection-card";
 import { fetchCase } from "../../../lib/api";
 
@@ -52,20 +53,21 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
 
   if (!fraudCase) {
     return (
-      <main className="shell">
-        <div className="panel card">
-          <h1 className="section-title">Public case not found</h1>
-          <p className="muted">The slug may be wrong, or the API has not seeded the example case yet.</p>
-          <Link href="/" className="ghost-button">
+      <PageShell>
+        <ErrorStateCard
+          title="Public case not found"
+          message="The share link may be wrong, or the public case is not available yet."
+        >
+          <Link href="/" className={buttonStyles("secondary")}>
             Back to dashboard
           </Link>
-        </div>
-      </main>
+        </ErrorStateCard>
+      </PageShell>
     );
   }
 
   return (
-    <main className="shell grid" style={{ gap: 22 }}>
+    <PageShell>
       <div className={getVerificationBannerClassName(fraudCase.anchor?.status)}>
         {fraudCase.anchor?.status === "confirmed"
           ? `✓ Anchored on Kadena testnet04 — Block ${fraudCase.anchor.blockHeight ?? "pending"} — Request key: ${fraudCase.anchor.requestKey}`
@@ -84,11 +86,11 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
           <div className="actions">
             <CopyShareLinkButton />
             {disputeFlowEnabled ? (
-              <a href="#dispute-flow" className="ghost-button">
+              <a href="#dispute-flow" className={buttonStyles("secondary")}>
                 Raise Dispute
               </a>
             ) : null}
-            <Link href="/" className="ghost-button">
+            <Link href="/" className={buttonStyles("secondary")}>
               New trace
             </Link>
           </div>
@@ -103,10 +105,10 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
       <section className="grid two-up">
         <article className="panel stack">
           <h2 className="section-title">Case narrative</h2>
-          <p className="muted" style={{ whiteSpace: "pre-wrap" }}>
+          <p className="muted whitespace-pre-wrap">
             {fraudCase.narrative}
           </p>
-          <h3>Evidence references</h3>
+          <h3 className="text-lg font-medium text-gray-100">Evidence references</h3>
           <div className="findings-list">
             {fraudCase.sourceRefs.map((source) => (
               <article key={source.id} className="finding">
@@ -114,9 +116,9 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
                   <span className="pill">{source.type}</span>
                   {source.chain ? <span className="code">{source.chain}</span> : null}
                 </div>
-                <p>{source.label}</p>
+                <p className="break-words text-base font-medium text-gray-100">{source.label}</p>
                 {source.url ? (
-                  <a href={source.url} target="_blank" rel="noreferrer" className="ghost-button">
+                  <a href={source.url} target="_blank" rel="noreferrer" className={buttonStyles("secondary")}>
                     Open source
                   </a>
                 ) : null}
@@ -124,7 +126,7 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
             ))}
           </div>
         </article>
-        <div className="grid" style={{ gap: 16 }}>
+        <div className="grid gap-4">
           <WalletConnectionCard />
           <CaseAnchorCard anchor={fraudCase.anchor} />
         </div>
@@ -151,7 +153,7 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
                     <span className="pill">{attestation.chain}</span>
                     <RiskBadge level={attestation.riskLevel} />
                   </div>
-                  <p>
+                  <p className="break-words text-base font-medium text-gray-100">
                     {attestation.wallet} scored {attestation.riskScore}/100 by {attestation.signer}
                   </p>
                   {attestation.note ? <p className="muted">{attestation.note}</p> : null}
@@ -171,7 +173,7 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
       {disputeFlowEnabled ? (
         <section id="dispute-flow" className="panel stack">
           <h2 className="section-title">Dispute this case</h2>
-          <p className="muted" style={{ marginBottom: 12 }}>
+          <p className="muted">
             If you believe this case was anchored incorrectly, raise a formal on-chain dispute. Your reason is hashed
             locally before being committed — the raw text never leaves your browser. Step 2 requires the governance
             keyset to review and resolve.
@@ -179,7 +181,7 @@ export default async function PublicCasePage({ params }: { params: Promise<{ slu
           <DisputePanel caseId={fraudCase.caseId} caseSlug={fraudCase.slug} />
         </section>
       ) : null}
-    </main>
+    </PageShell>
   );
 }
 

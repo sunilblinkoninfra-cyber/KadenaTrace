@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Copy, ShieldCheck, Terminal } from "lucide-react";
+import { buttonStyles } from "./ui";
 
 interface Props {
   traceHash: string;
@@ -18,18 +19,19 @@ export const VerificationStrip = ({ traceHash }: Props) => {
   const cliCmd = `kadena verify ${traceHash}`;
 
   return (
-    <section className="border-b border-border bg-surface w-full">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-3 lg:flex-row lg:items-center lg:justify-between">
+    <section className="w-full border-b border-gray-800 bg-surface">
+      <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-6 py-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-verified-bg px-2.5 py-1 text-xs font-semibold text-verified">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-verified-bg px-3 py-1 text-xs font-medium text-verified">
             <ShieldCheck className="h-3.5 w-3.5" />
             Verified on Kadena
           </span>
 
           <button
             onClick={() => copy(traceHash, "hash")}
-            className="group inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 font-mono text-xs text-foreground/80 transition-smooth hover:border-cyan/50 hover:text-foreground"
+            className="group inline-flex h-10 items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 font-mono text-xs text-foreground/80 transition-smooth hover:border-gray-700 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-950"
             title="Copy trace hash"
+            aria-label="Copy trace hash"
           >
             <span className="text-muted-foreground">Trace:</span>
             <span>{shortHash}</span>
@@ -47,7 +49,8 @@ export const VerificationStrip = ({ traceHash }: Props) => {
 
         <button
           onClick={() => copy(cliCmd, "cli")}
-          className="inline-flex items-center justify-center rounded-md border border-border bg-transparent px-3 py-1 text-[13px] font-medium text-foreground transition-colors hover:bg-secondary h-8 gap-2 self-start lg:self-auto"
+          className={`${buttonStyles("secondary")} self-start lg:self-auto`}
+          aria-label="Copy CLI verification command"
         >
           <Terminal className="h-3.5 w-3.5" />
           {copied === "cli" ? "Copied!" : "Verify via CLI"}

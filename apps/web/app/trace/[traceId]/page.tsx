@@ -6,6 +6,8 @@ import { PublishCasePanel } from "../../../components/publish-case-panel";
 import { TraceOverview } from "../../../components/trace-overview";
 import { TraceStageLoader } from "../../../components/trace-stage-loader";
 import { TraceErrorState } from "../../../components/trace-error-state";
+import { TraceOverviewSkeleton } from "../../../components/trace-skeletons";
+import { PageShell, buttonStyles } from "../../../components/ui";
 import { WalletConnectionCard } from "../../../components/wallet-connection-card";
 import { getDemoTraceRecord, isDemoTraceId } from "../../../lib/demo-trace";
 import { getTrace } from "../../../lib/api";
@@ -39,7 +41,7 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
 
   if (trace.status !== "completed" || !trace.result) {
     return (
-      <main className="shell grid" style={{ gap: 22 }}>
+      <PageShell>
         <div className="panel stack">
           <div className="trace-meta">
             <span className="pill">Trace status</span>
@@ -51,37 +53,38 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
           </p>
           <TraceStageLoader />
           <div className="actions">
-            <Link href={`/trace/${traceId}`} className="ghost-button">
+            <Link href={`/trace/${traceId}`} className={buttonStyles("secondary")}>
               Refresh status
             </Link>
-            <Link href="/trace/demo" className="ghost-button">
-              Use Demo Case
+            <Link href="/trace/demo" className={buttonStyles("primary")}>
+              Use Demo
             </Link>
           </div>
         </div>
-      </main>
+        <TraceOverviewSkeleton />
+      </PageShell>
     );
   }
 
   return (
-    <main className="shell grid" style={{ gap: 22 }}>
+    <PageShell>
       <section className="panel stack">
         <div className="page-header">
-          <div>
-            <span className="inline-flex items-center rounded-full bg-cyan/10 px-2.5 py-0.5 text-xs font-semibold text-cyan mb-2">{isDemo ? "Demo Investigation" : "Investigation Trace"}</span>
-            <h1 className="font-display text-3xl font-bold text-foreground mb-2">Trace {trace.id}</h1>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm text-foreground bg-secondary px-2 py-1 rounded">{trace.result.seed.seedValue}</span>
-              <span className="text-xs uppercase tracking-wider text-muted-foreground">{trace.result.seed.seedType}</span>
+          <div className="grid gap-2">
+            <span className="pill">{isDemo ? "Demo Investigation" : "Investigation Trace"}</span>
+            <h1 className="section-title break-words">Trace {trace.id}</h1>
+            <div className="trace-meta">
+              <span className="code">{trace.result.seed.seedValue}</span>
+              <span className="text-sm text-gray-400 uppercase">{trace.result.seed.seedType}</span>
             </div>
           </div>
-          <Link href="/" className="ghost-button">
+          <Link href="/" className={buttonStyles("secondary")}>
             Start another trace
           </Link>
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center gap-4 border-y border-border py-4 text-sm">
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-4 text-sm">
         <span className="text-muted-foreground">
           Graph depth:{" "}
           <strong className="text-foreground">{trace.result.metrics.maxDepth ?? 2} hops</strong>
@@ -98,7 +101,7 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
           }`}
           target="_blank"
           rel="noreferrer"
-          className="ml-auto inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary/80"
+          className={`ml-auto ${buttonStyles("secondary")}`}
         >
           View on Etherscan ↗
         </a>
@@ -114,12 +117,12 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
         autoScrollSummary
       />
 
-      <div className="grid" style={{ gap: 16 }}>
+      <div className="grid gap-4 xl:grid-cols-2">
         <WalletConnectionCard />
         <CaseAnchorCard />
       </div>
 
       {isDemo ? null : <PublishCasePanel trace={trace} />}
-    </main>
+    </PageShell>
   );
 }

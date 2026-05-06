@@ -8,6 +8,7 @@ import type { Chain, PublicCaseView, RiskLevel } from "@kadenatrace/shared";
 
 import { getApiBaseUrl } from "../lib/api";
 import { useKadenaWalletSession } from "../lib/use-kadena-wallet-session";
+import { buttonStyles } from "./ui";
 
 export function AttestationPanel({ fraudCase }: { fraudCase: PublicCaseView }): ReactElement {
   const wallet = useKadenaWalletSession();
@@ -145,11 +146,11 @@ export function AttestationPanel({ fraudCase }: { fraudCase: PublicCaseView }): 
           <textarea value={note} onChange={(event) => setNote(event.target.value)} />
         </label>
         <div className="actions">
-          <button className="button" type="button" disabled={pending || !wallet.signer} onClick={submitAttestation}>
+          <button className={buttonStyles("primary")} type="button" disabled={pending || !wallet.signer} onClick={submitAttestation}>
             {pending ? "Submitting..." : "Sign & Publish Attestation"}
           </button>
         </div>
-        {status ? <p className="muted">{status}</p> : null}
+        {status ? <p className="rounded-xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-300">{status}</p> : null}
       </div>
     </section>
   );

@@ -3,6 +3,7 @@ import { type ReactElement } from "react";
 import type { SuspiciousPath, TraceGraph } from "@kadenatrace/shared";
 
 import { RiskBadge } from "./risk-badge";
+import { Card, Section, focusRingClassName } from "./ui";
 
 export function SuspiciousPaths({
   graph,
@@ -16,13 +17,13 @@ export function SuspiciousPaths({
   const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
 
   return (
-    <section className="mx-auto max-w-7xl px-6 pt-10 pb-20">
+    <Section className="pb-10 pt-0">
       <div className="mb-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
           <span className="h-px w-6 bg-border" />
           Suspicious Paths
         </div>
-        <h2 className="font-display text-2xl font-bold text-foreground">Top risk-ranked movement paths</h2>
+        <h2 className="text-xl font-semibold text-foreground">Top risk-ranked movement paths</h2>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {paths.length > 0 ? (
@@ -51,22 +52,27 @@ export function SuspiciousPaths({
             );
             return (
               onFocusPath ? (
-                <button key={path.id} className="flex flex-col rounded-xl border border-border bg-card p-5 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-risk-high/40 hover:shadow-glow-cyan" type="button" onClick={() => onFocusPath(path.edgeIds)}>
+                <button
+                  key={path.id}
+                  className={`flex flex-col gap-4 rounded-xl border border-gray-800 bg-gray-900 p-4 text-left transition-colors hover:border-gray-700 ${focusRingClassName}`}
+                  type="button"
+                  onClick={() => onFocusPath(path.edgeIds)}
+                >
                   {content}
                 </button>
               ) : (
-                <article key={path.id} className="flex flex-col rounded-xl border border-border bg-card p-5 text-left shadow-card">
+                <Card key={path.id} className="flex flex-col gap-4 text-left">
                   {content}
-                </article>
+                </Card>
               )
             );
           })
         ) : (
-          <article className="flex rounded-xl border border-dashed border-border bg-card/50 p-8 text-center justify-center col-span-1 lg:col-span-2">
+          <article className="col-span-1 flex justify-center rounded-xl border border-dashed border-gray-800 bg-gray-900/70 p-8 text-center lg:col-span-2">
             <p className="text-sm text-muted-foreground">No suspicious paths were extracted from the current graph window.</p>
           </article>
         )}
       </div>
-    </section>
+    </Section>
   );
 }

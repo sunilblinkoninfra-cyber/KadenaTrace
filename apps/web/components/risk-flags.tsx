@@ -1,6 +1,7 @@
 import { GitFork, Zap, Split, X, AlertCircle } from "lucide-react";
 import { cn } from "../lib/utils";
 import type { Finding } from "@kadenatrace/shared";
+import { Section, focusRingClassName } from "./ui";
 
 interface Props {
   flags: Finding[];
@@ -38,7 +39,7 @@ export const RiskFlags = ({ flags, active, onToggle }: Props) => {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-6 pt-8">
+    <Section className="pt-0">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
           <span className="h-px w-6 bg-border" />
@@ -54,7 +55,7 @@ export const RiskFlags = ({ flags, active, onToggle }: Props) => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {groupedFlags.map((f) => {
           const m = getFlagMeta(f.id);
           const Icon = m.icon;
@@ -64,32 +65,32 @@ export const RiskFlags = ({ flags, active, onToggle }: Props) => {
               key={f.id}
               onClick={() => onToggle(isActive ? null : f.id)}
               className={cn(
-                "group relative flex items-center gap-4 overflow-hidden rounded-xl border bg-card p-4 text-left shadow-card transition-smooth",
+                `group relative flex items-center gap-4 overflow-hidden rounded-xl border p-4 text-left transition-smooth ${focusRingClassName}`,
                 isActive
-                  ? "border-risk-high/60 shadow-glow-cyan"
-                  : "border-border hover:-translate-y-0.5 hover:border-risk-high/30 hover:shadow-elevated"
+                  ? "border-red-500 bg-red-500/10"
+                  : "border-gray-800 bg-gray-900 hover:border-gray-700"
               )}
             >
               <div
                 className={cn(
                   "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-smooth",
-                  isActive ? "bg-risk-high text-primary-foreground" : "bg-risk-high-bg text-risk-high"
+                  isActive ? "bg-red-500 text-white" : "bg-red-500/10 text-red-300"
                 )}
               >
                 <Icon className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display text-base font-semibold text-foreground truncate">{f.id}</span>
-                  <span className="text-xs font-semibold text-risk-high">×{f.count}</span>
+                  <span className="truncate text-base font-medium text-foreground">{m.label}</span>
+                  <span className="text-xs font-medium text-red-300">×{f.count}</span>
                 </div>
-                <div className="truncate text-xs text-muted-foreground">{m.desc}</div>
+                <div className="truncate text-sm text-muted-foreground">{m.desc}</div>
               </div>
-              <div className={cn("absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-risk-high transition-transform duration-300", isActive && "scale-x-100")} />
+              <div className={cn("absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-red-400 transition-transform duration-300", isActive && "scale-x-100")} />
             </button>
           );
         })}
       </div>
-    </section>
+    </Section>
   );
 };

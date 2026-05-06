@@ -142,7 +142,7 @@ export function TraceWaterfall({
         <div>
           <span className="pill">Observability Waterfall</span>
           <h1 className="section-title">Trace Waterfall</h1>
-          <p className="lede" style={{ marginTop: 10 }}>
+          <p className="lede mt-2">
             Production-style span timeline with fixed time scaling, sticky labels, and row virtualization for large traces.
           </p>
         </div>
@@ -176,7 +176,7 @@ export function TraceWaterfall({
         </div>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="overflow-hidden rounded-3xl border border-border/80 bg-card/95 shadow-card">
           <div
             className="grid border-b border-border/80 bg-surface-subtle"
@@ -297,7 +297,7 @@ export function TraceWaterfall({
               <span className="pill">Span Details</span>
               {selectedSpan ? <span className="muted">{selectedSpan.id}</span> : null}
             </div>
-            <p className="muted" style={{ margin: 0 }}>
+            <p className="muted">
               Select any span row to inspect timing, metadata, and hierarchy context without losing your place in the waterfall.
             </p>
           </div>
@@ -331,7 +331,7 @@ export function TraceWaterfall({
               </article>
             </div>
           ) : (
-            <article className="timeline-entry timeline-entry--empty" style={{ marginTop: 16 }}>
+            <article className="timeline-entry timeline-entry--empty mt-4">
               <strong>No span selected</strong>
               <span className="timeline-entry-copy">
                 Pick a row in the waterfall to inspect its timing and metadata.

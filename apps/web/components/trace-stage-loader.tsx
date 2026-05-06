@@ -26,7 +26,10 @@ export function TraceStageLoader({
   }, []);
 
   return (
-    <div className={compact ? "trace-stage-loader trace-stage-loader--compact" : "trace-stage-loader"}>
+    <div
+      className={compact ? "trace-stage-loader trace-stage-loader--compact" : "trace-stage-loader"}
+      aria-live="polite"
+    >
       {STAGES.map((stage, index) => (
         <div
           key={stage}

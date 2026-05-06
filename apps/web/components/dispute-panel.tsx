@@ -6,6 +6,7 @@ import { useState, type FormEvent, type ReactElement } from "react";
 
 import { prepareDisputePayload, submitDisputeCommand } from "../lib/api";
 import { useKadenaWalletSession } from "../lib/use-kadena-wallet-session";
+import { buttonStyles } from "./ui";
 
 interface DisputePanelProps {
   caseId: string;
@@ -118,7 +119,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
 
   if (!isConnected) {
     return (
-      <div className="panel card">
+      <div className="panel">
         <p className="muted">
           Connect an Ecko or Chainweaver wallet on testnet04 to raise a dispute.
         </p>
@@ -128,15 +129,13 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
 
   if (step.kind === "success") {
     return (
-      <div className="panel card">
-        <p style={{ color: "#0F6E56", fontWeight: 500 }}>
-          Dispute submitted on-chain.
-        </p>
+      <div className="panel stack">
+        <p className="text-sm font-medium text-green-300">Dispute submitted on-chain.</p>
         <div className="facts">
           <span className="muted">Dispute ID: <span className="code">{step.disputeId}</span></span>
           <span className="muted">Request key: <span className="code">{step.requestKey}</span></span>
         </div>
-        <p className="muted" style={{ marginTop: 8, fontSize: 12 }}>
+        <p className="text-sm text-gray-400">
           The governance keyset must complete step 2 of the defpact to mark
           this dispute as reviewed.
         </p>
@@ -147,37 +146,36 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
   return (
     <div className="panel stack">
       <form onSubmit={(event) => void handlePrepare(event)}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label htmlFor="dispute-reason" style={{ fontSize: 13, fontWeight: 500 }}>
+        <div className="grid gap-4">
+          <label htmlFor="dispute-reason" className="grid gap-2 text-sm font-medium text-foreground">
             Dispute reason
+            <textarea
+              id="dispute-reason"
+              className="input min-h-[140px] py-3"
+              rows={4}
+              placeholder="Describe why this case was anchored in error. This text will be hashed and committed on-chain."
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              disabled={step.kind !== "idle" && step.kind !== "error"}
+            />
           </label>
-          <textarea
-            id="dispute-reason"
-            className="input"
-            rows={4}
-            placeholder="Describe why this case was anchored in error. This text will be hashed and committed on-chain."
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            disabled={step.kind !== "idle" && step.kind !== "error"}
-            style={{ resize: "vertical", fontFamily: "var(--font-sans)", fontSize: 13 }}
-          />
           {reasonHash ? (
             <div className="facts">
-              <span className="muted" style={{ fontSize: 11 }}>
+              <span className="text-sm text-gray-400">
                 SHA-256 reason hash (stored on-chain):
               </span>
-              <span className="code" style={{ fontSize: 11, wordBreak: "break-all" }}>
+              <span className="code">
                 {reasonHash}
               </span>
             </div>
           ) : null}
           {step.kind === "error" ? (
-            <p style={{ color: "#c0392b", fontSize: 13 }}>{step.message}</p>
+            <p className="rounded-xl border border-red-500 bg-red-500/10 px-4 py-3 text-sm text-red-300">{step.message}</p>
           ) : null}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="flex flex-wrap gap-2">
             {step.kind === "awaiting-signature" ? (
               <button
-                className="ghost-button"
+                className={buttonStyles("primary")}
                 type="button"
                 onClick={() => void handleSign()}
               >
@@ -185,7 +183,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
               </button>
             ) : (
               <button
-                className="ghost-button"
+                className={buttonStyles("secondary")}
                 type="submit"
                 disabled={
                   !reason.trim() ||
@@ -201,7 +199,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
               </button>
             )}
             {(step.kind === "preparing" || step.kind === "submitting") ? (
-              <span className="muted" style={{ fontSize: 12, alignSelf: "center" }}>
+              <span className="self-center text-sm text-gray-400">
                 {step.kind === "preparing"
                   ? "Hashing reason and building Pact command..."
                   : "Waiting for chain confirmation..."}
@@ -210,7 +208,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
           </div>
         </div>
       </form>
-      <p className="muted" style={{ fontSize: 12 }}>
+      <p className="text-sm text-gray-400">
         Case ID: <span className="code">{caseId}</span>. Public slug: <span className="code">{caseSlug}</span>.
         Your dispute opens step 1 of the <code>raise-dispute</code> defpact.
         Step 2 requires the governance keyset to mark it reviewed.

@@ -1,5 +1,6 @@
 import { AlertTriangle, Target, TrendingUp } from "lucide-react";
 import { cn } from "../lib/utils";
+import { Card, Section } from "./ui";
 
 interface Props {
   summary: any;
@@ -30,66 +31,63 @@ export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) =
     "This transaction pattern suggests potentially suspicious fund movement based on available signals.";
 
   return (
-    <section className="mx-auto max-w-7xl px-6 pt-8 sm:pt-10">
+    <Section className="pt-0">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
           <span className="h-px w-6 bg-border" />
           Investigation Conclusion
         </div>
-        <div className="inline-flex items-center rounded-full border border-cyan/30 bg-cyan/10 px-2.5 py-1 text-[11px] font-semibold text-cyan">
+        <div className="inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-200">
           Ethereum • 2-Hop Trace
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-12">
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-7 shadow-card lg:col-span-8">
-          <div className="absolute right-0 top-0 h-32 w-32 -translate-y-1/2 translate-x-1/2 rounded-full bg-risk-high/10 blur-2xl" />
-
+        <Card className="relative overflow-hidden lg:col-span-8">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1", bucket.bg, bucket.color, bucket.ring)}>
+            <span className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1", bucket.bg, bucket.color, bucket.ring)}>
               <AlertTriangle className="h-3 w-3" />
               Automated Analysis
             </span>
-            <span className="rounded-full border border-border bg-secondary px-2.5 py-1 font-mono text-[11px] text-muted-foreground">
+            <span className="rounded-full border border-gray-800 bg-gray-950 px-3 py-1 font-mono text-xs text-muted-foreground">
               source {summary.seedAddress ? summary.seedAddress.slice(0,8) : "unknown"}...
             </span>
           </div>
 
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Conclusion</div>
-          <h2 className="font-display text-2xl font-semibold leading-snug text-foreground sm:text-[28px]">
+          <div className="mb-2 text-sm text-gray-400">Conclusion</div>
+          <h2 className="text-xl font-semibold leading-snug text-foreground sm:text-2xl">
             {conclusion}
           </h2>
 
           {summary.topRiskWallet && (
             <button
+              type="button"
               onClick={() => onFocusTopRiskWallet(summary.topRiskWallet.id)}
-              className="mt-6 group flex w-full items-center justify-between rounded-xl border border-risk-high/20 bg-risk-high-bg px-4 py-3 text-left transition-smooth hover:border-risk-high/50 hover:shadow-glow-cyan"
+              className="mt-4 grid w-full gap-2 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-left transition-colors hover:border-red-400"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-risk-high text-primary-foreground">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500 text-white">
                   <Target className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-risk-high">Highest-risk wallet</div>
-                  <div className="font-mono text-sm font-medium text-foreground">{summary.topRiskWallet.address}</div>
+                  <div className="text-sm text-red-200">Highest-risk wallet</div>
+                  <div className="break-all font-mono text-sm font-medium text-foreground">{summary.topRiskWallet.address}</div>
                 </div>
               </div>
-              <span className="text-xs font-medium text-risk-high opacity-70 transition group-hover:opacity-100">
-                Focus on graph →
-              </span>
+              <span className="text-sm text-red-200">Focus on graph</span>
             </button>
           )}
-        </div>
+        </Card>
 
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-7 shadow-card lg:col-span-4">
+        <Card className="lg:col-span-4">
           <div className="flex items-start justify-between">
             <div>
-              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Risk score</div>
+              <div className="text-sm text-gray-400">Risk score</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className={cn("font-display text-6xl font-bold leading-none", bucket.color)}>{summary.overallScore}</span>
+                <span className={cn("text-6xl font-semibold leading-none", bucket.color)}>{summary.overallScore}</span>
                 <span className="text-lg font-medium text-muted-foreground">/100</span>
               </div>
-              <div className={cn("mt-2 inline-flex items-center gap-1 text-xs font-semibold", bucket.color)}>
+              <div className={cn("mt-2 inline-flex items-center gap-1 text-sm font-medium", bucket.color)}>
                 <TrendingUp className="h-3 w-3" /> {bucket.label}
               </div>
             </div>
@@ -97,20 +95,20 @@ export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) =
             <RiskRing score={summary.overallScore} />
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-4">
+          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
             <Stat label="Confidence" value={`${confidence}%`} />
             <Stat label="Total Findings" value={`${summary.findingCount}`} />
           </div>
-        </div>
+        </Card>
       </div>
-    </section>
+    </Section>
   );
 };
 
 const Stat = ({ label, value }: { label: string; value: string }) => (
   <div>
-    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
-    <div className="mt-1 font-display text-xl font-semibold text-foreground">{value}</div>
+    <div className="text-sm text-gray-400">{label}</div>
+    <div className="mt-1 text-base font-medium text-foreground">{value}</div>
   </div>
 );
 

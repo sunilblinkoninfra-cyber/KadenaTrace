@@ -28,7 +28,7 @@ export function loadConfig(): ApiConfig {
 
   return {
     port: Number(process.env.PORT ?? process.env.API_PORT ?? 4000),
-    webBaseUrl: process.env.WEB_BASE_URL ?? process.env.CORS_ORIGIN ?? "https://your-vercel-app.vercel.app",
+    webBaseUrl: process.env.WEB_BASE_URL ?? process.env.CORS_ORIGIN ?? "https://kadenatrace-frontend.vercel.app",
     databaseUrl: process.env.DATABASE_URL,
     redisUrl: process.env.REDIS_URL,
     covalentApiKey: process.env.COVALENT_API_KEY,

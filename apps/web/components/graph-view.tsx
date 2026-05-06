@@ -4,14 +4,9 @@ import cytoscape, { type Core } from "cytoscape";
 import Link from "next/link";
 import { useEffect, useRef, useState, useMemo, type ReactElement } from "react";
 
-import type { Chain, Finding, GraphEdge, GraphNode, SuspiciousPath, TraceGraph } from "@kadenatrace/shared";
+import type { Finding, GraphEdge, GraphNode, SuspiciousPath, TraceGraph } from "@kadenatrace/shared";
 
-type SelectionState =
-  | { type: "node"; payload: GraphNode }
-  | { type: "edge"; payload: GraphEdge };
-
-type RiskFilterValue = "all" | "low" | "medium" | "high" | "critical";
-type ChainFilterValue = "all" | Chain;
+import { buttonStyles } from "./ui";
 
 interface GraphViewProps {
   graph: TraceGraph;
@@ -50,10 +45,7 @@ export function GraphView({
 }: GraphViewProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<Core | null>(null);
-  const [selection, setSelection] = useState<SelectionState | null>(null);
   const [focusSuspiciousPaths, setFocusSuspiciousPaths] = useState(Boolean(focusedPathEdgeIds?.length));
-
-  const availableChains = Array.from(new Set(graph.nodes.map((node) => node.chain)));
   const initialFocusedPathEdgeIds = useMemo(() => 
     focusedPathEdgeIds && focusedPathEdgeIds.length > 0
       ? focusedPathEdgeIds
@@ -64,9 +56,9 @@ export function GraphView({
   useEffect(() => {
     const preferred = graph.nodes.find((node) => node.address.toLowerCase() === seedValue.toLowerCase()) ?? graph.nodes[0];
     if (preferred) {
-      setSelection({ type: "node", payload: preferred });
+      onNodeSelect?.(preferred.id);
     }
-  }, [graph.nodes, seedValue]);
+  }, [graph.nodes, onNodeSelect, seedValue]);
 
   useEffect(() => {
     setFocusSuspiciousPaths(Boolean(initialFocusedPathEdgeIds.length));
@@ -119,7 +111,7 @@ export function GraphView({
         name: "breadthfirst",
         directed: true,
         spacingFactor: 1.2,
-        padding: 24
+        padding: 48
       },
       style: [
         {
@@ -161,14 +153,15 @@ export function GraphView({
             "target-arrow-shape": "triangle",
             "curve-style": "bezier",
             content: "data(label)",
-            "font-size": "10.5px",
+            "font-size": "12px",
             "font-family": "monospace",
             "text-rotation": "autorotate",
-            "text-background-color": "rgba(255, 255, 255, 0.94)",
+            "text-background-color": "rgba(10, 16, 27, 0.92)",
             "text-background-opacity": 1,
             "text-background-padding": "4px",
             "text-margin-y": -10,
-            color: "#344256",
+            color: "#E2E8F0",
+            "min-zoomed-font-size": "10px",
             opacity: 0.82
           }
         },
@@ -212,37 +205,35 @@ export function GraphView({
 
     cyRef.current = instance;
     instance.one("layoutstop", () => {
-      instance.fit(undefined, 24);
+      instance.fit(undefined, 48);
     });
     const resizeObserver = new ResizeObserver(() => {
       instance.resize();
-      instance.fit(undefined, 24);
+      instance.fit(undefined, 48);
     });
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
     }
     onCyReady?.(instance);
-    applyGraphVisibility(instance, activeRiskFilters);
     applyPathHighlight(instance, initialFocusedPathEdgeIds, focusSuspiciousPaths);
     applyNodeFocus(instance, focusedNodeId);
 
     instance.on("tap", "node", (event) => {
       const node = graph.nodes.find((item) => item.id === event.target.id());
       if (node) {
-        setSelection({ type: "node", payload: node });
         const path = suspiciousPaths
           .filter((candidate) => candidate.nodeIds.includes(node.id))
           .sort((left, right) => right.riskScore - left.riskScore)[0];
         applyPathHighlight(instance, path?.edgeIds ?? [], focusSuspiciousPaths);
         applyNodeFocus(instance, node.id);
-        if (onNodeSelect) onNodeSelect(node.id);
+        onNodeSelect?.(node.id);
       }
     });
 
     instance.on("tap", "edge", (event) => {
       const edge = graph.edges.find((item) => item.id === event.target.id());
       if (edge) {
-        setSelection({ type: "edge", payload: edge });
+        onNodeSelect?.(edge.id);
       }
     });
 
@@ -251,7 +242,7 @@ export function GraphView({
       resizeObserver.disconnect();
       instance.destroy();
     };
-  }, [graph, seedValue, suspiciousPaths]);
+  }, [focusSuspiciousPaths, graph, initialFocusedPathEdgeIds, focusedNodeId, onCyReady, onNodeSelect, seedValue, suspiciousPaths]);
 
   useEffect(() => {
     if (!cyRef.current) {
@@ -284,13 +275,8 @@ export function GraphView({
     if (!node) {
       return;
     }
-
-    setSelection((prev) => 
-      prev?.type === "node" && prev.payload.id === node.id 
-        ? prev 
-        : { type: "node", payload: node }
-    );
     applyNodeFocus(cyRef.current, focusedNodeId);
+    onNodeSelect?.(focusedNodeId);
 
     const matchingPath = suspiciousPaths
       .filter((path) => path.nodeIds.includes(focusedNodeId))
@@ -304,17 +290,7 @@ export function GraphView({
         duration: 350
       });
     }
-  }, [focusedNodeId, graph.nodes, suspiciousPaths, initialFocusedPathEdgeIds, focusSuspiciousPaths]);
-
-  const relatedFindings = selection
-    ? findings.filter((finding) =>
-        selection.type === "node"
-          ? finding.relatedNodeIds.includes(selection.payload.id)
-          : finding.relatedEdgeIds.includes(selection.payload.id)
-      )
-    : [];
-
-  const primaryReason = selection ? getPrimaryReason(selection.payload, relatedFindings) : null;
+  }, [focusedNodeId, focusSuspiciousPaths, graph.nodes, initialFocusedPathEdgeIds, onNodeSelect, suspiciousPaths]);
 
   if (graph.nodes.length === 0 && findings.length === 0) {
     return (
@@ -341,8 +317,8 @@ export function GraphView({
 
   return (
     <div className="graph-shell h-full gap-0 bg-transparent p-0">
-      <div className="graph-main h-full min-h-[520px]" style={{ width: "100%", position: "relative" }}>
-        <div className="graph-filters absolute top-3 left-3 z-10 hidden">
+      <div className="graph-main h-full min-h-[520px] w-full">
+        <div className="graph-filters absolute left-4 top-4 z-10">
           <label className="graph-toggle">
             <input
               checked={focusSuspiciousPaths}
@@ -353,8 +329,8 @@ export function GraphView({
           </label>
         </div>
 
-        <div className="absolute bottom-4 left-4 z-10 flex flex-wrap items-center gap-2 rounded-md border border-border bg-card/95 px-3 py-2 text-[10px] shadow-sm backdrop-blur">
-          <span className="font-semibold uppercase tracking-wider text-muted-foreground">Risk</span>
+        <div className="absolute bottom-4 left-4 z-10 flex flex-wrap items-center gap-2 rounded-lg border border-gray-800 bg-gray-950/95 px-3 py-2 text-xs shadow-sm backdrop-blur">
+          <span className="font-medium uppercase tracking-wider text-muted-foreground">Risk</span>
           <LegendDot color={RISK_COLORS.high} label="High" />
           <LegendDot color={RISK_COLORS.medium} label="Med" />
           <LegendDot color={RISK_COLORS.low} label="Low" />
@@ -362,15 +338,15 @@ export function GraphView({
           <span className="text-muted-foreground">Thicker edge = higher value</span>
         </div>
 
-        <div className="graph-canvas-wrap h-full min-h-[520px] rounded-xl border border-border bg-surface-subtle p-4 shadow-none" style={{ background: "transparent" }}>
+        <div className="graph-canvas-wrap h-full min-h-[520px] bg-transparent shadow-none">
           <div className="absolute right-4 top-4 z-10 flex flex-col gap-2">
-            <div className="flex flex-col overflow-hidden rounded-md border border-border bg-card/90 shadow-sm backdrop-blur">
-              <button aria-label="Zoom in" className="flex h-8 w-8 items-center justify-center border-b border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 1.2)}>+</button>
-              <button aria-label="Zoom out" className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 0.8)}>-</button>
+            <div className="flex flex-col overflow-hidden rounded-lg border border-gray-800 bg-gray-900/90 shadow-sm backdrop-blur">
+              <button aria-label="Zoom in" className="flex h-10 w-10 items-center justify-center border-b border-gray-800 text-muted-foreground transition-colors hover:bg-gray-800 hover:text-foreground" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 1.2)}>+</button>
+              <button aria-label="Zoom out" className="flex h-10 w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-gray-800 hover:text-foreground" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 0.8)}>-</button>
             </div>
-            <button className="rounded-md border border-border bg-card/90 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur hover:bg-secondary hover:text-foreground transition-colors" type="button" onClick={() => cyRef.current?.fit(undefined, 24)}>Reset</button>
+            <button className={buttonStyles("secondary")} type="button" onClick={() => cyRef.current?.fit(undefined, 48)}>Reset</button>
           </div>
-          <div className="graph-canvas rounded-lg border border-border/60" ref={containerRef} style={{ height: "100%", minHeight: "488px", width: "100%" }} />
+          <div className="graph-canvas rounded-lg" ref={containerRef} style={{ height: "100%", minHeight: "488px", width: "100%" }} />
         </div>
       </div>
     </div>
@@ -383,10 +359,6 @@ const LegendDot = ({ color, label }: { color: string; label: string }) => (
     <span className="font-medium text-foreground">{label}</span>
   </span>
 );
-
-function applyGraphVisibility(instance: Core, activeRiskFilter: string | null | undefined): void {
-  // We handle visibility via applyPathHighlight now.
-}
 
 function applyPathHighlight(instance: Core, edgeIds: string[], focusOnly: boolean): void {
   instance.elements().removeClass("highlighted").removeClass("path-node").removeClass("dimmed");
@@ -484,53 +456,4 @@ function getEdgeColor(riskScore: number): string {
 function getEdgeWidth(amount: number, maxAmount: number): number {
   const normalized = maxAmount <= 0 ? 0 : amount / maxAmount;
   return Number((1.0 + normalized * 1.5).toFixed(2));
-}
-
-function getRiskThreshold(value: RiskFilterValue | "unscored"): number {
-  if (value === "critical") {
-    return 4;
-  }
-  if (value === "high") {
-    return 3;
-  }
-  if (value === "medium") {
-    return 2;
-  }
-  if (value === "low") {
-    return 1;
-  }
-  return 0;
-}
-
-function getPrimaryReason(
-  item: GraphNode | GraphEdge,
-  relatedFindings: Finding[]
-): string {
-  if (item.reasons[0]) {
-    return item.reasons[0];
-  }
-  if (item.riskSignals[0]?.reason) {
-    return item.riskSignals[0].reason;
-  }
-  if (relatedFindings[0]?.explanation) {
-    return relatedFindings[0].explanation;
-  }
-  return "This entity is part of the traced movement path and contributes to the overall risk score.";
-}
-
-function inferEdgeRiskLevel(edge: GraphEdge): string {
-  if (edge.riskScore >= 80) {
-    return "CRITICAL";
-  }
-  if (edge.riskScore >= 60) {
-    return "HIGH";
-  }
-  if (edge.riskScore >= 30) {
-    return "MEDIUM";
-  }
-  return "LOW";
-}
-
-function formatAmount(amount: number): string {
-  return Number.isInteger(amount) ? amount.toFixed(0) : amount.toFixed(2);
 }

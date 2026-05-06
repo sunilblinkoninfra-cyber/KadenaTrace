@@ -4,12 +4,13 @@ import type { TraceResult } from "@kadenatrace/shared";
 import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 
 import { buildInvestigationSummary, buildInvestigationTimeline } from "../lib/investigation";
-import { FindingHistogram } from "./finding-histogram";
 import { InvestigationSummary } from "./investigation-summary";
 import { InvestigationTimeline } from "./investigation-timeline";
 import { RiskFlags } from "./risk-flags";
 import { TraceGraphPanel } from "./trace-graph-panel";
 import { VerificationStrip } from "./verification-strip";
+import { useTraceStore } from "../lib/store";
+import { adaptTraceData } from "../lib/adapter";
 
 interface TraceOverviewProps {
   trace: TraceResult;
@@ -50,8 +51,24 @@ export function TraceOverview({
     }));
   }, [timelineRaw]);
 
-  const [focusedNodeId, setFocusedNodeId] = useState<string | undefined>(summary.topRiskWallet?.id);
-  const [activeRiskFilters, setActiveRiskFilters] = useState<string | null>(null);
+  const { selectedNodeId, setSelectedNodeId, activeFilters, setActiveFilters } = useTraceStore();
+
+  useEffect(() => {
+    useTraceStore.setState({ 
+      traceData: adaptTraceData({ 
+        id: traceId, 
+        traceId: traceId, 
+        status: "completed", 
+        result: trace, 
+        request: { chain: "ethereum", seedType: "address", seedValue: trace.seed.seedValue },
+        createdAt: trace.generatedAt,
+        updatedAt: trace.generatedAt 
+      }),
+      isDemo,
+      selectedNodeId: selectedNodeId || summary.topRiskWallet?.id || null,
+      activeFilters: null
+    });
+  }, [trace, traceId, isDemo, summary.topRiskWallet?.id]);
 
   const summaryRef = useRef<HTMLDivElement | null>(null);
   const graphRef = useRef<HTMLDivElement | null>(null);
@@ -87,21 +104,21 @@ export function TraceOverview({
       return;
     }
 
-    setFocusedNodeId(nodeId);
+    setSelectedNodeId(nodeId);
     graphRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <div className="flex flex-col w-full bg-background" style={{ gap: 24, paddingBottom: 64 }}>
+    <div className="grid gap-6 pb-10">
       {showVerificationStrip && trace.traceHash ? <VerificationStrip traceHash={trace.traceHash} /> : null}
 
       {isDemo ? (
-        <div className="mx-auto max-w-7xl px-6 pt-6">
-          <div className="flex items-center gap-3 rounded-xl border border-risk-med/30 bg-risk-med/10 p-4 text-risk-med">
-            <span className="text-xl">⚠️</span>
-            <div>
-              <div className="font-semibold text-sm">Live tracing unavailable — showing demo investigation</div>
-              <div className="text-xs opacity-80">This walkthrough uses bundled example data, not live blockchain activity.</div>
+        <div className="mx-auto w-full max-w-screen-xl px-6">
+          <div className="flex items-start gap-2 rounded-xl border border-yellow-500 bg-yellow-500/10 p-4 text-yellow-200">
+            <span className="pt-0.5 text-lg">!</span>
+            <div className="grid gap-1">
+              <div className="text-sm font-medium">⚠ Live tracing unavailable — showing demo investigation</div>
+              <div className="text-sm text-yellow-100/80">This walkthrough uses bundled example data, not live blockchain activity.</div>
             </div>
           </div>
         </div>
@@ -111,7 +128,7 @@ export function TraceOverview({
         <InvestigationSummary summary={summary} onFocusTopRiskWallet={handleFocusTopRiskWallet} />
       </div>
 
-      <RiskFlags flags={trace.findings} active={activeRiskFilters} onToggle={setActiveRiskFilters} />
+      <RiskFlags flags={trace.findings} active={activeFilters} onToggle={setActiveFilters} />
 
       <InvestigationTimeline steps={timeline} />
 
@@ -125,10 +142,10 @@ export function TraceOverview({
           title={graphTitle}
           subtitle={graphSubtitle}
           exportBaseName={exportBaseName}
-          focusedNodeId={focusedNodeId}
-          onNodeSelect={setFocusedNodeId}
+          focusedNodeId={selectedNodeId || undefined}
+          onNodeSelect={(id) => setSelectedNodeId(id || null)}
           investigationConclusion={summary.conclusion}
-          activeRiskFilters={activeRiskFilters}
+          activeRiskFilters={activeFilters}
         />
       </div>
     </div>

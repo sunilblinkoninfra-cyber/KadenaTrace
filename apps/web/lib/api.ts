@@ -1,6 +1,6 @@
 import type { PublicCaseView, TraceRecord } from "@kadenatrace/shared";
 
-type TraceSubmissionResponse = TraceRecord & {
+export type TraceSubmissionResponse = TraceRecord & {
   traceId: string;
 };
 

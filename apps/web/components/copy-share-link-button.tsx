@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState, type ReactElement } from "react";
+import { buttonStyles } from "./ui";
 
 export function CopyShareLinkButton(): ReactElement {
   const [copied, setCopied] = useState(false);
@@ -22,7 +23,7 @@ export function CopyShareLinkButton(): ReactElement {
 
   return (
     <div className="share-button-shell">
-      <button className="ghost-button" type="button" onClick={() => void handleClick()}>
+      <button className={buttonStyles("secondary")} type="button" onClick={() => void handleClick()} aria-label="Copy shareable case link">
         Copy shareable link
       </button>
       {copied ? <span className="share-tooltip">Copied!</span> : null}

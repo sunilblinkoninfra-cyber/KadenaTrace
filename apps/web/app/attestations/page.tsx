@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPublicCases } from "../../lib/api";
 import { RiskBadge } from "../../components/risk-badge";
+import { ErrorStateCard, PageShell, buttonStyles } from "../../components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -8,25 +9,20 @@ export default async function AttestationsPage() {
   const cases = await getPublicCases();
   if (!cases || !Array.isArray(cases)) {
     return (
-      <main className="shell stack">
+      <PageShell>
         <h1 className="section-title">Attestations Dashboard</h1>
-        <div className="panel card">
-          <h3 style={{ color: "#ff4d4f" }}>Unable to connect to tracing engine.</h3>
-          <p className="muted">
-            Possible reasons:
-            API waking up (cold start), network issue, or the backend is temporarily unreachable.
-            Please retry or use the demo investigation.
-          </p>
-          <div className="actions">
-            <Link href="/attestations" className="ghost-button">
-              Retry
-            </Link>
-            <Link href="/trace/demo" className="ghost-button">
-              Use Demo Case
-            </Link>
-          </div>
-        </div>
-      </main>
+        <ErrorStateCard
+          title="Unable to connect to the tracing engine"
+          message="The backend is waking up, unreachable, or temporarily unavailable. Retry the dashboard or use the demo investigation."
+        >
+          <Link href="/attestations" className={buttonStyles("secondary")}>
+            Retry
+          </Link>
+          <Link href="/trace/demo" className={buttonStyles("primary")}>
+            Use Demo
+          </Link>
+        </ErrorStateCard>
+      </PageShell>
     );
   }
 
@@ -48,7 +44,7 @@ export default async function AttestationsPage() {
   };
 
   return (
-    <main className="shell stack">
+    <PageShell>
       <h1 className="section-title">Attestations Dashboard</h1>
       <p className="muted">Total attestations: {allAttestations.length}</p>
 
@@ -71,33 +67,39 @@ export default async function AttestationsPage() {
         </div>
       </div>
 
-      <div className="panel card" style={{ marginTop: 24 }}>
-        <h3>Recent Attestations</h3>
-        <table className="score-table">
-          <thead>
-            <tr>
-              <th>Wallet</th>
-              <th>Chain</th>
-              <th>Risk Level</th>
-              <th>Score</th>
-              <th>Case</th>
-              <th>Block Height</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recent.map((a, i) => (
-              <tr key={i}>
-                <td className="code"><Link href={`/case/${a.caseSlug}`}>{a.wallet.slice(0, 10)}...</Link></td>
-                <td>{a.chain}</td>
-                <td><RiskBadge level={a.riskLevel} /></td>
-                <td>{a.riskScore}/100</td>
-                <td><Link href={`/case/${a.caseSlug}`}>{a.caseSlug}</Link></td>
-                <td>{a.blockHeight ?? "N/A"}</td>
+      <div className="panel stack">
+        <h2 className="text-lg font-medium text-gray-100">Recent Attestations</h2>
+        <div className="overflow-x-auto">
+          <table className="score-table">
+            <thead>
+              <tr>
+                <th>Wallet</th>
+                <th>Chain</th>
+                <th>Risk Level</th>
+                <th>Score</th>
+                <th>Case</th>
+                <th>Block Height</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {recent.map((a, i) => (
+                <tr key={i}>
+                  <td>
+                    <Link href={`/case/${a.caseSlug}`} className="code">
+                      {a.wallet.slice(0, 10)}...
+                    </Link>
+                  </td>
+                  <td>{a.chain}</td>
+                  <td><RiskBadge level={a.riskLevel} /></td>
+                  <td>{a.riskScore}/100</td>
+                  <td className="break-words"><Link href={`/case/${a.caseSlug}`}>{a.caseSlug}</Link></td>
+                  <td>{a.blockHeight ?? "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </main>
+    </PageShell>
   );
 }

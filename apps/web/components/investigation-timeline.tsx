@@ -1,5 +1,6 @@
 import { Clock } from "lucide-react";
 import { cn } from "../lib/utils";
+import { Card, Section } from "./ui";
 
 interface TimelineStep {
   step: number;
@@ -20,13 +21,13 @@ export const InvestigationTimeline = ({ steps }: { steps: TimelineStep[] }) => {
   if (!steps || steps.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-6 pt-10 w-full">
+    <Section className="w-full pt-0">
       <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
         <span className="h-px w-6 bg-border" />
         Story Timeline
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8">
+      <Card>
         <ol className="relative space-y-7">
           <span className="absolute left-[11px] top-1 h-[calc(100%-1rem)] w-px bg-gradient-to-b from-border via-border to-transparent" />
           {steps.map((s, idx) => (
@@ -57,7 +58,7 @@ export const InvestigationTimeline = ({ steps }: { steps: TimelineStep[] }) => {
             </li>
           ))}
         </ol>
-      </div>
-    </section>
+      </Card>
+    </Section>
   );
 };

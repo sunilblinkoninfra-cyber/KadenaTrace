@@ -8,6 +8,7 @@ import type { Finding, TraceRecord } from "@kadenatrace/shared";
 import { buildPublicAuditUrl, buildTimelineSidebar, getUrgencyGauge } from "../lib/frontend-logic";
 import { getApiBaseUrl } from "../lib/api";
 import { useKadenaWalletSession } from "../lib/use-kadena-wallet-session";
+import { Card, InspectorPanel, buttonStyles, twoColumnClassName } from "./ui";
 
 interface TimelineSidebarEntry {
   id: string;
@@ -121,7 +122,7 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 px-6">
+      <section className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 px-6">
       <div>
         <div>
           <span className="pill">Publish Investigation</span>
@@ -132,10 +133,10 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
         </div>
       </div>
 
-      <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className={twoColumnClassName}>
         <div className="grid gap-6">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+            <Card>
               <div className="grid gap-2">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   Signing Wallet
@@ -152,11 +153,9 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
                     : "Connect a Kadena wallet when you are ready to sign the investigation record."}
                 </p>
               </div>
-            </div>
+            </Card>
 
-            <div
-              className={resolveUrgencyCardClassName(urgencyGauge.toneClass)}
-            >
+            <div className={resolveUrgencyCardClassName(urgencyGauge.toneClass)}>
               <div className="grid gap-2">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   {urgencyGauge.label}
@@ -174,7 +173,7 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+          <Card>
             <div className="grid gap-2">
               <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Public Audit URL
@@ -186,9 +185,9 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
                 Once created, this becomes the shareable public case page for investigators, partners, and reviewers.
               </p>
             </div>
-          </div>
+          </Card>
 
-          <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+          <Card className="grid gap-4">
             <div className="grid gap-4 md:grid-cols-2">
               <label>
                 <span className="text-sm font-semibold text-foreground">Case Title</span>
@@ -204,12 +203,12 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
                 <input
                   className="input"
                   value={summary}
-                  onChange={(event: ChangeEvent<HTMLInputElement>) => setSummary(event.target.value)}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setSummary(event.target.value)}
                 />
               </label>
             </div>
 
-            <label className="mt-4 grid gap-2">
+            <label className="grid gap-2">
               <span className="text-sm font-semibold text-foreground">Public Narrative</span>
               <span className="text-sm text-muted-foreground">
                 Keep this readable for reviewers. Focus on the laundering pattern, affected branches, and why the case matters.
@@ -222,30 +221,30 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
             </label>
 
             {status ? (
-              <p className="mt-4 rounded-xl border border-cyan/20 bg-verified-bg px-4 py-3 text-sm text-verified">
+              <p className="rounded-xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-300">
                 {status}
               </p>
             ) : null}
 
-            <div className="actions mt-4">
-              <button className="button w-auto" type="button" disabled={pending} onClick={createCase}>
+            <div className="actions">
+              <button className={buttonStyles("primary")} type="button" disabled={pending} onClick={createCase}>
                 {pending ? "Working..." : "Create Public Case"}
               </button>
               {caseId ? (
-                <button className="ghost-button" type="button" disabled={pending || !wallet.signer} onClick={anchorCase}>
+                <button className={buttonStyles("secondary")} type="button" disabled={pending || !wallet.signer} onClick={anchorCase}>
                   Sign & Relay on Kadena
                 </button>
               ) : null}
               {slug ? (
-                <a className="ghost-button" href={`/case/${slug}`}>
+                <a className={buttonStyles("secondary")} href={`/case/${slug}`}>
                   Open public case
                 </a>
               ) : null}
             </div>
-          </div>
+          </Card>
         </div>
 
-        <aside className="min-h-[520px] rounded-xl border border-border bg-card p-4 shadow-card">
+        <InspectorPanel className="min-h-[520px]">
           <div className="flex h-full flex-col gap-4">
             <div className="grid gap-2">
               <div className="trace-meta gap-2">
@@ -263,7 +262,7 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
             {timelineEntries.length > 0 ? (
               <div className="grid gap-4">
                 {timelineEntries.map((entry) => (
-                  <article key={entry.id} className="rounded-xl border border-border bg-secondary/40 p-4">
+                  <article key={entry.id} className="rounded-xl border border-gray-800 bg-gray-950 p-4">
                     <div className="grid gap-2">
                       <span className="inline-flex w-fit rounded-full bg-cyan/10 px-2 py-1 text-[11px] font-semibold text-cyan">
                         {entry.gapLabel}
@@ -287,7 +286,7 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
               </div>
             )}
           </div>
-        </aside>
+        </InspectorPanel>
       </div>
     </section>
   );
@@ -302,10 +301,10 @@ function defaultNarrative(findings: Finding[]): string {
 
 function resolveUrgencyCardClassName(toneClass: string): string {
   if (toneClass.includes("critical")) {
-    return "rounded-xl border border-risk-high/20 bg-risk-high-bg p-4 shadow-card";
+    return "rounded-xl border border-red-500 bg-red-500/10 p-4";
   }
   if (toneClass.includes("active")) {
-    return "rounded-xl border border-risk-med/20 bg-risk-med-bg p-4 shadow-card";
+    return "rounded-xl border border-yellow-500 bg-yellow-500/10 p-4";
   }
-  return "rounded-xl border border-cyan/20 bg-verified-bg p-4 shadow-card";
+  return "rounded-xl border border-green-500 bg-green-500/10 p-4";
 }

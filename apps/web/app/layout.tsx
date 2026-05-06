@@ -23,34 +23,44 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${inter.variable} antialiased`} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground font-sans selection:bg-cyan/20 selection:text-foreground" suppressHydrationWarning>
         <WalletProviders>
-          <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/80 backdrop-blur-xl">
-            <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-              <Link href="/" className="flex items-center gap-2 sm:gap-2.5 transition-opacity hover:opacity-80 min-w-0">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-gradient text-primary-foreground shadow-glow">
+          <header className="sticky top-0 z-50 w-full border-b border-gray-800 bg-background/90 backdrop-blur-xl">
+            <div className="mx-auto flex h-16 max-w-screen-xl items-center justify-between px-6">
+              <Link
+                href="/"
+                className="flex min-w-0 items-center gap-2.5 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-950"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-primary-foreground">
                   <Activity className="h-5 w-5" />
                 </div>
-                <span className="font-display text-base sm:text-lg font-bold tracking-tight text-foreground truncate">
+                <span className="truncate font-display text-base font-semibold tracking-tight text-foreground sm:text-lg">
                   KadenaTrace
                 </span>
               </Link>
-              
-              <nav className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium shrink-0">
-                <Link href="/" className="text-muted-foreground transition-colors hover:text-foreground">
+
+              <nav className="flex shrink-0 items-center gap-4 text-sm font-medium">
+                <Link
+                  href="/"
+                  className="text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:text-foreground"
+                >
                   Trace
                 </Link>
-                <Link href="/waterfall" className="text-muted-foreground transition-colors hover:text-foreground">
+                <Link
+                  href="/waterfall"
+                  className="text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:text-foreground"
+                >
                   Waterfall
                 </Link>
-                <Link href="/attestations" className="text-muted-foreground transition-colors hover:text-foreground">
+                <Link
+                  href="/attestations"
+                  className="text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:text-foreground"
+                >
                   Attestations
                 </Link>
               </nav>
             </div>
           </header>
-          
-          <div className="relative flex min-h-[calc(100vh-4rem)] flex-col">
-            {children}
-          </div>
+
+          <div className="relative flex min-h-[calc(100vh-4rem)] flex-col">{children}</div>
         </WalletProviders>
       </body>
     </html>

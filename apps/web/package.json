@@ -22,10 +22,13 @@
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "uuid": "^11.1.0",
+    "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",
+    "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.5.0",
     "postcss": "^8.4.31",
     "tailwindcss": "^4.2.4"

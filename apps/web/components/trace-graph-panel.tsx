@@ -9,6 +9,7 @@ import { serializeEdgesCsv, serializeGraphExportJson, serializeNodesCsv } from "
 import { GraphView } from "./graph-view";
 import { SuspiciousPaths } from "./suspicious-paths";
 import { DetailPanel } from "./detail-panel";
+import { buttonStyles, sidebarClassName, twoColumnClassName } from "./ui";
 
 interface TraceGraphPanelProps {
   graph: TraceGraph;
@@ -84,27 +85,27 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
     <>
       <section className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="grid gap-2">
             <span className="pill">Graph Investigation</span>
-            <h2 className="mt-2 text-xl font-semibold text-foreground">{props.title}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{props.subtitle}</p>
+            <h2 className="text-xl font-semibold text-foreground">{props.title}</h2>
+            <p className="text-sm text-muted-foreground">{props.subtitle}</p>
           </div>
           {props.exportBaseName ? (
             <details className="relative group">
-              <summary className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+              <summary className={buttonStyles("secondary")}>
                 Export graph
               </summary>
-              <div className="absolute right-0 top-full z-50 mt-2 flex w-40 flex-col rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md">
-                <button className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-secondary focus:bg-secondary" type="button" onClick={downloadJson}>Export JSON</button>
-                <button className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-secondary focus:bg-secondary" type="button" onClick={downloadCsv}>Export CSV</button>
-                <button className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-secondary focus:bg-secondary" type="button" onClick={downloadPng}>Export PNG</button>
+              <div className="absolute right-0 top-full z-50 mt-2 flex w-40 flex-col rounded-xl border border-gray-800 bg-gray-900 p-1 text-popover-foreground">
+                <button className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-left outline-none hover:bg-gray-800 focus:bg-gray-800" type="button" onClick={downloadJson}>Export JSON</button>
+                <button className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-left outline-none hover:bg-gray-800 focus:bg-gray-800" type="button" onClick={downloadCsv}>Export CSV</button>
+                <button className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-left outline-none hover:bg-gray-800 focus:bg-gray-800" type="button" onClick={downloadPng}>Export PNG</button>
               </div>
             </details>
           ) : null}
         </div>
 
-        <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="min-h-[520px] overflow-hidden rounded-xl border border-border bg-card p-4 shadow-card">
+        <div className={twoColumnClassName}>
+          <div className="min-h-[520px] overflow-hidden rounded-xl border border-gray-800 bg-gray-900 p-4">
             <GraphView
               graph={props.graph}
               findings={props.findings}
@@ -119,8 +120,8 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
             />
           </div>
 
-          <aside className="h-full min-h-[520px] w-full self-stretch lg:w-[360px]">
-            <DetailPanel graph={props.graph} findings={props.findings} selectedId={props.focusedNodeId || null} />
+          <aside className={`${sidebarClassName} min-h-[520px] self-stretch`}>
+            <DetailPanel graph={props.graph} findings={props.findings} />
           </aside>
         </div>
       </section>
