@@ -3,7 +3,7 @@
 import type { PreparedCaseAnchorPayload } from "@kadenatrace/pact";
 import { useState, type ChangeEvent, type ReactElement } from "react";
 
-import type { Finding, TraceRecord } from "@kadenatrace/shared";
+import type { Finding, TraceRecord } from "@kadenatrace/shared/client";
 
 import { buildPublicAuditUrl, buildTimelineSidebar, getUrgencyGauge } from "../lib/frontend-logic";
 import { getApiBaseUrl } from "../lib/api";

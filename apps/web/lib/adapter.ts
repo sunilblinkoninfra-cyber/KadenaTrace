@@ -1,4 +1,4 @@
-import type { TraceGraph, Finding, SuspiciousPath, GraphNode, GraphEdge } from "@kadenatrace/shared";
+import type { TraceGraph, Finding, SuspiciousPath, GraphNode, GraphEdge } from "@kadenatrace/shared/client";
 import type { TraceSubmissionResponse } from "./api";
 
 export interface AdaptedTraceData {

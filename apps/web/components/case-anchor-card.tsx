@@ -1,4 +1,4 @@
-import type { CaseAnchor } from "@kadenatrace/shared";
+import type { CaseAnchor } from "@kadenatrace/shared/client";
 import { Card } from "./ui";
 
 export function CaseAnchorCard({ anchor }: { anchor?: CaseAnchor }) {

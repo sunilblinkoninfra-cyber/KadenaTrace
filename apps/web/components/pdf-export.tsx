@@ -2,7 +2,7 @@
 
 import { useState, type ReactElement } from "react";
 
-import type { TraceResult } from "@kadenatrace/shared";
+import type { TraceResult } from "@kadenatrace/shared/client";
 
 import { truncateAddress } from "../lib/investigation";
 

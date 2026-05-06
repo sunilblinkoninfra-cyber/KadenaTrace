@@ -4,7 +4,7 @@ import type { PreparedWalletAttestationPayload } from "@kadenatrace/pact";
 import { useRouter } from "next/navigation";
 import { useState, type ReactElement } from "react";
 
-import type { Chain, PublicCaseView, RiskLevel } from "@kadenatrace/shared";
+import type { Chain, PublicCaseView, RiskLevel } from "@kadenatrace/shared/client";
 
 import { getApiBaseUrl } from "../lib/api";
 import { useKadenaWalletSession } from "../lib/use-kadena-wallet-session";

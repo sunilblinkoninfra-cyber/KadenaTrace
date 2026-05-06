@@ -1,18 +1,13 @@
 import { cache } from "react";
 
-import {
-  DEMO_TRACE_REQUEST,
-  FixtureActivityProvider,
-  TraceEngine,
-  type TraceRecord
-} from "@kadenatrace/shared";
+import { DEMO_TRACE_REQUEST, type TraceRecord } from "@kadenatrace/shared/client";
+import demoData from "./demo-data.json";
 
 const DEMO_TRACE_ID = "demo";
 
 export const getDemoTraceRecord = cache(async (): Promise<TraceRecord> => {
-  const engine = new TraceEngine(new FixtureActivityProvider());
-  const result = await engine.run(DEMO_TRACE_REQUEST, DEMO_TRACE_ID);
-  const generatedAt = result.generatedAt;
+  const result = demoData as any;
+  const generatedAt = result.generatedAt || new Date().toISOString();
 
   return {
     id: DEMO_TRACE_ID,

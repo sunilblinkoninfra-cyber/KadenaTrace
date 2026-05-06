@@ -1,6 +1,6 @@
 "use client";
 
-import type { TraceResult } from "@kadenatrace/shared";
+import type { TraceResult } from "@kadenatrace/shared/client";
 import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 
 import { buildInvestigationSummary, buildInvestigationTimeline } from "../lib/investigation";

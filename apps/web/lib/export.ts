@@ -1,5 +1,5 @@
 // export.ts -- Serialises trace graph data into downloadable JSON and CSV payloads.
-import type { Finding, GraphEdge, GraphNode, TraceMetrics } from "@kadenatrace/shared";
+import type { Finding, GraphEdge, GraphNode, TraceMetrics } from "@kadenatrace/shared/client";
 
 export function serializeGraphExportJson(input: {
   nodes: GraphNode[];

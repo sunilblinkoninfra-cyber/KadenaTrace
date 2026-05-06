@@ -10,6 +10,11 @@
       "types": "./src/index.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./src/client/index.ts",
+      "import": "./dist/client/index.js",
+      "default": "./dist/client/index.js"
     }
   },
   "scripts": {

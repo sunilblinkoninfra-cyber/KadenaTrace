@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { ArrowRight, Info, Sparkles } from "lucide-react";
 import { cn } from "../lib/utils";
-import type { Finding, GraphEdge, GraphNode, TraceGraph } from "@kadenatrace/shared";
+import type { Finding, GraphEdge, GraphNode, TraceGraph } from "@kadenatrace/shared/client";
 import { InspectorPanel } from "./ui";
 import { useTraceStore } from "../lib/store";
 

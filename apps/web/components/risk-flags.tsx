@@ -1,6 +1,6 @@
 import { GitFork, Zap, Split, X, AlertCircle } from "lucide-react";
 import { cn } from "../lib/utils";
-import type { Finding } from "@kadenatrace/shared";
+import type { Finding } from "@kadenatrace/shared/client";
 import { Section, focusRingClassName } from "./ui";
 
 interface Props {

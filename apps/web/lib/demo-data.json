@@ -1,0 +1,2300 @@
+{
+  "traceId": "demo",
+  "seed": {
+    "chain": "ethereum",
+    "seedType": "address",
+    "seedValue": "0x1111111111111111111111111111111111111111"
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "ethereum:0x1111111111111111111111111111111111111111",
+        "chain": "ethereum",
+        "address": "0x1111111111111111111111111111111111111111",
+        "kind": "wallet",
+        "label": "Victim Wallet",
+        "tags": [
+          "victim"
+        ],
+        "riskScore": 18,
+        "riskConfidence": 0.91,
+        "riskLevel": "low",
+        "reasons": [
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          }
+        ],
+        "valueFromSeedPct": 100,
+        "evidenceRefs": [],
+        "terminal": false
+      },
+      {
+        "id": "ethereum:0x2222222222222222222222222222222222222222",
+        "chain": "ethereum",
+        "address": "0x2222222222222222222222222222222222222222",
+        "kind": "router",
+        "label": "Attacker Router",
+        "tags": [
+          "attacker",
+          "fan-out",
+          "router",
+          "bridge-touchpoint"
+        ],
+        "riskScore": 100,
+        "riskConfidence": 1,
+        "riskLevel": "critical",
+        "reasons": [
+          "Fan-out burst to 5 recipients within 7 minutes.",
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+          "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds."
+        ],
+        "riskSignals": [
+          {
+            "code": "fan-out-burst",
+            "title": "Fan-out burst",
+            "reason": "Fan-out burst to 5 recipients within 7 minutes.",
+            "weight": 32,
+            "confidence": 0.86
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 2,
+            "confidence": 0.35
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          },
+          {
+            "code": "structuring",
+            "title": "Structuring / smurfing",
+            "reason": "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds.",
+            "weight": 22,
+            "confidence": 0.78
+          }
+        ],
+        "valueFromSeedPct": 100,
+        "evidenceRefs": [],
+        "terminal": false
+      },
+      {
+        "id": "ethereum:0x3333333333333333333333333333333333333333",
+        "chain": "ethereum",
+        "address": "0x3333333333333333333333333333333333333333",
+        "kind": "wallet",
+        "label": "0x3333...3333",
+        "tags": [],
+        "riskScore": 48,
+        "riskConfidence": 0.9997,
+        "riskLevel": "medium",
+        "reasons": [
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+          "Funds interacted with a wallet or contract labeled as a mixer."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "mixer-touchpoint",
+            "title": "Mixer touchpoint",
+            "reason": "Funds interacted with a wallet or contract labeled as a mixer.",
+            "weight": 12,
+            "confidence": 0.96
+          }
+        ],
+        "valueFromSeedPct": 16,
+        "evidenceRefs": [],
+        "terminal": false
+      },
+      {
+        "id": "ethereum:0x4444444444444444444444444444444444444444",
+        "chain": "ethereum",
+        "address": "0x4444444444444444444444444444444444444444",
+        "kind": "wallet",
+        "label": "0x4444...4444",
+        "tags": [],
+        "riskScore": 0,
+        "riskConfidence": 0,
+        "riskLevel": "low",
+        "reasons": [],
+        "riskSignals": [],
+        "valueFromSeedPct": 24,
+        "evidenceRefs": [],
+        "terminal": false
+      },
+      {
+        "id": "ethereum:0x7777777777777777777777777777777777777777",
+        "chain": "ethereum",
+        "address": "0x7777777777777777777777777777777777777777",
+        "kind": "bridge",
+        "label": "Stargate Bridge",
+        "tags": [
+          "bridge",
+          "stargate",
+          "bridge-touchpoint"
+        ],
+        "riskScore": 92,
+        "riskConfidence": 0.9999,
+        "riskLevel": "critical",
+        "reasons": [
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 2,
+            "confidence": 0.35
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 2,
+            "confidence": 0.35
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "evidenceRefs": [],
+        "terminal": false
+      },
+      {
+        "id": "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "chain": "bsc",
+        "address": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "kind": "bridge",
+        "label": "Stargate Exit",
+        "tags": [
+          "bridge",
+          "stargate",
+          "bridge-touchpoint"
+        ],
+        "riskScore": 92,
+        "riskConfidence": 0.9999,
+        "riskLevel": "critical",
+        "reasons": [
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 2,
+            "confidence": 0.35
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 2,
+            "confidence": 0.35
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "evidenceRefs": [],
+        "terminal": true
+      },
+      {
+        "id": "bsc:0x9999999999999999999999999999999999999999",
+        "chain": "bsc",
+        "address": "0x9999999999999999999999999999999999999999",
+        "kind": "wallet",
+        "label": "BSC Receiver",
+        "tags": [
+          "bridge-beneficiary",
+          "bridge-touchpoint"
+        ],
+        "riskScore": 90,
+        "riskConfidence": 0.9999,
+        "riskLevel": "critical",
+        "reasons": [
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 2,
+            "confidence": 0.35
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "evidenceRefs": [],
+        "terminal": false
+      },
+      {
+        "id": "ethereum:0x5555555555555555555555555555555555555555",
+        "chain": "ethereum",
+        "address": "0x5555555555555555555555555555555555555555",
+        "kind": "wallet",
+        "label": "0x5555...5555",
+        "tags": [],
+        "riskScore": 0,
+        "riskConfidence": 0,
+        "riskLevel": "low",
+        "reasons": [],
+        "riskSignals": [],
+        "valueFromSeedPct": 20,
+        "evidenceRefs": [],
+        "terminal": false
+      },
+      {
+        "id": "ethereum:0x6666666666666666666666666666666666666666",
+        "chain": "ethereum",
+        "address": "0x6666666666666666666666666666666666666666",
+        "kind": "wallet",
+        "label": "0x6666...6666",
+        "tags": [],
+        "riskScore": 0,
+        "riskConfidence": 0,
+        "riskLevel": "low",
+        "reasons": [],
+        "riskSignals": [],
+        "valueFromSeedPct": 20,
+        "evidenceRefs": [],
+        "terminal": false
+      },
+      {
+        "id": "ethereum:0x8888888888888888888888888888888888888888",
+        "chain": "ethereum",
+        "address": "0x8888888888888888888888888888888888888888",
+        "kind": "mixer",
+        "label": "Mixer Contract",
+        "tags": [
+          "mixer"
+        ],
+        "riskScore": 58,
+        "riskConfidence": 0.9964,
+        "riskLevel": "medium",
+        "reasons": [
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+          "Funds interacted with a wallet or contract labeled as a mixer."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "mixer-touchpoint",
+            "title": "Mixer touchpoint",
+            "reason": "Funds interacted with a wallet or contract labeled as a mixer.",
+            "weight": 40,
+            "confidence": 0.96
+          }
+        ],
+        "valueFromSeedPct": 16,
+        "evidenceRefs": [],
+        "terminal": true
+      },
+      {
+        "id": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "chain": "ethereum",
+        "address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "exchange",
+        "label": "Exchange Deposit Wallet",
+        "tags": [
+          "exchange",
+          "sink"
+        ],
+        "riskScore": 0,
+        "riskConfidence": 0,
+        "riskLevel": "low",
+        "reasons": [],
+        "riskSignals": [],
+        "valueFromSeedPct": 64,
+        "evidenceRefs": [],
+        "terminal": true
+      },
+      {
+        "id": "bsc:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "chain": "bsc",
+        "address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "exchange",
+        "label": "Exchange Deposit Wallet",
+        "tags": [
+          "exchange",
+          "sink"
+        ],
+        "riskScore": 68,
+        "riskConfidence": 0.9974,
+        "riskLevel": "high",
+        "reasons": [
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds bridged and then reached a exchange within 45 minutes.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-obfuscation",
+            "title": "Bridge obfuscation",
+            "reason": "Funds bridged and then reached a exchange within 45 minutes.",
+            "weight": 24,
+            "confidence": 0.82
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "evidenceRefs": [],
+        "terminal": true
+      }
+    ],
+    "edges": [
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+        "from": "ethereum:0x1111111111111111111111111111111111111111",
+        "to": "ethereum:0x2222222222222222222222222222222222222222",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+        "asset": "ETH",
+        "amount": 25,
+        "timestamp": "2026-03-28T10:00:00.000Z",
+        "flags": [
+          "rapid-hop",
+          "path-highlight"
+        ],
+        "riskScore": 18,
+        "riskConfidence": 0.91,
+        "reasons": [
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          }
+        ],
+        "valueFromSeedPct": 100,
+        "propagatedAmount": 25,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000001",
+            "label": "ethereum tx 0x10000000...000001",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+            "chain": "ethereum",
+            "url": "https://example.com/fixtures/demo-case"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000002:0x2222222222222222222222222222222222222222:0x3333333333333333333333333333333333333333:ETH",
+        "from": "ethereum:0x2222222222222222222222222222222222222222",
+        "to": "ethereum:0x3333333333333333333333333333333333333333",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000002",
+        "asset": "ETH",
+        "amount": 4,
+        "timestamp": "2026-03-28T10:05:00.000Z",
+        "flags": [
+          "fan-out",
+          "rapid-hop",
+          "structuring",
+          "path-highlight"
+        ],
+        "riskScore": 52,
+        "riskConfidence": 0.9972,
+        "reasons": [
+          "Fan-out burst to 5 recipients within 7 minutes.",
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+          "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds."
+        ],
+        "riskSignals": [
+          {
+            "code": "fan-out-burst",
+            "title": "Fan-out burst",
+            "reason": "Fan-out burst to 5 recipients within 7 minutes.",
+            "weight": 12,
+            "confidence": 0.86
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "structuring",
+            "title": "Structuring / smurfing",
+            "reason": "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds.",
+            "weight": 22,
+            "confidence": 0.78
+          }
+        ],
+        "valueFromSeedPct": 16,
+        "propagatedAmount": 0.64,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000002",
+            "label": "ethereum tx 0x10000000...000002",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000002",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000003:0x2222222222222222222222222222222222222222:0x4444444444444444444444444444444444444444:ETH",
+        "from": "ethereum:0x2222222222222222222222222222222222222222",
+        "to": "ethereum:0x4444444444444444444444444444444444444444",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000003",
+        "asset": "ETH",
+        "amount": 6,
+        "timestamp": "2026-03-28T10:06:00.000Z",
+        "flags": [
+          "fan-out",
+          "structuring",
+          "path-highlight"
+        ],
+        "riskScore": 34,
+        "riskConfidence": 0.9692,
+        "reasons": [
+          "Fan-out burst to 5 recipients within 7 minutes.",
+          "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds."
+        ],
+        "riskSignals": [
+          {
+            "code": "fan-out-burst",
+            "title": "Fan-out burst",
+            "reason": "Fan-out burst to 5 recipients within 7 minutes.",
+            "weight": 12,
+            "confidence": 0.86
+          },
+          {
+            "code": "structuring",
+            "title": "Structuring / smurfing",
+            "reason": "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds.",
+            "weight": 22,
+            "confidence": 0.78
+          }
+        ],
+        "valueFromSeedPct": 24,
+        "propagatedAmount": 1.44,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000003",
+            "label": "ethereum tx 0x10000000...000003",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000003",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+        "from": "ethereum:0x2222222222222222222222222222222222222222",
+        "to": "ethereum:0x7777777777777777777777777777777777777777",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+        "asset": "ETH",
+        "amount": 5,
+        "timestamp": "2026-03-28T10:09:00.000Z",
+        "flags": [
+          "fan-out",
+          "rapid-hop",
+          "bridge",
+          "peel-chain",
+          "structuring",
+          "path-highlight"
+        ],
+        "riskScore": 82,
+        "riskConfidence": 0.9997,
+        "reasons": [
+          "Fan-out burst to 5 recipients within 7 minutes.",
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+          "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds."
+        ],
+        "riskSignals": [
+          {
+            "code": "fan-out-burst",
+            "title": "Fan-out burst",
+            "reason": "Fan-out burst to 5 recipients within 7 minutes.",
+            "weight": 12,
+            "confidence": 0.86
+          },
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 4,
+            "confidence": 0.35
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          },
+          {
+            "code": "structuring",
+            "title": "Structuring / smurfing",
+            "reason": "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds.",
+            "weight": 22,
+            "confidence": 0.78
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "propagatedAmount": 1,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000004",
+            "label": "ethereum tx 0x10000000...000004",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "bridgeTransferId": "bridge-eth-bsc-1",
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture",
+          "trustedBridge": true
+        }
+      },
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000005:0x2222222222222222222222222222222222222222:0x5555555555555555555555555555555555555555:ETH",
+        "from": "ethereum:0x2222222222222222222222222222222222222222",
+        "to": "ethereum:0x5555555555555555555555555555555555555555",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000005",
+        "asset": "ETH",
+        "amount": 5,
+        "timestamp": "2026-03-28T10:10:00.000Z",
+        "flags": [
+          "fan-out",
+          "structuring"
+        ],
+        "riskScore": 34,
+        "riskConfidence": 0.9692,
+        "reasons": [
+          "Fan-out burst to 5 recipients within 7 minutes.",
+          "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds."
+        ],
+        "riskSignals": [
+          {
+            "code": "fan-out-burst",
+            "title": "Fan-out burst",
+            "reason": "Fan-out burst to 5 recipients within 7 minutes.",
+            "weight": 12,
+            "confidence": 0.86
+          },
+          {
+            "code": "structuring",
+            "title": "Structuring / smurfing",
+            "reason": "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds.",
+            "weight": 22,
+            "confidence": 0.78
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "propagatedAmount": 1,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000005",
+            "label": "ethereum tx 0x10000000...000005",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000005",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000006:0x2222222222222222222222222222222222222222:0x6666666666666666666666666666666666666666:ETH",
+        "from": "ethereum:0x2222222222222222222222222222222222222222",
+        "to": "ethereum:0x6666666666666666666666666666666666666666",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000006",
+        "asset": "ETH",
+        "amount": 5,
+        "timestamp": "2026-03-28T10:12:00.000Z",
+        "flags": [
+          "fan-out",
+          "structuring"
+        ],
+        "riskScore": 34,
+        "riskConfidence": 0.9692,
+        "reasons": [
+          "Fan-out burst to 5 recipients within 7 minutes.",
+          "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds."
+        ],
+        "riskSignals": [
+          {
+            "code": "fan-out-burst",
+            "title": "Fan-out burst",
+            "reason": "Fan-out burst to 5 recipients within 7 minutes.",
+            "weight": 12,
+            "confidence": 0.86
+          },
+          {
+            "code": "structuring",
+            "title": "Structuring / smurfing",
+            "reason": "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds.",
+            "weight": 22,
+            "confidence": 0.78
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "propagatedAmount": 1,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000006",
+            "label": "ethereum tx 0x10000000...000006",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000006",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000007:0x3333333333333333333333333333333333333333:0x8888888888888888888888888888888888888888:ETH",
+        "from": "ethereum:0x3333333333333333333333333333333333333333",
+        "to": "ethereum:0x8888888888888888888888888888888888888888",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000007",
+        "asset": "ETH",
+        "amount": 4,
+        "timestamp": "2026-03-28T10:18:00.000Z",
+        "flags": [
+          "rapid-hop",
+          "mixer",
+          "path-highlight"
+        ],
+        "riskScore": 42,
+        "riskConfidence": 0.9964,
+        "reasons": [
+          "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+          "Funds interacted with a wallet or contract labeled as a mixer."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "mixer-touchpoint",
+            "title": "Mixer touchpoint",
+            "reason": "Funds interacted with a wallet or contract labeled as a mixer.",
+            "weight": 24,
+            "confidence": 0.96
+          }
+        ],
+        "valueFromSeedPct": 16,
+        "propagatedAmount": 0.64,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000007",
+            "label": "ethereum tx 0x10000000...000007",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000007",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000008:0x4444444444444444444444444444444444444444:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+        "from": "ethereum:0x4444444444444444444444444444444444444444",
+        "to": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000008",
+        "asset": "ETH",
+        "amount": 6,
+        "timestamp": "2026-03-28T10:20:00.000Z",
+        "flags": [
+          "path-highlight"
+        ],
+        "riskScore": 0,
+        "riskConfidence": 0,
+        "reasons": [],
+        "riskSignals": [],
+        "valueFromSeedPct": 24,
+        "propagatedAmount": 1.44,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000008",
+            "label": "ethereum tx 0x10000000...000008",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000008",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "bridge-eth-bsc-1:bridge-resolution",
+        "from": "ethereum:0x7777777777777777777777777777777777777777",
+        "to": "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "chain": "bsc",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004:bridge",
+        "asset": "WBNB",
+        "amount": 4.8,
+        "timestamp": "2026-03-28T10:21:00.000Z",
+        "flags": [
+          "bridge",
+          "rapid-hop",
+          "peel-chain",
+          "path-highlight"
+        ],
+        "riskScore": 48,
+        "riskConfidence": 0.9906,
+        "reasons": [
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 4,
+            "confidence": 0.35
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "propagatedAmount": 0.96,
+        "evidenceRefs": [
+          {
+            "id": "bridge:bridge-eth-bsc-1",
+            "label": "Bridge continuation bridge-eth-bsc-1",
+            "type": "bridge",
+            "chain": "bsc",
+            "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+            "note": "Synthetic cross-chain edge derived from bridge metadata."
+          }
+        ],
+        "synthetic": true,
+        "bridgeTransferId": "bridge-eth-bsc-1",
+        "metadata": {
+          "trustedBridge": true
+        }
+      },
+      {
+        "id": "bridge-eth-bsc-1:bridge-withdrawal",
+        "from": "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "to": "bsc:0x9999999999999999999999999999999999999999",
+        "chain": "bsc",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004:bridge-withdrawal",
+        "asset": "WBNB",
+        "amount": 4.8,
+        "timestamp": "2026-03-28T10:21:00.000Z",
+        "flags": [
+          "bridge",
+          "rapid-hop",
+          "bridge-obfuscated",
+          "peel-chain"
+        ],
+        "riskScore": 72,
+        "riskConfidence": 0.9983,
+        "reasons": [
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+          "Funds bridged and then reached a exchange within 45 minutes.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-usage",
+            "title": "Bridge usage",
+            "reason": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+            "weight": 4,
+            "confidence": 0.35
+          },
+          {
+            "code": "bridge-obfuscation",
+            "title": "Bridge obfuscation",
+            "reason": "Funds bridged and then reached a exchange within 45 minutes.",
+            "weight": 24,
+            "confidence": 0.82
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "propagatedAmount": 0.96,
+        "evidenceRefs": [
+          {
+            "id": "bridge-withdrawal:bridge-eth-bsc-1",
+            "label": "Bridge withdrawal bridge-eth-bsc-1",
+            "type": "bridge",
+            "chain": "bsc",
+            "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+            "note": "Synthetic destination-side withdrawal derived from bridge metadata."
+          }
+        ],
+        "synthetic": true,
+        "bridgeTransferId": "bridge-eth-bsc-1",
+        "metadata": {
+          "trustedBridge": true
+        }
+      },
+      {
+        "id": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000009:0x5555555555555555555555555555555555555555:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+        "from": "ethereum:0x5555555555555555555555555555555555555555",
+        "to": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "chain": "ethereum",
+        "txHash": "0x1000000000000000000000000000000000000000000000000000000000000009",
+        "asset": "ETH",
+        "amount": 5,
+        "timestamp": "2026-03-28T10:22:00.000Z",
+        "flags": [],
+        "riskScore": 0,
+        "riskConfidence": 0,
+        "reasons": [],
+        "riskSignals": [],
+        "valueFromSeedPct": 20,
+        "propagatedAmount": 1,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000009",
+            "label": "ethereum tx 0x10000000...000009",
+            "type": "tx",
+            "txHash": "0x1000000000000000000000000000000000000000000000000000000000000009",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "ethereum:0x100000000000000000000000000000000000000000000000000000000000000a:0x6666666666666666666666666666666666666666:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+        "from": "ethereum:0x6666666666666666666666666666666666666666",
+        "to": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "chain": "ethereum",
+        "txHash": "0x100000000000000000000000000000000000000000000000000000000000000a",
+        "asset": "ETH",
+        "amount": 5,
+        "timestamp": "2026-03-28T10:24:00.000Z",
+        "flags": [],
+        "riskScore": 0,
+        "riskConfidence": 0,
+        "reasons": [],
+        "riskSignals": [],
+        "valueFromSeedPct": 20,
+        "propagatedAmount": 1,
+        "evidenceRefs": [
+          {
+            "id": "tx:ethereum:0x100000000000000000000000000000000000000000000000000000000000000a",
+            "label": "ethereum tx 0x10000000...00000a",
+            "type": "tx",
+            "txHash": "0x100000000000000000000000000000000000000000000000000000000000000a",
+            "chain": "ethereum"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "native",
+          "source": "fixture"
+        }
+      },
+      {
+        "id": "bsc:0x2000000000000000000000000000000000000000000000000000000000000002:0x9999999999999999999999999999999999999999:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:WBNB",
+        "from": "bsc:0x9999999999999999999999999999999999999999",
+        "to": "bsc:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "chain": "bsc",
+        "txHash": "0x2000000000000000000000000000000000000000000000000000000000000002",
+        "asset": "WBNB",
+        "amount": 4.7,
+        "timestamp": "2026-03-28T10:28:00.000Z",
+        "flags": [
+          "rapid-hop",
+          "exchange-cashout",
+          "peel-chain"
+        ],
+        "riskScore": 60,
+        "riskConfidence": 0.9974,
+        "reasons": [
+          "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+          "Funds bridged and then reached a exchange within 45 minutes.",
+          "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique."
+        ],
+        "riskSignals": [
+          {
+            "code": "rapid-hop-path",
+            "title": "Rapid hop path",
+            "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+            "weight": 18,
+            "confidence": 0.91
+          },
+          {
+            "code": "bridge-obfuscation",
+            "title": "Bridge obfuscation",
+            "reason": "Funds bridged and then reached a exchange within 45 minutes.",
+            "weight": 16,
+            "confidence": 0.82
+          },
+          {
+            "code": "peel-chain",
+            "title": "Peel chain",
+            "reason": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+            "weight": 26,
+            "confidence": 0.84
+          }
+        ],
+        "valueFromSeedPct": 20,
+        "propagatedAmount": 0.94,
+        "evidenceRefs": [
+          {
+            "id": "tx:bsc:0x2000000000000000000000000000000000000000000000000000000000000002",
+            "label": "bsc tx 0x20000000...000002",
+            "type": "tx",
+            "txHash": "0x2000000000000000000000000000000000000000000000000000000000000002",
+            "chain": "bsc"
+          }
+        ],
+        "synthetic": false,
+        "metadata": {
+          "transferType": "token",
+          "source": "fixture"
+        }
+      }
+    ]
+  },
+  "findings": [
+    {
+      "code": "fan-out-burst",
+      "severity": "high",
+      "explanation": "Fan-out burst to 5 recipients within 7 minutes.",
+      "confidence": 0.86,
+      "relatedNodeIds": [
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x3333333333333333333333333333333333333333",
+        "ethereum:0x4444444444444444444444444444444444444444",
+        "ethereum:0x7777777777777777777777777777777777777777",
+        "ethereum:0x5555555555555555555555555555555555555555",
+        "ethereum:0x6666666666666666666666666666666666666666"
+      ],
+      "relatedEdgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000002:0x2222222222222222222222222222222222222222:0x3333333333333333333333333333333333333333:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000003:0x2222222222222222222222222222222222222222:0x4444444444444444444444444444444444444444:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000005:0x2222222222222222222222222222222222222222:0x5555555555555555555555555555555555555555:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000006:0x2222222222222222222222222222222222222222:0x6666666666666666666666666666666666666666:ETH"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000002",
+          "label": "ethereum tx 0x10000000...000002",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000002",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000003",
+          "label": "ethereum tx 0x10000000...000003",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000003",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000004",
+          "label": "ethereum tx 0x10000000...000004",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000005",
+          "label": "ethereum tx 0x10000000...000005",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000005",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000006",
+          "label": "ethereum tx 0x10000000...000006",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000006",
+          "chain": "ethereum"
+        }
+      ]
+    },
+    {
+      "code": "rapid-hop-path",
+      "severity": "critical",
+      "explanation": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop.",
+      "confidence": 0.91,
+      "relatedNodeIds": [
+        "ethereum:0x1111111111111111111111111111111111111111",
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x3333333333333333333333333333333333333333",
+        "ethereum:0x8888888888888888888888888888888888888888"
+      ],
+      "relatedEdgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000002:0x2222222222222222222222222222222222222222:0x3333333333333333333333333333333333333333:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000007:0x3333333333333333333333333333333333333333:0x8888888888888888888888888888888888888888:ETH"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000001",
+          "label": "ethereum tx 0x10000000...000001",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+          "chain": "ethereum",
+          "url": "https://example.com/fixtures/demo-case"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000002",
+          "label": "ethereum tx 0x10000000...000002",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000002",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000007",
+          "label": "ethereum tx 0x10000000...000007",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000007",
+          "chain": "ethereum"
+        }
+      ]
+    },
+    {
+      "code": "rapid-hop-path",
+      "severity": "critical",
+      "explanation": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop.",
+      "confidence": 0.91,
+      "relatedNodeIds": [
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x7777777777777777777777777777777777777777",
+        "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bsc:0x9999999999999999999999999999999999999999",
+        "bsc:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "relatedEdgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+        "bridge-eth-bsc-1:bridge-resolution",
+        "bridge-eth-bsc-1:bridge-withdrawal",
+        "bsc:0x2000000000000000000000000000000000000000000000000000000000000002:0x9999999999999999999999999999999999999999:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:WBNB"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000004",
+          "label": "ethereum tx 0x10000000...000004",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+          "chain": "ethereum"
+        },
+        {
+          "id": "bridge:bridge-eth-bsc-1",
+          "label": "Bridge continuation bridge-eth-bsc-1",
+          "type": "bridge",
+          "chain": "bsc",
+          "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+          "note": "Synthetic cross-chain edge derived from bridge metadata."
+        },
+        {
+          "id": "bridge-withdrawal:bridge-eth-bsc-1",
+          "label": "Bridge withdrawal bridge-eth-bsc-1",
+          "type": "bridge",
+          "chain": "bsc",
+          "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+          "note": "Synthetic destination-side withdrawal derived from bridge metadata."
+        },
+        {
+          "id": "tx:bsc:0x2000000000000000000000000000000000000000000000000000000000000002",
+          "label": "bsc tx 0x20000000...000002",
+          "type": "tx",
+          "txHash": "0x2000000000000000000000000000000000000000000000000000000000000002",
+          "chain": "bsc"
+        }
+      ]
+    },
+    {
+      "code": "bridge-usage",
+      "severity": "low",
+      "explanation": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+      "confidence": 0.35,
+      "relatedNodeIds": [
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x7777777777777777777777777777777777777777"
+      ],
+      "relatedEdgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000004",
+          "label": "ethereum tx 0x10000000...000004",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+          "chain": "ethereum"
+        }
+      ]
+    },
+    {
+      "code": "bridge-usage",
+      "severity": "low",
+      "explanation": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+      "confidence": 0.35,
+      "relatedNodeIds": [
+        "ethereum:0x7777777777777777777777777777777777777777",
+        "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "relatedEdgeIds": [
+        "bridge-eth-bsc-1:bridge-resolution"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "bridge:bridge-eth-bsc-1",
+          "label": "Bridge continuation bridge-eth-bsc-1",
+          "type": "bridge",
+          "chain": "bsc",
+          "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+          "note": "Synthetic cross-chain edge derived from bridge metadata."
+        }
+      ]
+    },
+    {
+      "code": "bridge-usage",
+      "severity": "low",
+      "explanation": "Funds crossed a labeled bridge route. This is context, not a standalone fraud signal.",
+      "confidence": 0.35,
+      "relatedNodeIds": [
+        "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bsc:0x9999999999999999999999999999999999999999"
+      ],
+      "relatedEdgeIds": [
+        "bridge-eth-bsc-1:bridge-withdrawal"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "bridge-withdrawal:bridge-eth-bsc-1",
+          "label": "Bridge withdrawal bridge-eth-bsc-1",
+          "type": "bridge",
+          "chain": "bsc",
+          "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+          "note": "Synthetic destination-side withdrawal derived from bridge metadata."
+        }
+      ]
+    },
+    {
+      "code": "bridge-obfuscation",
+      "severity": "high",
+      "explanation": "Funds bridged and then reached a exchange within 45 minutes.",
+      "confidence": 0.82,
+      "relatedNodeIds": [
+        "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bsc:0x9999999999999999999999999999999999999999",
+        "bsc:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "relatedEdgeIds": [
+        "bridge-eth-bsc-1:bridge-withdrawal",
+        "bsc:0x2000000000000000000000000000000000000000000000000000000000000002:0x9999999999999999999999999999999999999999:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:WBNB"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "bridge-withdrawal:bridge-eth-bsc-1",
+          "label": "Bridge withdrawal bridge-eth-bsc-1",
+          "type": "bridge",
+          "chain": "bsc",
+          "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+          "note": "Synthetic destination-side withdrawal derived from bridge metadata."
+        },
+        {
+          "id": "tx:bsc:0x2000000000000000000000000000000000000000000000000000000000000002",
+          "label": "bsc tx 0x20000000...000002",
+          "type": "tx",
+          "txHash": "0x2000000000000000000000000000000000000000000000000000000000000002",
+          "chain": "bsc"
+        }
+      ]
+    },
+    {
+      "code": "mixer-touchpoint",
+      "severity": "critical",
+      "explanation": "Funds interacted with a wallet or contract labeled as a mixer.",
+      "confidence": 0.96,
+      "relatedNodeIds": [
+        "ethereum:0x8888888888888888888888888888888888888888",
+        "ethereum:0x3333333333333333333333333333333333333333"
+      ],
+      "relatedEdgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000007:0x3333333333333333333333333333333333333333:0x8888888888888888888888888888888888888888:ETH"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000007",
+          "label": "ethereum tx 0x10000000...000007",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000007",
+          "chain": "ethereum"
+        }
+      ]
+    },
+    {
+      "code": "peel-chain",
+      "severity": "high",
+      "explanation": "Peel chain of 4 hops: each hop forwards >85% of funds, retaining a small amount to obscure the total. Classic layering technique.",
+      "confidence": 0.84,
+      "relatedNodeIds": [
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x7777777777777777777777777777777777777777",
+        "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bsc:0x9999999999999999999999999999999999999999",
+        "bsc:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "relatedEdgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+        "bridge-eth-bsc-1:bridge-resolution",
+        "bridge-eth-bsc-1:bridge-withdrawal",
+        "bsc:0x2000000000000000000000000000000000000000000000000000000000000002:0x9999999999999999999999999999999999999999:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:WBNB"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000004",
+          "label": "ethereum tx 0x10000000...000004",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+          "chain": "ethereum"
+        },
+        {
+          "id": "bridge:bridge-eth-bsc-1",
+          "label": "Bridge continuation bridge-eth-bsc-1",
+          "type": "bridge",
+          "chain": "bsc",
+          "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+          "note": "Synthetic cross-chain edge derived from bridge metadata."
+        },
+        {
+          "id": "bridge-withdrawal:bridge-eth-bsc-1",
+          "label": "Bridge withdrawal bridge-eth-bsc-1",
+          "type": "bridge",
+          "chain": "bsc",
+          "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1",
+          "note": "Synthetic destination-side withdrawal derived from bridge metadata."
+        },
+        {
+          "id": "tx:bsc:0x2000000000000000000000000000000000000000000000000000000000000002",
+          "label": "bsc tx 0x20000000...000002",
+          "type": "tx",
+          "txHash": "0x2000000000000000000000000000000000000000000000000000000000000002",
+          "chain": "bsc"
+        }
+      ]
+    },
+    {
+      "code": "structuring",
+      "severity": "high",
+      "explanation": "5 of 5 outgoing transactions use suspiciously round amounts — a classic structuring pattern used to evade exchange AML reporting thresholds.",
+      "confidence": 0.78,
+      "relatedNodeIds": [
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x3333333333333333333333333333333333333333",
+        "ethereum:0x4444444444444444444444444444444444444444",
+        "ethereum:0x7777777777777777777777777777777777777777",
+        "ethereum:0x5555555555555555555555555555555555555555",
+        "ethereum:0x6666666666666666666666666666666666666666"
+      ],
+      "relatedEdgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000002:0x2222222222222222222222222222222222222222:0x3333333333333333333333333333333333333333:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000003:0x2222222222222222222222222222222222222222:0x4444444444444444444444444444444444444444:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000005:0x2222222222222222222222222222222222222222:0x5555555555555555555555555555555555555555:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000006:0x2222222222222222222222222222222222222222:0x6666666666666666666666666666666666666666:ETH"
+      ],
+      "evidenceRefs": [
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000002",
+          "label": "ethereum tx 0x10000000...000002",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000002",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000003",
+          "label": "ethereum tx 0x10000000...000003",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000003",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000004",
+          "label": "ethereum tx 0x10000000...000004",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000005",
+          "label": "ethereum tx 0x10000000...000005",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000005",
+          "chain": "ethereum"
+        },
+        {
+          "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000006",
+          "label": "ethereum tx 0x10000000...000006",
+          "type": "tx",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000006",
+          "chain": "ethereum"
+        }
+      ]
+    }
+  ],
+  "suspiciousPaths": [
+    {
+      "id": "path:1:ethereum:0x1111111111111111111111111111111111111111",
+      "startNodeId": "ethereum:0x1111111111111111111111111111111111111111",
+      "endNodeId": "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "nodeIds": [
+        "ethereum:0x1111111111111111111111111111111111111111",
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x7777777777777777777777777777777777777777",
+        "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "edgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+        "bridge-eth-bsc-1:bridge-resolution"
+      ],
+      "chains": [
+        "ethereum",
+        "bsc"
+      ],
+      "riskScore": 208,
+      "confidence": 1,
+      "valueFromSeedPct": 100,
+      "dominantReason": "Fan-out burst to 5 recipients within 7 minutes."
+    },
+    {
+      "id": "path:3:ethereum:0x1111111111111111111111111111111111111111",
+      "startNodeId": "ethereum:0x1111111111111111111111111111111111111111",
+      "endNodeId": "ethereum:0x8888888888888888888888888888888888888888",
+      "nodeIds": [
+        "ethereum:0x1111111111111111111111111111111111111111",
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x3333333333333333333333333333333333333333",
+        "ethereum:0x8888888888888888888888888888888888888888"
+      ],
+      "edgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000002:0x2222222222222222222222222222222222222222:0x3333333333333333333333333333333333333333:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000007:0x3333333333333333333333333333333333333333:0x8888888888888888888888888888888888888888:ETH"
+      ],
+      "chains": [
+        "ethereum"
+      ],
+      "riskScore": 157,
+      "confidence": 1,
+      "valueFromSeedPct": 100,
+      "dominantReason": "Funds interacted with a wallet or contract labeled as a mixer."
+    },
+    {
+      "id": "path:2:ethereum:0x1111111111111111111111111111111111111111",
+      "startNodeId": "ethereum:0x1111111111111111111111111111111111111111",
+      "endNodeId": "ethereum:0x7777777777777777777777777777777777777777",
+      "nodeIds": [
+        "ethereum:0x1111111111111111111111111111111111111111",
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x7777777777777777777777777777777777777777"
+      ],
+      "edgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH"
+      ],
+      "chains": [
+        "ethereum"
+      ],
+      "riskScore": 142,
+      "confidence": 1,
+      "valueFromSeedPct": 100,
+      "dominantReason": "Fan-out burst to 5 recipients within 7 minutes."
+    },
+    {
+      "id": "path:4:ethereum:0x1111111111111111111111111111111111111111",
+      "startNodeId": "ethereum:0x1111111111111111111111111111111111111111",
+      "endNodeId": "ethereum:0x3333333333333333333333333333333333333333",
+      "nodeIds": [
+        "ethereum:0x1111111111111111111111111111111111111111",
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x3333333333333333333333333333333333333333"
+      ],
+      "edgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000002:0x2222222222222222222222222222222222222222:0x3333333333333333333333333333333333333333:ETH"
+      ],
+      "chains": [
+        "ethereum"
+      ],
+      "riskScore": 103,
+      "confidence": 1,
+      "valueFromSeedPct": 100,
+      "dominantReason": "Fan-out burst to 5 recipients within 7 minutes."
+    },
+    {
+      "id": "path:5:ethereum:0x1111111111111111111111111111111111111111",
+      "startNodeId": "ethereum:0x1111111111111111111111111111111111111111",
+      "endNodeId": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "nodeIds": [
+        "ethereum:0x1111111111111111111111111111111111111111",
+        "ethereum:0x2222222222222222222222222222222222222222",
+        "ethereum:0x4444444444444444444444444444444444444444",
+        "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "edgeIds": [
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000003:0x2222222222222222222222222222222222222222:0x4444444444444444444444444444444444444444:ETH",
+        "ethereum:0x1000000000000000000000000000000000000000000000000000000000000008:0x4444444444444444444444444444444444444444:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH"
+      ],
+      "chains": [
+        "ethereum"
+      ],
+      "riskScore": 76,
+      "confidence": 1,
+      "valueFromSeedPct": 100,
+      "dominantReason": "Fan-out burst to 5 recipients within 7 minutes."
+    }
+  ],
+  "metrics": {
+    "totalNodes": 12,
+    "totalEdges": 13,
+    "chainsInvolved": [
+      "ethereum",
+      "bsc"
+    ],
+    "highRiskNodes": 5,
+    "highRiskEdges": 3,
+    "totalValueObserved": 84.3,
+    "tracedValueToExchanges": 20.7,
+    "prunedNodes": 0,
+    "prunedEdges": 0,
+    "suspiciousPathCount": 5,
+    "velocity": {
+      "incidentTimestamp": "2026-03-28T10:00:00.000Z",
+      "meanTimeToExitMinutes": 18.75,
+      "fastestTimeToExitMinutes": 9,
+      "slowestTimeToExitMinutes": 24,
+      "fanOutBranchAverageMinutes": 18.75,
+      "criminalEfficiencyScore": 99,
+      "urgencyLabel": "Professional/Automated",
+      "urgencyRiskLevel": "critical",
+      "terminalPathCount": 4,
+      "crossChainExitDetected": false,
+      "spvVerificationRequired": false,
+      "requiresImmediateExchangeContact": true,
+      "recoveryPotential": "High-speed exit detected. Immediate exchange contact required.",
+      "terminalPaths": [
+        {
+          "id": "tte:1",
+          "incidentEdgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "terminalEdgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+          "incidentTxHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+          "terminalTxHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+          "incidentTimestamp": "2026-03-28T10:00:00.000Z",
+          "terminalTimestamp": "2026-03-28T10:09:00.000Z",
+          "minutesToExit": 9,
+          "hopCount": 2,
+          "nodeIds": [
+            "ethereum:0x1111111111111111111111111111111111111111",
+            "ethereum:0x2222222222222222222222222222222222222222",
+            "ethereum:0x7777777777777777777777777777777777777777"
+          ],
+          "edgeIds": [
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH"
+          ],
+          "chainPath": [
+            "ethereum"
+          ],
+          "terminalNodeId": "ethereum:0x7777777777777777777777777777777777777777",
+          "terminalLabel": "Stargate Bridge",
+          "terminalType": "bridge",
+          "crossChainExit": false,
+          "spvVerificationRequired": false
+        },
+        {
+          "id": "tte:2",
+          "incidentEdgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "terminalEdgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000008:0x4444444444444444444444444444444444444444:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "incidentTxHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+          "terminalTxHash": "0x1000000000000000000000000000000000000000000000000000000000000008",
+          "incidentTimestamp": "2026-03-28T10:00:00.000Z",
+          "terminalTimestamp": "2026-03-28T10:20:00.000Z",
+          "minutesToExit": 20,
+          "hopCount": 3,
+          "nodeIds": [
+            "ethereum:0x1111111111111111111111111111111111111111",
+            "ethereum:0x2222222222222222222222222222222222222222",
+            "ethereum:0x4444444444444444444444444444444444444444",
+            "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          "edgeIds": [
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000003:0x2222222222222222222222222222222222222222:0x4444444444444444444444444444444444444444:ETH",
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000008:0x4444444444444444444444444444444444444444:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH"
+          ],
+          "chainPath": [
+            "ethereum"
+          ],
+          "terminalNodeId": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "terminalLabel": "Exchange Deposit Wallet",
+          "terminalType": "cex",
+          "crossChainExit": false,
+          "spvVerificationRequired": false
+        },
+        {
+          "id": "tte:3",
+          "incidentEdgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "terminalEdgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000009:0x5555555555555555555555555555555555555555:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "incidentTxHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+          "terminalTxHash": "0x1000000000000000000000000000000000000000000000000000000000000009",
+          "incidentTimestamp": "2026-03-28T10:00:00.000Z",
+          "terminalTimestamp": "2026-03-28T10:22:00.000Z",
+          "minutesToExit": 22,
+          "hopCount": 3,
+          "nodeIds": [
+            "ethereum:0x1111111111111111111111111111111111111111",
+            "ethereum:0x2222222222222222222222222222222222222222",
+            "ethereum:0x5555555555555555555555555555555555555555",
+            "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          "edgeIds": [
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000005:0x2222222222222222222222222222222222222222:0x5555555555555555555555555555555555555555:ETH",
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000009:0x5555555555555555555555555555555555555555:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH"
+          ],
+          "chainPath": [
+            "ethereum"
+          ],
+          "terminalNodeId": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "terminalLabel": "Exchange Deposit Wallet",
+          "terminalType": "cex",
+          "crossChainExit": false,
+          "spvVerificationRequired": false
+        },
+        {
+          "id": "tte:4",
+          "incidentEdgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "terminalEdgeId": "ethereum:0x100000000000000000000000000000000000000000000000000000000000000a:0x6666666666666666666666666666666666666666:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "incidentTxHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+          "terminalTxHash": "0x100000000000000000000000000000000000000000000000000000000000000a",
+          "incidentTimestamp": "2026-03-28T10:00:00.000Z",
+          "terminalTimestamp": "2026-03-28T10:24:00.000Z",
+          "minutesToExit": 24,
+          "hopCount": 3,
+          "nodeIds": [
+            "ethereum:0x1111111111111111111111111111111111111111",
+            "ethereum:0x2222222222222222222222222222222222222222",
+            "ethereum:0x6666666666666666666666666666666666666666",
+            "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          "edgeIds": [
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+            "ethereum:0x1000000000000000000000000000000000000000000000000000000000000006:0x2222222222222222222222222222222222222222:0x6666666666666666666666666666666666666666:ETH",
+            "ethereum:0x100000000000000000000000000000000000000000000000000000000000000a:0x6666666666666666666666666666666666666666:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH"
+          ],
+          "chainPath": [
+            "ethereum"
+          ],
+          "terminalNodeId": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "terminalLabel": "Exchange Deposit Wallet",
+          "terminalType": "cex",
+          "crossChainExit": false,
+          "spvVerificationRequired": false
+        }
+      ],
+      "timeline": [
+        {
+          "id": "timeline:ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "edgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "fromNodeId": "ethereum:0x1111111111111111111111111111111111111111",
+          "toNodeId": "ethereum:0x2222222222222222222222222222222222222222",
+          "fromLabel": "Victim Wallet",
+          "toLabel": "Attacker Router",
+          "chain": "ethereum",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+          "asset": "ETH",
+          "amount": 25,
+          "timestamp": "2026-03-28T10:00:00.000Z",
+          "gapMinutesFromPrevious": null
+        },
+        {
+          "id": "timeline:ethereum:0x1000000000000000000000000000000000000000000000000000000000000003:0x2222222222222222222222222222222222222222:0x4444444444444444444444444444444444444444:ETH",
+          "edgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000003:0x2222222222222222222222222222222222222222:0x4444444444444444444444444444444444444444:ETH",
+          "fromNodeId": "ethereum:0x2222222222222222222222222222222222222222",
+          "toNodeId": "ethereum:0x4444444444444444444444444444444444444444",
+          "fromLabel": "Attacker Router",
+          "toLabel": "0x4444...4444",
+          "chain": "ethereum",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000003",
+          "asset": "ETH",
+          "amount": 6,
+          "timestamp": "2026-03-28T10:06:00.000Z",
+          "gapMinutesFromPrevious": 6
+        },
+        {
+          "id": "timeline:ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+          "edgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+          "fromNodeId": "ethereum:0x2222222222222222222222222222222222222222",
+          "toNodeId": "ethereum:0x7777777777777777777777777777777777777777",
+          "fromLabel": "Attacker Router",
+          "toLabel": "Stargate Bridge",
+          "chain": "ethereum",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+          "asset": "ETH",
+          "amount": 5,
+          "timestamp": "2026-03-28T10:09:00.000Z",
+          "gapMinutesFromPrevious": 3,
+          "terminalType": "bridge"
+        },
+        {
+          "id": "timeline:ethereum:0x1000000000000000000000000000000000000000000000000000000000000005:0x2222222222222222222222222222222222222222:0x5555555555555555555555555555555555555555:ETH",
+          "edgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000005:0x2222222222222222222222222222222222222222:0x5555555555555555555555555555555555555555:ETH",
+          "fromNodeId": "ethereum:0x2222222222222222222222222222222222222222",
+          "toNodeId": "ethereum:0x5555555555555555555555555555555555555555",
+          "fromLabel": "Attacker Router",
+          "toLabel": "0x5555...5555",
+          "chain": "ethereum",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000005",
+          "asset": "ETH",
+          "amount": 5,
+          "timestamp": "2026-03-28T10:10:00.000Z",
+          "gapMinutesFromPrevious": 1
+        },
+        {
+          "id": "timeline:ethereum:0x1000000000000000000000000000000000000000000000000000000000000006:0x2222222222222222222222222222222222222222:0x6666666666666666666666666666666666666666:ETH",
+          "edgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000006:0x2222222222222222222222222222222222222222:0x6666666666666666666666666666666666666666:ETH",
+          "fromNodeId": "ethereum:0x2222222222222222222222222222222222222222",
+          "toNodeId": "ethereum:0x6666666666666666666666666666666666666666",
+          "fromLabel": "Attacker Router",
+          "toLabel": "0x6666...6666",
+          "chain": "ethereum",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000006",
+          "asset": "ETH",
+          "amount": 5,
+          "timestamp": "2026-03-28T10:12:00.000Z",
+          "gapMinutesFromPrevious": 2
+        },
+        {
+          "id": "timeline:ethereum:0x1000000000000000000000000000000000000000000000000000000000000008:0x4444444444444444444444444444444444444444:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "edgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000008:0x4444444444444444444444444444444444444444:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "fromNodeId": "ethereum:0x4444444444444444444444444444444444444444",
+          "toNodeId": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "fromLabel": "0x4444...4444",
+          "toLabel": "Exchange Deposit Wallet",
+          "chain": "ethereum",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000008",
+          "asset": "ETH",
+          "amount": 6,
+          "timestamp": "2026-03-28T10:20:00.000Z",
+          "gapMinutesFromPrevious": 8,
+          "terminalType": "cex"
+        },
+        {
+          "id": "timeline:ethereum:0x1000000000000000000000000000000000000000000000000000000000000009:0x5555555555555555555555555555555555555555:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "edgeId": "ethereum:0x1000000000000000000000000000000000000000000000000000000000000009:0x5555555555555555555555555555555555555555:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "fromNodeId": "ethereum:0x5555555555555555555555555555555555555555",
+          "toNodeId": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "fromLabel": "0x5555...5555",
+          "toLabel": "Exchange Deposit Wallet",
+          "chain": "ethereum",
+          "txHash": "0x1000000000000000000000000000000000000000000000000000000000000009",
+          "asset": "ETH",
+          "amount": 5,
+          "timestamp": "2026-03-28T10:22:00.000Z",
+          "gapMinutesFromPrevious": 2,
+          "terminalType": "cex"
+        },
+        {
+          "id": "timeline:ethereum:0x100000000000000000000000000000000000000000000000000000000000000a:0x6666666666666666666666666666666666666666:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "edgeId": "ethereum:0x100000000000000000000000000000000000000000000000000000000000000a:0x6666666666666666666666666666666666666666:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH",
+          "fromNodeId": "ethereum:0x6666666666666666666666666666666666666666",
+          "toNodeId": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "fromLabel": "0x6666...6666",
+          "toLabel": "Exchange Deposit Wallet",
+          "chain": "ethereum",
+          "txHash": "0x100000000000000000000000000000000000000000000000000000000000000a",
+          "asset": "ETH",
+          "amount": 5,
+          "timestamp": "2026-03-28T10:24:00.000Z",
+          "gapMinutesFromPrevious": 2,
+          "terminalType": "cex"
+        }
+      ]
+    }
+  },
+  "riskAnalysis": {
+    "overallRisk": "HIGH",
+    "overallScore": 100,
+    "summary": "Overall risk is HIGH because the trace combines fan out burst, rapid hop path, bridge usage, peel chain, fan-out, mixer across the highest-risk wallets and movement paths.",
+    "suspiciousWallets": [
+      {
+        "wallet": "0x2222222222222222222222222222222222222222",
+        "label": "Attacker Router",
+        "risk": "HIGH",
+        "score": 100,
+        "reason": "Fan-out burst to 5 recipients within 7 minutes. Signals observed: fan out burst, rapid hop path, bridge usage, peel chain, structuring.",
+        "signals": [
+          "fan out burst",
+          "rapid hop path",
+          "bridge usage",
+          "peel chain",
+          "structuring"
+        ],
+        "confidence": 100,
+        "relatedNodeIds": [
+          "ethereum:0x2222222222222222222222222222222222222222"
+        ]
+      },
+      {
+        "wallet": "0x7777777777777777777777777777777777777777",
+        "label": "Stargate Bridge",
+        "risk": "HIGH",
+        "score": 92,
+        "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop. Signals observed: rapid hop path, bridge usage, peel chain.",
+        "signals": [
+          "rapid hop path",
+          "bridge usage",
+          "peel chain"
+        ],
+        "confidence": 99.99,
+        "relatedNodeIds": [
+          "ethereum:0x7777777777777777777777777777777777777777"
+        ]
+      },
+      {
+        "wallet": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "label": "Stargate Exit",
+        "risk": "HIGH",
+        "score": 92,
+        "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop. Signals observed: rapid hop path, bridge usage, peel chain.",
+        "signals": [
+          "rapid hop path",
+          "bridge usage",
+          "peel chain"
+        ],
+        "confidence": 99.99,
+        "relatedNodeIds": [
+          "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ]
+      },
+      {
+        "wallet": "0x9999999999999999999999999999999999999999",
+        "label": "BSC Receiver",
+        "risk": "HIGH",
+        "score": 90,
+        "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop. Signals observed: rapid hop path, bridge usage, peel chain.",
+        "signals": [
+          "rapid hop path",
+          "bridge usage",
+          "peel chain"
+        ],
+        "confidence": 99.99,
+        "relatedNodeIds": [
+          "bsc:0x9999999999999999999999999999999999999999"
+        ]
+      },
+      {
+        "wallet": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "label": "Exchange Deposit Wallet",
+        "risk": "HIGH",
+        "score": 68,
+        "reason": "Rapid laundering path spans 4 hops with less than 15 minutes between each hop. Signals observed: rapid hop path, bridge obfuscation, peel chain.",
+        "signals": [
+          "rapid hop path",
+          "bridge obfuscation",
+          "peel chain"
+        ],
+        "confidence": 99.74,
+        "relatedNodeIds": [
+          "bsc:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ]
+      },
+      {
+        "wallet": "0x8888888888888888888888888888888888888888",
+        "label": "Mixer Contract",
+        "risk": "MEDIUM",
+        "score": 58,
+        "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop. Signals observed: rapid hop path, mixer touchpoint.",
+        "signals": [
+          "rapid hop path",
+          "mixer touchpoint"
+        ],
+        "confidence": 99.64,
+        "relatedNodeIds": [
+          "ethereum:0x8888888888888888888888888888888888888888"
+        ]
+      },
+      {
+        "wallet": "0x3333333333333333333333333333333333333333",
+        "label": "0x3333...3333",
+        "risk": "MEDIUM",
+        "score": 48,
+        "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop. Signals observed: rapid hop path, mixer touchpoint.",
+        "signals": [
+          "rapid hop path",
+          "mixer touchpoint"
+        ],
+        "confidence": 99.97,
+        "relatedNodeIds": [
+          "ethereum:0x3333333333333333333333333333333333333333"
+        ]
+      },
+      {
+        "wallet": "0x1111111111111111111111111111111111111111",
+        "label": "Victim Wallet",
+        "risk": "LOW",
+        "score": 18,
+        "reason": "Rapid laundering path spans 3 hops with less than 15 minutes between each hop. Signals observed: rapid hop path.",
+        "signals": [
+          "rapid hop path"
+        ],
+        "confidence": 91,
+        "relatedNodeIds": [
+          "ethereum:0x1111111111111111111111111111111111111111"
+        ]
+      }
+    ],
+    "suspiciousPaths": [
+      {
+        "pathId": "path:1:ethereum:0x1111111111111111111111111111111111111111",
+        "wallet": "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "risk": "HIGH",
+        "score": 208,
+        "reason": "Fan-out burst to 5 recipients within 7 minutes. Signals observed: fan-out.",
+        "signals": [
+          "fan-out"
+        ],
+        "confidence": 100,
+        "edgeIds": [
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH",
+          "bridge-eth-bsc-1:bridge-resolution"
+        ],
+        "nodeIds": [
+          "ethereum:0x1111111111111111111111111111111111111111",
+          "ethereum:0x2222222222222222222222222222222222222222",
+          "ethereum:0x7777777777777777777777777777777777777777",
+          "bsc:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ]
+      },
+      {
+        "pathId": "path:3:ethereum:0x1111111111111111111111111111111111111111",
+        "wallet": "ethereum:0x8888888888888888888888888888888888888888",
+        "risk": "HIGH",
+        "score": 157,
+        "reason": "Funds interacted with a wallet or contract labeled as a mixer. Signals observed: mixer.",
+        "signals": [
+          "mixer"
+        ],
+        "confidence": 100,
+        "edgeIds": [
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000002:0x2222222222222222222222222222222222222222:0x3333333333333333333333333333333333333333:ETH",
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000007:0x3333333333333333333333333333333333333333:0x8888888888888888888888888888888888888888:ETH"
+        ],
+        "nodeIds": [
+          "ethereum:0x1111111111111111111111111111111111111111",
+          "ethereum:0x2222222222222222222222222222222222222222",
+          "ethereum:0x3333333333333333333333333333333333333333",
+          "ethereum:0x8888888888888888888888888888888888888888"
+        ]
+      },
+      {
+        "pathId": "path:2:ethereum:0x1111111111111111111111111111111111111111",
+        "wallet": "ethereum:0x7777777777777777777777777777777777777777",
+        "risk": "HIGH",
+        "score": 142,
+        "reason": "Fan-out burst to 5 recipients within 7 minutes. Signals observed: fan-out.",
+        "signals": [
+          "fan-out"
+        ],
+        "confidence": 100,
+        "edgeIds": [
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000004:0x2222222222222222222222222222222222222222:0x7777777777777777777777777777777777777777:ETH"
+        ],
+        "nodeIds": [
+          "ethereum:0x1111111111111111111111111111111111111111",
+          "ethereum:0x2222222222222222222222222222222222222222",
+          "ethereum:0x7777777777777777777777777777777777777777"
+        ]
+      },
+      {
+        "pathId": "path:4:ethereum:0x1111111111111111111111111111111111111111",
+        "wallet": "ethereum:0x3333333333333333333333333333333333333333",
+        "risk": "HIGH",
+        "score": 103,
+        "reason": "Fan-out burst to 5 recipients within 7 minutes. Signals observed: fan-out.",
+        "signals": [
+          "fan-out"
+        ],
+        "confidence": 100,
+        "edgeIds": [
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000002:0x2222222222222222222222222222222222222222:0x3333333333333333333333333333333333333333:ETH"
+        ],
+        "nodeIds": [
+          "ethereum:0x1111111111111111111111111111111111111111",
+          "ethereum:0x2222222222222222222222222222222222222222",
+          "ethereum:0x3333333333333333333333333333333333333333"
+        ]
+      },
+      {
+        "pathId": "path:5:ethereum:0x1111111111111111111111111111111111111111",
+        "wallet": "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "risk": "HIGH",
+        "score": 76,
+        "reason": "Fan-out burst to 5 recipients within 7 minutes. Signals observed: fan-out.",
+        "signals": [
+          "fan-out"
+        ],
+        "confidence": 100,
+        "edgeIds": [
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000001:0x1111111111111111111111111111111111111111:0x2222222222222222222222222222222222222222:ETH",
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000003:0x2222222222222222222222222222222222222222:0x4444444444444444444444444444444444444444:ETH",
+          "ethereum:0x1000000000000000000000000000000000000000000000000000000000000008:0x4444444444444444444444444444444444444444:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ETH"
+        ],
+        "nodeIds": [
+          "ethereum:0x1111111111111111111111111111111111111111",
+          "ethereum:0x2222222222222222222222222222222222222222",
+          "ethereum:0x4444444444444444444444444444444444444444",
+          "ethereum:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ]
+      }
+    ]
+  },
+  "traceHash": "a11bede3e2c4b7a0afc9b714cc29db960b7f18f4581aeaf35111bb3dfbc86d86",
+  "verifiable": true,
+  "sources": [
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000001",
+      "label": "ethereum tx 0x10000000...000001",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000001",
+      "chain": "ethereum",
+      "url": "https://example.com/fixtures/demo-case"
+    },
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000002",
+      "label": "ethereum tx 0x10000000...000002",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000002",
+      "chain": "ethereum"
+    },
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000003",
+      "label": "ethereum tx 0x10000000...000003",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000003",
+      "chain": "ethereum"
+    },
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000004",
+      "label": "ethereum tx 0x10000000...000004",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000004",
+      "chain": "ethereum"
+    },
+    {
+      "id": "bridge:bridge-eth-bsc-1",
+      "label": "Bridge continuation bridge-eth-bsc-1",
+      "type": "bridge",
+      "chain": "bsc",
+      "url": "https://example.com/fixtures/bridge/bridge-eth-bsc-1"
+    },
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000005",
+      "label": "ethereum tx 0x10000000...000005",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000005",
+      "chain": "ethereum"
+    },
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000006",
+      "label": "ethereum tx 0x10000000...000006",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000006",
+      "chain": "ethereum"
+    },
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000007",
+      "label": "ethereum tx 0x10000000...000007",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000007",
+      "chain": "ethereum"
+    },
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000008",
+      "label": "ethereum tx 0x10000000...000008",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000008",
+      "chain": "ethereum"
+    },
+    {
+      "id": "tx:bsc:0x2000000000000000000000000000000000000000000000000000000000000002",
+      "label": "bsc tx 0x20000000...000002",
+      "type": "tx",
+      "txHash": "0x2000000000000000000000000000000000000000000000000000000000000002",
+      "chain": "bsc"
+    },
+    {
+      "id": "tx:ethereum:0x1000000000000000000000000000000000000000000000000000000000000009",
+      "label": "ethereum tx 0x10000000...000009",
+      "type": "tx",
+      "txHash": "0x1000000000000000000000000000000000000000000000000000000000000009",
+      "chain": "ethereum"
+    },
+    {
+      "id": "tx:ethereum:0x100000000000000000000000000000000000000000000000000000000000000a",
+      "label": "ethereum tx 0x10000000...00000a",
+      "type": "tx",
+      "txHash": "0x100000000000000000000000000000000000000000000000000000000000000a",
+      "chain": "ethereum"
+    }
+  ],
+  "generatedAt": "2026-05-06T12:14:42.524Z",
+  "warnings": [
+    "High-speed exit detected. Immediate exchange contact required."
+  ]
+}

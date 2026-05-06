@@ -4,7 +4,7 @@ import cytoscape, { type Core } from "cytoscape";
 import Link from "next/link";
 import { useEffect, useRef, useState, useMemo, type ReactElement } from "react";
 
-import type { Finding, GraphEdge, GraphNode, SuspiciousPath, TraceGraph } from "@kadenatrace/shared";
+import type { Finding, GraphEdge, GraphNode, SuspiciousPath, TraceGraph } from "@kadenatrace/shared/client";
 
 import { buttonStyles } from "./ui";
 

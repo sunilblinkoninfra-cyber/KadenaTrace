@@ -1,6 +1,6 @@
 import { type ReactElement } from "react";
 
-import type { TraceGraph, TraceMetrics, TraceRequest } from "@kadenatrace/shared";
+import type { TraceGraph, TraceMetrics, TraceRequest } from "@kadenatrace/shared/client";
 
 export function SummaryCards({
   metrics,
