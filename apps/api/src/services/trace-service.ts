@@ -1,11 +1,8 @@
 import { randomUUID } from "node:crypto";
 
-import {
-  TraceEngine,
-  createDefaultActivityProvider,
-  type TraceRecord,
-  type TraceRequest
-} from "@kadenatrace/shared";
+import type { TraceRecord, TraceRequest } from "@kadenatrace/shared";
+import { TraceEngine } from "@kadenatrace/shared/server";
+import { createDefaultActivityProvider } from "@kadenatrace/shared";
 
 import type { TraceRepository } from "../repositories/contracts.js";
 import { BullMqTraceQueue } from "./trace-queue.js";

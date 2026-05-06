@@ -1,5 +1,6 @@
 // TraceRunner -- Executes queued traces and persists their lifecycle updates.
-import { TraceEngine, type TraceRequest, type TraceResult } from "@kadenatrace/shared";
+import type { TraceRequest, TraceResult } from "@kadenatrace/shared";
+import { TraceEngine } from "@kadenatrace/shared/server";
 
 import { createWorkerProvider } from "../providers/index.js";
 import { StorageClient } from "../storage.js";

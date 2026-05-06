@@ -208,7 +208,7 @@ async function verifyAgainstCandidates(
   inputHash: string,
   candidates: VerificationCandidate[]
 ): Promise<VerificationOutcome> {
-  const { computeTraceHash } = (await import("@kadenatrace/shared")) as unknown as {
+  const { computeTraceHash } = (await import("@kadenatrace/shared/server")) as unknown as {
     computeTraceHash: (edges: TraceEdge[]) => { traceHash: string };
   };
 

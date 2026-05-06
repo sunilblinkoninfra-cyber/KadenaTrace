@@ -20,7 +20,8 @@ import type {
   RiskAttestation,
   WalletAttestationInput
 } from "@kadenatrace/shared";
-import { Errors, sha256Hex } from "@kadenatrace/shared";
+import { Errors } from "@kadenatrace/shared";
+import { sha256Hex } from "@kadenatrace/shared/server";
 
 import type { CaseRepository } from "../repositories/contracts.js";
 import {

@@ -14,7 +14,7 @@ import {
   type WalletSignerDescriptor
 } from "@kadenatrace/pact";
 import type { CaseAnchor, CaseRecord, Chain, RiskAttestation, RiskLevel } from "@kadenatrace/shared";
-import { sha256Hex } from "@kadenatrace/shared";
+import { sha256Hex } from "@kadenatrace/shared/server";
 
 import type { ApiConfig } from "../config.js";
 

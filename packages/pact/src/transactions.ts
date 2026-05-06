@@ -1,5 +1,5 @@
 import { Pact, isSignedTransaction, type ChainId, type ICommand, type IUnsignedCommand } from "@kadena/client";
-import { sha256Hex } from "@kadenatrace/shared";
+import { sha256Hex } from "@kadenatrace/shared/server";
 
 import { buildAttestationCommand, buildCreateCaseCommand, buildRaiseDisputeCommand } from "./client.js";
 import { FRAUD_REGISTRY_MODULE, TRACE_REGISTRY_MODULE } from "./contracts.js";
