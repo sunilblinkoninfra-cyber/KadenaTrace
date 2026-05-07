@@ -1,6 +1,6 @@
 // hashing.ts -- Builds deterministic graph commitments so investigators can independently verify a trace hash.
 import type { GraphEdge } from "../domain.js";
-import { sha256Hex } from "../utils/hash.js";
+import { sha256Hex } from "./hash.js";
 
 interface CanonicalTraceEdge {
   amount: number;

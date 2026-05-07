@@ -1,6 +1,6 @@
 import { ArrowRight, Info, Sparkles } from "lucide-react";
 import { cn } from "../lib/utils";
-import type { Finding, GraphEdge, GraphNode, TraceGraph } from "@kadenatrace/shared";
+import type { Finding, GraphEdge, GraphNode, TraceGraph } from "@kadenatrace/shared/client";
 
 interface Props {
   graph: TraceGraph;

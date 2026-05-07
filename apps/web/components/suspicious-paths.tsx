@@ -1,6 +1,6 @@
 import { type ReactElement } from "react";
 
-import type { SuspiciousPath, TraceGraph } from "@kadenatrace/shared";
+import type { SuspiciousPath, TraceGraph } from "@kadenatrace/shared/client";
 
 import { RiskBadge } from "./risk-badge";
 

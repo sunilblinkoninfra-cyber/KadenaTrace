@@ -1,4 +1,4 @@
-import type { PublicCaseView, TraceRecord } from "@kadenatrace/shared";
+import type { PublicCaseView, TraceRecord } from "@kadenatrace/shared/client";
 
 type TraceSubmissionResponse = TraceRecord & {
   traceId: string;

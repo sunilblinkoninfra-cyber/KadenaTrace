@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { ActivityProvider, TraceRequest, TraceResult } from "../domain.js";
-import { buildTraceGraph } from "./builder.js";
-import { buildRiskAnalysis } from "./explainable-risk.js";
+import { buildTraceGraph } from "../trace/builder.js";
+import { buildRiskAnalysis } from "../trace/explainable-risk.js";
 import { computeTraceHash } from "./hashing.js";
 
 export class TraceEngine {

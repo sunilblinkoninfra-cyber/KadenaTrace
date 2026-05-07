@@ -1,6 +1,6 @@
 "use client";
 
-import type { TraceGraph } from "@kadenatrace/shared";
+import type { TraceGraph } from "@kadenatrace/shared/client";
 import { useMemo, type ReactElement } from "react";
 
 type FlowNode = {

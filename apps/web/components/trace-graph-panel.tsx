@@ -3,7 +3,7 @@
 import type { Core } from "cytoscape";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 
-import type { Finding, SuspiciousPath, TraceGraph, TraceMetrics } from "@kadenatrace/shared";
+import type { Finding, SuspiciousPath, TraceGraph, TraceMetrics } from "@kadenatrace/shared/client";
 
 import { serializeEdgesCsv, serializeGraphExportJson, serializeNodesCsv } from "../lib/export";
 import { GraphView } from "./graph-view";

@@ -1,4 +1,4 @@
-import type { Finding } from "@kadenatrace/shared";
+import type { Finding } from "@kadenatrace/shared/client";
 import type { ReactElement } from "react";
 
 export function FindingHistogram({ findings }: { findings: Finding[] }): ReactElement | null {

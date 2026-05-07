@@ -4,7 +4,7 @@ import cytoscape, { type Core } from "cytoscape";
 import Link from "next/link";
 import { useEffect, useRef, useState, useMemo, type ReactElement } from "react";
 
-import type { Chain, Finding, GraphEdge, GraphNode, SuspiciousPath, TraceGraph } from "@kadenatrace/shared";
+import type { Chain, Finding, GraphEdge, GraphNode, SuspiciousPath, TraceGraph } from "@kadenatrace/shared/client";
 
 type SelectionState =
   | { type: "node"; payload: GraphNode }

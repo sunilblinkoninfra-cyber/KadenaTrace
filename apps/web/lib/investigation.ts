@@ -5,7 +5,7 @@ import type {
   GraphNode,
   SuspiciousPath,
   TraceResult
-} from "@kadenatrace/shared";
+} from "@kadenatrace/shared/client";
 
 export interface InvestigationSummaryModel {
   summaryLine: string;

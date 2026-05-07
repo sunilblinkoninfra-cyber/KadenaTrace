@@ -1,4 +1,4 @@
-import type { RiskLevel } from "@kadenatrace/shared";
+import type { RiskLevel } from "@kadenatrace/shared/client";
 
 export function RiskBadge({ level }: { level: RiskLevel }) {
   return <span className={`risk-badge risk-${level}`}>{level}</span>;
