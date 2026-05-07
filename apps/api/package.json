@@ -14,8 +14,8 @@
   "dependencies": {
     "@fastify/cors": "^10.0.0",
     "@fastify/rate-limit": "^10.1.0",
-    "@kadenatrace/pact": "0.1.0",
-    "@kadenatrace/shared": "0.1.0",
+    "@kadenatrace/pact": "file:../../packages/pact",
+    "@kadenatrace/shared": "file:../../packages/shared",
     "bullmq": "^5.40.0",
     "dotenv": "^16.4.7",
     "fastify": "^5.2.1",
