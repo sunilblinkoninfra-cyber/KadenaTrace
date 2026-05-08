@@ -45,6 +45,17 @@ export function GraphView({
 }: GraphViewProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<Core | null>(null);
+  // Ensure any external selection callbacks are deferred so they don't
+  // synchronously trigger React updates during hydration/render.
+  const triggerOnNodeSelect = (id: string | undefined): void => {
+    if (!onNodeSelect) return;
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(() => onNodeSelect(id));
+    } else {
+      // Fallback to setTimeout if RAF isn't available.
+      setTimeout(() => onNodeSelect(id), 0);
+    }
+  };
   const [focusSuspiciousPaths, setFocusSuspiciousPaths] = useState(Boolean(focusedPathEdgeIds?.length));
   const initialFocusedPathEdgeIds = useMemo(() => 
     focusedPathEdgeIds && focusedPathEdgeIds.length > 0
@@ -56,7 +67,7 @@ export function GraphView({
   useEffect(() => {
     const preferred = graph.nodes.find((node) => node.address.toLowerCase() === seedValue.toLowerCase()) ?? graph.nodes[0];
     if (preferred) {
-      onNodeSelect?.(preferred.id);
+      triggerOnNodeSelect(preferred.id);
     }
   }, [graph.nodes, onNodeSelect, seedValue]);
 
@@ -226,14 +237,14 @@ export function GraphView({
           .sort((left, right) => right.riskScore - left.riskScore)[0];
         applyPathHighlight(instance, path?.edgeIds ?? [], focusSuspiciousPaths);
         applyNodeFocus(instance, node.id);
-        onNodeSelect?.(node.id);
+        triggerOnNodeSelect(node.id);
       }
     });
 
     instance.on("tap", "edge", (event) => {
       const edge = graph.edges.find((item) => item.id === event.target.id());
       if (edge) {
-        onNodeSelect?.(edge.id);
+        triggerOnNodeSelect(edge.id);
       }
     });
 
@@ -276,7 +287,7 @@ export function GraphView({
       return;
     }
     applyNodeFocus(cyRef.current, focusedNodeId);
-    onNodeSelect?.(focusedNodeId);
+    triggerOnNodeSelect(focusedNodeId);
 
     const matchingPath = suspiciousPaths
       .filter((path) => path.nodeIds.includes(focusedNodeId))
