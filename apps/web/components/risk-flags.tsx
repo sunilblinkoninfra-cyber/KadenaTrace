@@ -67,14 +67,14 @@ export const RiskFlags = ({ flags, active, onToggle }: Props) => {
               className={cn(
                 `group relative flex items-center gap-4 overflow-hidden rounded-xl border p-4 text-left transition-smooth ${focusRingClassName}`,
                 isActive
-                  ? "border-red-500 bg-red-500/10"
-                  : "border-gray-800 bg-gray-900 hover:border-gray-700"
+                  ? "border-red-500/30 bg-red-500/10"
+                  : "border-border bg-card shadow-card hover:bg-secondary"
               )}
             >
               <div
                 className={cn(
                   "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-smooth",
-                  isActive ? "bg-red-500 text-white" : "bg-red-500/10 text-red-300"
+                  isActive ? "bg-red-500 text-white" : "bg-red-500/10 text-red-700"
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -82,7 +82,7 @@ export const RiskFlags = ({ flags, active, onToggle }: Props) => {
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="truncate text-base font-medium text-foreground">{m.label}</span>
-                  <span className="text-xs font-medium text-red-300">×{f.count}</span>
+                  <span className="text-xs font-medium text-red-700">×{f.count}</span>
                 </div>
                 <div className="truncate text-sm text-muted-foreground">{m.desc}</div>
               </div>

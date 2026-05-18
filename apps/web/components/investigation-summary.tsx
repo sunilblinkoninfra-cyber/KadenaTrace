@@ -15,20 +15,44 @@ const riskBucket = (score: number) => {
 
 export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) => {
   const bucket = riskBucket(summary.overallScore);
-
-  const confidence =
-    summary.confidence ??
-    Math.min(
-      95,
-      Math.max(
-        55,
-        Math.round((summary.signalCount ?? summary.findings?.length ?? 0) * 12)
-      )
-    );
-
+  const confidence = summary.confidencePct ?? 55;
   const conclusion =
-    summary.conclusion?.trim() ||
-    "This transaction pattern suggests potentially suspicious fund movement based on available signals.";
+    summary.conclusion?.trim() || "This transaction pattern suggests potentially suspicious fund movement based on available signals.";
+  const typeToneClassName =
+    summary.typeTone === "critical"
+      ? "border-red-500/20 bg-red-500/10 text-red-700"
+      : summary.typeTone === "mixer"
+        ? "border-violet-500/20 bg-violet-500/10 text-violet-700"
+        : summary.typeTone === "warning"
+          ? "border-amber-500/20 bg-amber-500/10 text-amber-700"
+          : "border-cyan-500/20 bg-cyan-500/10 text-cyan-700";
+
+  const getWalletRiskStyle = (score: number) => {
+    if (score >= 70) {
+      return {
+        border: "border-red-500/30 bg-red-500/10 hover:border-red-400",
+        iconBg: "bg-red-500 text-white",
+        textColor: "text-red-700",
+        badgeText: "Highest-risk wallet"
+      };
+    }
+    if (score >= 40) {
+      return {
+        border: "border-amber-500/30 bg-amber-500/10 hover:border-amber-400",
+        iconBg: "bg-amber-500 text-white",
+        textColor: "text-amber-700",
+        badgeText: "Highest-risk wallet"
+      };
+    }
+    return {
+      border: "border-emerald-500/30 bg-emerald-500/10 hover:border-emerald-400",
+      iconBg: "bg-emerald-500 text-white",
+      textColor: "text-emerald-700",
+      badgeText: "Low-risk wallet"
+    };
+  };
+
+  const walletStyle = summary.topRiskWallet ? getWalletRiskStyle(summary.topRiskWallet.riskScore) : null;
 
   return (
     <Section className="pt-0">
@@ -37,8 +61,8 @@ export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) =
           <span className="h-px w-6 bg-border" />
           Investigation Conclusion
         </div>
-        <div className="inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-200">
-          Ethereum • 2-Hop Trace
+        <div className={cn("inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium", typeToneClassName)}>
+          {summary.typeLabel}
         </div>
       </div>
 
@@ -49,55 +73,70 @@ export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) =
               <AlertTriangle className="h-3 w-3" />
               Automated Analysis
             </span>
-            <span className="rounded-full border border-gray-800 bg-gray-950 px-3 py-1 font-mono text-xs text-muted-foreground">
+            <span className="rounded-full border border-border bg-secondary/70 px-3 py-1 font-mono text-xs text-muted-foreground">
               source {summary.seedAddress ? summary.seedAddress.slice(0,8) : "unknown"}...
             </span>
           </div>
 
-          <div className="mb-2 text-sm text-gray-400">Conclusion</div>
+          <div className="mb-2 text-sm text-muted-foreground">Conclusion</div>
           <h2 className="text-xl font-semibold leading-snug text-foreground sm:text-2xl">
             {conclusion}
           </h2>
 
-          {summary.topRiskWallet && (
+          <div className="mt-4 grid gap-2 rounded-xl border border-border bg-secondary/40 p-4">
+            <div className="text-sm font-semibold text-foreground">Why this is suspicious</div>
+            <p className="text-sm leading-relaxed text-muted-foreground">{summary.whySuspicious}</p>
+          </div>
+
+          {summary.topRiskWallet && walletStyle && (
             <button
               type="button"
               onClick={() => onFocusTopRiskWallet(summary.topRiskWallet.id)}
-              className="mt-4 grid w-full gap-2 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-left transition-colors hover:border-red-400"
+              className={cn("mt-4 grid w-full gap-2 rounded-xl border p-4 text-left transition-colors", walletStyle.border)}
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500 text-white">
+                <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", walletStyle.iconBg)}>
                   <Target className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="text-sm text-red-200">Highest-risk wallet</div>
-                  <div className="break-all font-mono text-sm font-medium text-foreground">{summary.topRiskWallet.address}</div>
+                  <div className={cn("text-sm", walletStyle.textColor)}>{walletStyle.badgeText}</div>
+                  <div className="break-all font-mono text-sm font-medium text-foreground">
+                    {summary.topRiskWallet.address} (Risk: {summary.topRiskWallet.riskScore}%)
+                  </div>
                 </div>
               </div>
-              <span className="text-sm text-red-200">Focus on graph</span>
+              <span className={cn("text-sm", walletStyle.textColor)}>Focus on graph</span>
             </button>
           )}
         </Card>
 
-        <Card className="lg:col-span-4">
-          <div className="flex items-start justify-between">
+        <Card className="lg:col-span-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-gray-400">Risk score</div>
+              <div className="text-sm text-muted-foreground">Risk score</div>
               <div className="mt-2 flex items-baseline gap-1">
                 <span className={cn("text-6xl font-semibold leading-none", bucket.color)}>{summary.overallScore}</span>
                 <span className="text-lg font-medium text-muted-foreground">/100</span>
               </div>
-              <div className={cn("mt-2 inline-flex items-center gap-1 text-sm font-medium", bucket.color)}>
-                <TrendingUp className="h-3 w-3" /> {bucket.label}
+              <div className="mt-3">
+                <span className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1",
+                  bucket.bg, bucket.color, bucket.ring
+                )}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+                  {bucket.label}
+                </span>
               </div>
             </div>
 
             <RiskRing score={summary.overallScore} />
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
+          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-border pt-4">
             <Stat label="Confidence" value={`${confidence}%`} />
             <Stat label="Total Findings" value={`${summary.findingCount}`} />
+            <Stat label="Wallets" value={`${summary.walletCount}`} />
+            <Stat label="Data completeness" value={summary.dataCompleteness} />
           </div>
         </Card>
       </div>
@@ -107,7 +146,7 @@ export const InvestigationSummary = ({ summary, onFocusTopRiskWallet }: Props) =
 
 const Stat = ({ label, value }: { label: string; value: string }) => (
   <div>
-    <div className="text-sm text-gray-400">{label}</div>
+    <div className="text-sm text-muted-foreground">{label}</div>
     <div className="mt-1 text-base font-medium text-foreground">{value}</div>
   </div>
 );

@@ -130,12 +130,12 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
   if (step.kind === "success") {
     return (
       <div className="panel stack">
-        <p className="text-sm font-medium text-green-300">Dispute submitted on-chain.</p>
+        <p className="text-sm font-medium text-green-700">Dispute submitted on-chain.</p>
         <div className="facts">
           <span className="muted">Dispute ID: <span className="code">{step.disputeId}</span></span>
           <span className="muted">Request key: <span className="code">{step.requestKey}</span></span>
         </div>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-muted-foreground">
           The governance keyset must complete step 2 of the defpact to mark
           this dispute as reviewed.
         </p>
@@ -161,7 +161,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
           </label>
           {reasonHash ? (
             <div className="facts">
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 SHA-256 reason hash (stored on-chain):
               </span>
               <span className="code">
@@ -170,7 +170,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
             </div>
           ) : null}
           {step.kind === "error" ? (
-            <p className="rounded-xl border border-red-500 bg-red-500/10 px-4 py-3 text-sm text-red-300">{step.message}</p>
+            <p className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-700">{step.message}</p>
           ) : null}
           <div className="flex flex-wrap gap-2">
             {step.kind === "awaiting-signature" ? (
@@ -199,7 +199,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
               </button>
             )}
             {(step.kind === "preparing" || step.kind === "submitting") ? (
-              <span className="self-center text-sm text-gray-400">
+              <span className="self-center text-sm text-muted-foreground">
                 {step.kind === "preparing"
                   ? "Hashing reason and building Pact command..."
                   : "Waiting for chain confirmation..."}
@@ -208,7 +208,7 @@ export function DisputePanel({ caseId, caseSlug }: DisputePanelProps): ReactElem
           </div>
         </div>
       </form>
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-muted-foreground">
         Case ID: <span className="code">{caseId}</span>. Public slug: <span className="code">{caseSlug}</span>.
         Your dispute opens step 1 of the <code>raise-dispute</code> defpact.
         Step 2 requires the governance keyset to mark it reviewed.

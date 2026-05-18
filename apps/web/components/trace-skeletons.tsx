@@ -9,7 +9,7 @@ function SkeletonBlock({
 }): ReactElement {
   return (
     <div
-      className={`rounded-md bg-[linear-gradient(90deg,rgba(30,41,59,0.85)_25%,rgba(51,65,85,0.95)_50%,rgba(30,41,59,0.85)_75%)] bg-[length:200%_100%] animate-[shimmer_1.6s_linear_infinite] ${className}`}
+      className={`rounded-md bg-[linear-gradient(90deg,rgba(226,232,240,0.9)_25%,rgba(241,245,249,1)_50%,rgba(226,232,240,0.9)_75%)] bg-[length:200%_100%] animate-[shimmer_1.6s_linear_infinite] ${className}`}
     />
   );
 }
@@ -44,7 +44,7 @@ export function TimelineSkeleton(): ReactElement {
         <SkeletonBlock className="h-6 w-36" />
         <div className="grid gap-4">
           {[0, 1, 2].map((item) => (
-            <div key={item} className="grid gap-2 rounded-xl border border-gray-800 bg-gray-950 p-4">
+            <div key={item} className="grid gap-2 rounded-xl border border-border bg-secondary/50 p-4">
               <SkeletonBlock className="h-5 w-28" />
               <SkeletonBlock className="h-5 w-3/4" />
               <SkeletonBlock className="h-4 w-full" />
@@ -66,8 +66,8 @@ export function GraphSkeleton(): ReactElement {
             <SkeletonBlock className="h-6 w-28" />
             <SkeletonBlock className="h-6 w-32" />
           </div>
-          <div className="min-h-[520px] rounded-xl border border-gray-800 bg-gray-950 p-4">
-            <div className="flex h-full min-h-[488px] items-center justify-center rounded-lg border border-gray-800">
+          <div className="min-h-[520px] rounded-xl border border-border bg-secondary/50 p-4">
+            <div className="flex h-full min-h-[488px] items-center justify-center rounded-lg border border-border">
               <div className="grid gap-4 text-center">
                 <SkeletonBlock className="mx-auto h-12 w-12 rounded-full" />
                 <SkeletonBlock className="h-4 w-48" />

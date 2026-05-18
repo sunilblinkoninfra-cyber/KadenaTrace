@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Info, Sparkles } from "lucide-react";
 import { cn } from "../lib/utils";
 import type { Finding, GraphEdge, GraphNode, TraceGraph } from "@kadenatrace/shared/client";
@@ -28,16 +29,65 @@ export const DetailPanel = ({ graph, findings }: Props): ReactElement | null => 
   const node = selectedId ? graph.nodes.find((n) => n.id === selectedId) : null;
   const edge = selectedId && !node ? graph.edges.find((e) => e.id === selectedId) : null;
 
-  if (!node && !edge) return <EmptyState />;
+  return (
+    <InspectorPanel className="min-h-[520px] overflow-hidden relative">
+      <AnimatePresence mode="wait">
+        {!node && !edge ? (
+          <motion.div
+            key="empty"
+            variants={panelVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-4 h-full"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
+              <Info className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div>
+              <div className="text-xl font-semibold text-foreground">Select a node or edge</div>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Click any wallet or transfer in the graph to see plain-language explanations, signals, and confidence.
+              </p>
+            </div>
+          </motion.div>
+        ) : node ? (
+          <motion.div
+            key={`node-${node.id}`}
+            variants={panelVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-4 h-full"
+          >
+            <NodeDetailContent node={node} findings={findings} graph={graph} />
+          </motion.div>
+        ) : edge ? (
+          <motion.div
+            key={`edge-${edge.id}`}
+            variants={panelVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="flex flex-col gap-4 h-full"
+          >
+            <EdgeDetailContent edge={edge} graph={graph} findings={findings} />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </InspectorPanel>
+  );
+};
 
-  if (node) return <NodeDetail node={node} findings={findings} graph={graph} />;
-  if (edge) return <EdgeDetail edge={edge} graph={graph} findings={findings} />;
-  return null;
+const panelVariants = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as const } },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.15, ease: [0.16, 1, 0.3, 1] as const } }
 };
 
 const EmptyState = () => (
   <InspectorPanel className="min-h-[520px]">
-    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-800">
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
       <Info className="h-5 w-5 text-muted-foreground" />
     </div>
     <div>
@@ -49,7 +99,7 @@ const EmptyState = () => (
   </InspectorPanel>
 );
 
-const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Finding[]; graph: TraceGraph }) => {
+const NodeDetailContent = ({ node, findings, graph }: { node: GraphNode; findings: Finding[]; graph: TraceGraph }) => {
   const m = riskMeta(node.riskLevel);
   const inbound = graph.edges.filter((e) => e.to === node.id);
   const outbound = graph.edges.filter((e) => e.from === node.id);
@@ -57,7 +107,7 @@ const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Find
   const relatedFindings = findings.filter(f => f.relatedNodeIds.includes(node.id));
 
   return (
-    <InspectorPanel className="min-h-[520px]">
+    <>
       <div>
         <span className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium", m.bg, m.color)}>
           ● {m.label} · {Math.round(node.riskScore)}/100
@@ -66,7 +116,7 @@ const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Find
         <p className="mt-2 break-words font-mono text-sm text-muted-foreground">{node.address}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 rounded-xl border border-gray-800 bg-gray-950 p-4">
+      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-secondary/40 p-4">
         <Mini label="Type" value={node.kind} />
         <Mini label="Seed Exposure" value={`${node.valueFromSeedPct.toFixed(1)}%`} />
         <Mini label="Inbound" value={`${inbound.length} tx`} />
@@ -103,8 +153,8 @@ const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Find
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Detailed Signals</div>
           <div className="grid gap-2.5">
             {node.riskSignals.map((sig, idx) => (
-              <div key={`${sig.code}-${idx}`} className="rounded-lg border border-gray-800 bg-gray-950 p-3 text-xs">
-                <div className="font-semibold text-foreground">{sig.title} <span className="text-risk-high ml-1">(+{sig.weight})</span></div>
+              <div key={`${sig.code}-${idx}`} className="rounded-lg border border-border bg-secondary/50 p-3 text-xs">
+                <div className="font-semibold text-foreground">{sig.title} <span className="text-risk-high ml-1">(+${sig.weight})</span></div>
                 <div className="text-muted-foreground mt-1 leading-relaxed">{sig.reason}</div>
               </div>
             ))}
@@ -113,7 +163,7 @@ const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Find
       )}
 
       <div className="mt-auto pt-4">
-        <div className="rounded-xl border border-gray-800 bg-gray-950 p-4">
+        <div className="rounded-xl border border-border bg-secondary/50 p-4">
           <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <span>Confidence</span>
             <span className="text-foreground">{(node.riskConfidence * 100).toFixed(0)}%</span>
@@ -126,13 +176,21 @@ const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Find
           </div>
         </div>
       </div>
+    </>
+  );
+};
+
+const NodeDetail = ({ node, findings, graph }: { node: GraphNode; findings: Finding[]; graph: TraceGraph }) => {
+  return (
+    <InspectorPanel className="min-h-[520px]">
+      <NodeDetailContent node={node} findings={findings} graph={graph} />
     </InspectorPanel>
   );
 };
 
-const EdgeDetail = ({ edge, graph, findings }: { edge: GraphEdge; graph: TraceGraph; findings: Finding[] }) => {
-  const from = graph.nodes.find((n) => n.id === edge.from)!;
-  const to = graph.nodes.find((n) => n.id === edge.to)!;
+const EdgeDetailContent = ({ edge, graph, findings }: { edge: GraphEdge; graph: TraceGraph; findings: Finding[] }) => {
+  const from = graph.nodes.find((n) => n.id === edge.from);
+  const to = graph.nodes.find((n) => n.id === edge.to);
   const suspicious = edge.riskScore >= 50;
   
   const relatedFindings = findings.filter(f => f.relatedEdgeIds.includes(edge.id));
@@ -141,20 +199,31 @@ const EdgeDetail = ({ edge, graph, findings }: { edge: GraphEdge; graph: TraceGr
     relatedFindings[0]?.confidence ?? 0
   );
 
+  if (!from || !to) {
+    return (
+      <div className="grid gap-2">
+        <div className="text-xl font-semibold text-foreground">Transfer details unavailable</div>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          This edge references a missing node in the current graph snapshot, so the inspector cannot render the full transfer path.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <InspectorPanel className="min-h-[520px]">
+    <>
       <div>
         <span className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium", suspicious ? "bg-risk-high-bg text-risk-high" : "bg-risk-low-bg text-risk-low")}>
           {suspicious ? "Suspicious transfer" : "Normal transfer"}
         </span>
         <div className="mt-2 flex items-center gap-2 font-mono text-[13px]">
-          <span className="max-w-[120px] truncate rounded-md bg-gray-950 px-2.5 py-1.5">{from.address}</span>
+          <span className="max-w-[120px] truncate rounded-md bg-secondary px-2.5 py-1.5">{from.address}</span>
           <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="max-w-[120px] truncate rounded-md bg-gray-950 px-2.5 py-1.5">{to.address}</span>
+          <span className="max-w-[120px] truncate rounded-md bg-secondary px-2.5 py-1.5">{to.address}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 rounded-xl border border-gray-800 bg-gray-950 p-4">
+      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-secondary/40 p-4">
         <Mini label="Amount" value={`${edge.amount.toFixed(4)} ${edge.asset}`} />
         <Mini label="Time" value={new Date(edge.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
       </div>
@@ -198,7 +267,7 @@ const EdgeDetail = ({ edge, graph, findings }: { edge: GraphEdge; graph: TraceGr
       )}
 
       <div className="mt-auto pt-4">
-        <div className="rounded-xl border border-gray-800 bg-gray-950 p-4">
+        <div className="rounded-xl border border-border bg-secondary/50 p-4">
           <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <span>Confidence</span>
             <span className="text-foreground">{(edgeConfidence * 100).toFixed(0)}%</span>
@@ -211,13 +280,21 @@ const EdgeDetail = ({ edge, graph, findings }: { edge: GraphEdge; graph: TraceGr
           </div>
         </div>
       </div>
+    </>
+  );
+};
+
+const EdgeDetail = ({ edge, graph, findings }: { edge: GraphEdge; graph: TraceGraph; findings: Finding[] }) => {
+  return (
+    <InspectorPanel className="min-h-[520px]">
+      <EdgeDetailContent edge={edge} graph={graph} findings={findings} />
     </InspectorPanel>
   );
 };
 
 const Mini = ({ label, value }: { label: string; value: string }) => (
   <div>
-    <div className="text-sm text-gray-400">{label}</div>
+    <div className="text-sm text-muted-foreground">{label}</div>
     <div className="mt-1 break-words text-base font-medium text-foreground">{value}</div>
   </div>
 );

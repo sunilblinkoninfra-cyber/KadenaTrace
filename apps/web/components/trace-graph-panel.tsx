@@ -95,17 +95,17 @@ export function TraceGraphPanel(props: TraceGraphPanelProps): ReactElement {
               <summary className={buttonStyles("secondary")}>
                 Export graph
               </summary>
-              <div className="absolute right-0 top-full z-50 mt-2 flex w-40 flex-col rounded-xl border border-gray-800 bg-gray-900 p-1 text-popover-foreground">
-                <button className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-left outline-none hover:bg-gray-800 focus:bg-gray-800" type="button" onClick={downloadJson}>Export JSON</button>
-                <button className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-left outline-none hover:bg-gray-800 focus:bg-gray-800" type="button" onClick={downloadCsv}>Export CSV</button>
-                <button className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-left outline-none hover:bg-gray-800 focus:bg-gray-800" type="button" onClick={downloadPng}>Export PNG</button>
+              <div className="absolute right-0 top-full z-50 mt-2 flex w-40 flex-col rounded-xl border border-border bg-card p-1 text-popover-foreground shadow-card">
+                <button className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm outline-none hover:bg-secondary focus:bg-secondary" type="button" onClick={downloadJson}>Export JSON</button>
+                <button className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm outline-none hover:bg-secondary focus:bg-secondary" type="button" onClick={downloadCsv}>Export CSV</button>
+                <button className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm outline-none hover:bg-secondary focus:bg-secondary" type="button" onClick={downloadPng}>Export PNG</button>
               </div>
             </details>
           ) : null}
         </div>
 
         <div className={twoColumnClassName}>
-          <div className="min-h-[520px] overflow-hidden rounded-xl border border-gray-800 bg-gray-900 p-4">
+          <div className="min-h-[520px] overflow-hidden rounded-xl border border-border bg-card p-4 shadow-card">
             <GraphView
               graph={props.graph}
               findings={props.findings}

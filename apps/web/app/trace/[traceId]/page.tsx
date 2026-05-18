@@ -39,6 +39,14 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
     return <TraceErrorState traceId={traceId} />;
   }
 
+  if (!isDemo && trace.status !== "completed") {
+    trace = await waitForCompletedTrace(traceId, trace);
+  }
+
+  if (!trace) {
+    return <TraceErrorState traceId={traceId} />;
+  }
+
   if (trace.status !== "completed" || !trace.result) {
     return (
       <PageShell>
@@ -75,7 +83,7 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
             <h1 className="section-title break-words">Trace {trace.id}</h1>
             <div className="trace-meta">
               <span className="code">{trace.result.seed.seedValue}</span>
-              <span className="text-sm text-gray-400 uppercase">{trace.result.seed.seedType}</span>
+              <span className="text-sm uppercase text-muted-foreground">{trace.result.seed.seedType}</span>
             </div>
           </div>
           <Link href="/" className={buttonStyles("secondary")}>
@@ -84,7 +92,7 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-4 text-sm">
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-4 text-sm shadow-card">
         <span className="text-muted-foreground">
           Graph depth:{" "}
           <strong className="text-foreground">{trace.result.metrics.maxDepth ?? 2} hops</strong>
@@ -95,16 +103,16 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
         <span className="text-muted-foreground">
           Edges: <strong className="text-foreground">{trace.result.graph.edges.length}</strong>
         </span>
-        <a
-          href={`https://etherscan.io/address/${
-            trace.result.seed.seedValue
-          }`}
-          target="_blank"
-          rel="noreferrer"
-          className={`ml-auto ${buttonStyles("secondary")}`}
-        >
-          View on Etherscan ↗
-        </a>
+        {getExplorerHref(trace.result.seed.chain, trace.result.seed.seedType, trace.result.seed.seedValue) ? (
+          <a
+            href={getExplorerHref(trace.result.seed.chain, trace.result.seed.seedType, trace.result.seed.seedValue)!}
+            target="_blank"
+            rel="noreferrer"
+            className={`ml-auto ${buttonStyles("secondary")}`}
+          >
+            Open in explorer ↗
+          </a>
+        ) : null}
       </div>
 
       <TraceOverview
@@ -125,4 +133,52 @@ export default async function TracePage({ params }: { params: Promise<{ traceId:
       {isDemo ? null : <PublishCasePanel trace={trace} />}
     </PageShell>
   );
+}
+
+async function waitForCompletedTrace(
+  traceId: string,
+  initialTrace: Awaited<ReturnType<typeof getTrace>>
+) {
+  let currentTrace = initialTrace;
+
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    if (!currentTrace || currentTrace.status === "completed" || currentTrace.status === "failed") {
+      return currentTrace;
+    }
+
+    await delay(800 * attempt);
+    currentTrace = await getTrace(traceId);
+  }
+
+  return currentTrace ?? initialTrace;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function getExplorerHref(
+  chain: string,
+  seedType: string,
+  value: string
+): string | null {
+  const segment = seedType === "tx" ? "tx" : "address";
+
+  if (chain === "ethereum") {
+    return `https://etherscan.io/${segment}/${value}`;
+  }
+
+  if (chain === "bsc") {
+    return `https://bscscan.com/${segment}/${value}`;
+  }
+
+  if (chain === "bitcoin") {
+    return seedType === "tx"
+      ? `https://mempool.space/tx/${value}`
+      : `https://mempool.space/address/${value}`;
+  }
+
+  return null;
 }

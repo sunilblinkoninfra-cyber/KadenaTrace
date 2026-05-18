@@ -13,7 +13,7 @@ interface TraceState {
   activeFilters: string | null; // e.g. finding code
   
   // Actions
-  fetchAndSetTrace: (input: string) => Promise<string>;
+  fetchAndSetTrace: (input: string, seedType: "address" | "tx") => Promise<string>;
   setSelectedNodeId: (id: string | null) => void;
   setActiveFilters: (filter: string | null) => void;
   reset: () => void;
@@ -26,7 +26,7 @@ export const useTraceStore = create<TraceState>((set, get) => ({
   selectedNodeId: null,
   activeFilters: null,
 
-  fetchAndSetTrace: async (input: string) => {
+  fetchAndSetTrace: async (input: string, seedType: "address" | "tx") => {
     // Prevent duplicate API calls
     if (get().isLoading) {
       throw new Error("Trace is already loading");
@@ -35,17 +35,20 @@ export const useTraceStore = create<TraceState>((set, get) => ({
     set({ isLoading: true, selectedNodeId: null, activeFilters: null });
     
     try {
-      const { data, isDemo } = await getTrace(input);
+      const { data, isDemo } = await getTrace(input, seedType);
       const adapted = adaptTraceData(data);
       
       // Deterministic traceId if missing or demo
-      const finalTraceId = isDemo ? uuidv5(input, NAMESPACE) : (adapted.traceId || uuidv5(input, NAMESPACE));
+      const finalTraceId = isDemo ? "demo" : (adapted.traceId || uuidv5(`${seedType}:${input}`, NAMESPACE));
       adapted.traceId = finalTraceId;
 
       // Auto-select first node (preferably the seed if it exists, otherwise the first in the list)
       let defaultNodeId = null;
       if (adapted.graph.nodes.length > 0) {
-        const seedNode = adapted.graph.nodes.find(n => n.address.toLowerCase() === input.toLowerCase());
+        const seedNode =
+          seedType === "address"
+            ? adapted.graph.nodes.find((node) => node.address.toLowerCase() === input.toLowerCase())
+            : adapted.graph.nodes[0];
         defaultNodeId = seedNode ? seedNode.id : (adapted.graph.nodes[0]?.id ?? null);
       }
 

@@ -22,13 +22,13 @@ interface GraphViewProps {
 }
 
 const RISK_COLORS = {
-  critical: "#E5484D",
-  high: "#E5484D",
-  medium: "#F5B43B",
-  low: "#1F9D68",
-  unscored: "#94A3B8",
-  focus: "#1D9BF0",
-  focusDeep: "#1D4ED8"
+  critical: "#E11D48",
+  high: "#E11D48",
+  medium: "#D97706",
+  low: "#059669",
+  unscored: "#64748B",
+  focus: "#0EA5E9",
+  focusDeep: "#2563EB"
 } as const;
 
 export function GraphView({
@@ -45,48 +45,46 @@ export function GraphView({
 }: GraphViewProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<Core | null>(null);
-  // Ensure any external selection callbacks are deferred so they don't
-  // synchronously trigger React updates during hydration/render.
+
   const triggerOnNodeSelect = (id: string | undefined): void => {
     if (!onNodeSelect) return;
     if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
       window.requestAnimationFrame(() => onNodeSelect(id));
     } else {
-      // Fallback to setTimeout if RAF isn't available.
       setTimeout(() => onNodeSelect(id), 0);
     }
   };
+
   const [focusSuspiciousPaths, setFocusSuspiciousPaths] = useState(Boolean(focusedPathEdgeIds?.length));
-  const initialFocusedPathEdgeIds = useMemo(() => 
-    focusedPathEdgeIds && focusedPathEdgeIds.length > 0
-      ? focusedPathEdgeIds
-      : suspiciousPaths[0]?.edgeIds ?? [],
+  const initialFocusedPathEdgeIds = useMemo(
+    () =>
+      focusedPathEdgeIds && focusedPathEdgeIds.length > 0
+        ? focusedPathEdgeIds
+        : suspiciousPaths[0]?.edgeIds ?? [],
     [focusedPathEdgeIds, suspiciousPaths]
   );
 
   useEffect(() => {
-    const preferred = graph.nodes.find((node) => node.address.toLowerCase() === seedValue.toLowerCase()) ?? graph.nodes[0];
+    const preferred =
+      graph.nodes.find((node) => node.address.toLowerCase() === seedValue.toLowerCase()) ??
+      graph.nodes[0];
     if (preferred) {
       triggerOnNodeSelect(preferred.id);
     }
-  }, [graph.nodes, onNodeSelect, seedValue]);
+  }, [graph.nodes, seedValue]);
 
   useEffect(() => {
     setFocusSuspiciousPaths(Boolean(initialFocusedPathEdgeIds.length));
   }, [initialFocusedPathEdgeIds.length]);
 
   useEffect(() => {
-    if (!containerRef.current) {
-      return;
-    }
-
-    if (graph.nodes.length === 0) {
+    if (!containerRef.current || graph.nodes.length === 0) {
       return;
     }
 
     const maxEdgeAmount = Math.max(...graph.edges.map((edge) => edge.amount), 1);
     const minTime = Math.min(...graph.edges.map((edge) => Date.parse(edge.timestamp)));
-    
+
     const instance = cytoscape({
       container: containerRef.current,
       elements: [
@@ -121,25 +119,29 @@ export function GraphView({
       layout: {
         name: "breadthfirst",
         directed: true,
-        spacingFactor: 1.2,
-        padding: 48
+        spacingFactor: 1.85,
+        padding: 48,
+        avoidOverlap: true,
+        nodeDimensionsIncludeLabels: true
       },
       style: [
         {
           selector: "node",
           style: {
             label: "data(label)",
-            "font-size": "12px",
+            "font-size": "11px",
+            "font-family": "sans-serif",
+            "font-weight": "bold",
             "background-color": "data(nodeColor)",
-            color: "#10203A",
+            color: "#1E293B",
             width: "data(nodeSize)",
             height: "data(nodeSize)",
             "text-wrap": "wrap",
             "text-max-width": "120px",
             "text-valign": "bottom",
-            "text-margin-y": 12,
-            "border-width": "2.5px",
-            "border-color": "#F8FBFF",
+            "text-margin-y": 8,
+            "border-width": "3px",
+            "border-color": "#FFFFFF",
             opacity: 1
           }
         },
@@ -164,16 +166,16 @@ export function GraphView({
             "target-arrow-shape": "triangle",
             "curve-style": "bezier",
             content: "data(label)",
-            "font-size": "12px",
+            "font-size": "10px",
             "font-family": "monospace",
             "text-rotation": "autorotate",
-            "text-background-color": "rgba(10, 16, 27, 0.92)",
+            "text-background-color": "rgba(255, 255, 255, 0.92)",
             "text-background-opacity": 1,
             "text-background-padding": "4px",
             "text-margin-y": -10,
-            color: "#E2E8F0",
+            color: "#334155",
             "min-zoomed-font-size": "10px",
-            opacity: 0.82
+            opacity: 0.85
           }
         },
         {
@@ -181,7 +183,9 @@ export function GraphView({
           style: {
             "line-color": RISK_COLORS.focus,
             "target-arrow-color": RISK_COLORS.focus,
-            "line-style": "solid",
+            "line-style": "dashed",
+            "line-dash-pattern": [6, 4],
+            "line-dash-offset": 0,
             width: 4.5,
             opacity: 1,
             "z-index": 9
@@ -202,13 +206,13 @@ export function GraphView({
             "border-color": RISK_COLORS.focusDeep,
             "border-style": "solid",
             "border-width": 5,
-            "padding": "6px"
+            padding: "6px"
           }
         },
         {
           selector: ".dimmed",
           style: {
-            opacity: 0.18
+            opacity: 0.2
           }
         }
       ]
@@ -228,6 +232,65 @@ export function GraphView({
     onCyReady?.(instance);
     applyPathHighlight(instance, initialFocusedPathEdgeIds, focusSuspiciousPaths);
     applyNodeFocus(instance, focusedNodeId);
+
+    let isDestroyed = false;
+
+    // Pulsating animation for intermediate path/hop nodes
+    let step = 0;
+    const pulseInterval = setInterval(() => {
+      if (isDestroyed) {
+        clearInterval(pulseInterval);
+        return;
+      }
+      step = (step + 1) % 2;
+      const targetBorderWidth = step === 0 ? 8 : 3;
+      const targetBorderColor = step === 0 ? "rgba(14, 165, 233, 0.95)" : "rgba(14, 165, 233, 0.25)";
+      
+      instance.nodes(".path-node").forEach((node) => {
+        if (!node.hasClass("node-focused")) {
+          node.animate({
+            style: {
+              "border-width": targetBorderWidth,
+              "border-color": targetBorderColor
+            }
+          }, {
+            duration: 800
+          });
+        }
+      });
+    }, 1000);
+
+    // Pulsating animation for selected focused node
+    const focusedPulseInterval = setInterval(() => {
+      if (isDestroyed) {
+        clearInterval(focusedPulseInterval);
+        return;
+      }
+      const targetBorderWidth = step === 0 ? 9 : 4;
+      const targetBorderColor = step === 0 ? "rgba(37, 99, 235, 0.95)" : "rgba(37, 99, 235, 0.35)";
+      
+      instance.nodes(".node-focused").forEach((node) => {
+        node.animate({
+          style: {
+            "border-width": targetBorderWidth,
+            "border-color": targetBorderColor
+          }
+        }, {
+          duration: 800
+        });
+      });
+    }, 1000);
+
+    // Continuous flowing fund flow animation on the edge path
+    let edgeOffset = 0;
+    const edgeInterval = setInterval(() => {
+      if (isDestroyed) {
+        clearInterval(edgeInterval);
+        return;
+      }
+      edgeOffset = (edgeOffset - 2) % 24;
+      instance.edges(".highlighted").style("line-dash-offset", edgeOffset);
+    }, 80);
 
     instance.on("tap", "node", (event) => {
       const node = graph.nodes.find((item) => item.id === event.target.id());
@@ -249,11 +312,15 @@ export function GraphView({
     });
 
     return () => {
+      isDestroyed = true;
       cyRef.current = null;
       resizeObserver.disconnect();
+      clearInterval(pulseInterval);
+      clearInterval(focusedPulseInterval);
+      clearInterval(edgeInterval);
       instance.destroy();
     };
-  }, [focusSuspiciousPaths, graph, initialFocusedPathEdgeIds, focusedNodeId, onCyReady, onNodeSelect, seedValue, suspiciousPaths]);
+  }, [focusSuspiciousPaths, graph, initialFocusedPathEdgeIds, focusedNodeId, onCyReady, suspiciousPaths]);
 
   useEffect(() => {
     if (!cyRef.current) {
@@ -261,8 +328,8 @@ export function GraphView({
     }
 
     if (activeRiskFilters) {
-      const activeFindings = findings.filter(f => f.code === activeRiskFilters);
-      const edgeIdsToHighlight = activeFindings.flatMap(f => f.relatedEdgeIds);
+      const activeFindings = findings.filter((f) => f.code === activeRiskFilters);
+      const edgeIdsToHighlight = activeFindings.flatMap((f) => f.relatedEdgeIds);
       applyPathHighlight(cyRef.current, edgeIdsToHighlight, true);
     } else {
       applyPathHighlight(cyRef.current, initialFocusedPathEdgeIds, focusSuspiciousPaths);
@@ -292,7 +359,11 @@ export function GraphView({
     const matchingPath = suspiciousPaths
       .filter((path) => path.nodeIds.includes(focusedNodeId))
       .sort((left, right) => right.riskScore - left.riskScore)[0];
-    applyPathHighlight(cyRef.current, matchingPath?.edgeIds ?? initialFocusedPathEdgeIds, focusSuspiciousPaths);
+    applyPathHighlight(
+      cyRef.current,
+      matchingPath?.edgeIds ?? initialFocusedPathEdgeIds,
+      focusSuspiciousPaths
+    );
 
     const cyNode = cyRef.current.getElementById(focusedNodeId);
     if (cyNode.nonempty()) {
@@ -301,15 +372,15 @@ export function GraphView({
         duration: 350
       });
     }
-  }, [focusedNodeId, focusSuspiciousPaths, graph.nodes, initialFocusedPathEdgeIds, onNodeSelect, suspiciousPaths]);
+  }, [focusedNodeId, focusSuspiciousPaths, graph.nodes, initialFocusedPathEdgeIds, suspiciousPaths]);
 
-  if (graph.nodes.length === 0 && findings.length === 0) {
+  if (graph.nodes.length === 0) {
     return (
       <div className="graph-shell">
         <section className="graph-empty-state panel">
-          <h3>No transaction graph available.</h3>
+          <h3 className="font-display text-lg font-bold text-slate-800">No transaction graph available.</h3>
           <p className="muted">Try:</p>
-          <ul className="graph-empty-list">
+          <ul className="graph-empty-list font-semibold">
             <li>Using demo case</li>
             <li>Checking wallet address</li>
           </ul>
@@ -330,34 +401,61 @@ export function GraphView({
     <div className="graph-shell h-full gap-0 bg-transparent p-0">
       <div className="graph-main h-full min-h-[520px] w-full">
         <div className="graph-filters absolute left-4 top-4 z-10">
-          <label className="graph-toggle">
+          <label className="graph-toggle cursor-pointer select-none">
             <input
               checked={focusSuspiciousPaths}
               type="checkbox"
+              className="accent-sky-600 rounded mr-2"
               onChange={(event) => setFocusSuspiciousPaths(event.target.checked)}
             />
-            <span>Focus suspicious paths</span>
+            <span className="font-display text-xs font-bold uppercase tracking-wider text-slate-600">
+              Focus suspicious paths
+            </span>
           </label>
         </div>
 
-        <div className="absolute bottom-4 left-4 z-10 flex flex-wrap items-center gap-2 rounded-lg border border-gray-800 bg-gray-950/95 px-3 py-2 text-xs shadow-sm backdrop-blur">
-          <span className="font-medium uppercase tracking-wider text-muted-foreground">Risk</span>
+        <div className="absolute bottom-4 left-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2.5 text-xs font-semibold shadow-sm backdrop-blur">
+          <span className="font-display font-extrabold uppercase tracking-wider text-slate-500">Risk Ledger</span>
           <LegendDot color={RISK_COLORS.high} label="High" />
           <LegendDot color={RISK_COLORS.medium} label="Med" />
           <LegendDot color={RISK_COLORS.low} label="Low" />
-          <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">Thicker edge = higher value</span>
+          <span className="text-slate-300">·</span>
+          <span className="text-slate-500 font-medium font-mono">Thicker line = larger transaction</span>
         </div>
 
-        <div className="graph-canvas-wrap h-full min-h-[520px] bg-transparent shadow-none">
+        <div className="graph-canvas-wrap h-full min-h-[520px] bg-transparent shadow-none p-0 border-none">
           <div className="absolute right-4 top-4 z-10 flex flex-col gap-2">
-            <div className="flex flex-col overflow-hidden rounded-lg border border-gray-800 bg-gray-900/90 shadow-sm backdrop-blur">
-              <button aria-label="Zoom in" className="flex h-10 w-10 items-center justify-center border-b border-gray-800 text-muted-foreground transition-colors hover:bg-gray-800 hover:text-foreground" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 1.2)}>+</button>
-              <button aria-label="Zoom out" className="flex h-10 w-10 items-center justify-center text-muted-foreground transition-colors hover:bg-gray-800 hover:text-foreground" type="button" onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 0.8)}>-</button>
+            <div className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+              <button
+                aria-label="Zoom in"
+                className="flex h-10 w-10 items-center justify-center border-b border-slate-200 text-slate-500 cursor-pointer transition-colors hover:bg-slate-100 hover:text-slate-800 text-lg font-bold"
+                type="button"
+                onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 1.2)}
+              >
+                +
+              </button>
+              <button
+                aria-label="Zoom out"
+                className="flex h-10 w-10 items-center justify-center text-slate-500 cursor-pointer transition-colors hover:bg-slate-100 hover:text-slate-800 text-lg font-bold"
+                type="button"
+                onClick={() => cyRef.current?.zoom(cyRef.current.zoom() * 0.8)}
+              >
+                -
+              </button>
             </div>
-            <button className={buttonStyles("secondary")} type="button" onClick={() => cyRef.current?.fit(undefined, 48)}>Reset</button>
+            <button
+              className={buttonStyles("secondary")}
+              type="button"
+              onClick={() => cyRef.current?.fit(undefined, 48)}
+            >
+              Reset
+            </button>
           </div>
-          <div className="graph-canvas rounded-lg" ref={containerRef} style={{ height: "100%", minHeight: "488px", width: "100%" }} />
+          <div
+            className="graph-canvas rounded-2xl"
+            ref={containerRef}
+            style={{ height: "100%", minHeight: "520px", width: "100%" }}
+          />
         </div>
       </div>
     </div>
@@ -365,9 +463,9 @@ export function GraphView({
 }
 
 const LegendDot = ({ color, label }: { color: string; label: string }) => (
-  <span className="inline-flex items-center gap-1">
-    <span className="h-2 w-2 rounded-full" style={{ background: color }} />
-    <span className="font-medium text-foreground">{label}</span>
+  <span className="inline-flex items-center gap-1.5">
+    <span className="h-2.5 w-2.5 rounded-full border border-white" style={{ background: color }} />
+    <span className="font-extrabold text-slate-700">{label}</span>
   </span>
 );
 
@@ -448,7 +546,7 @@ function getNodeDisplayLevel(node: GraphNode): GraphNode["riskLevel"] | "unscore
 }
 
 function getNodeSize(riskScore: number): number {
-  return 28 + Math.min(24, Math.round(riskScore * 0.24));
+  return 30 + Math.min(24, Math.round(riskScore * 0.24));
 }
 
 function getEdgeColor(riskScore: number): string {
@@ -459,12 +557,12 @@ function getEdgeColor(riskScore: number): string {
     return RISK_COLORS.medium;
   }
   if (riskScore >= 10) {
-    return "#73C48F";
+    return "#059669";
   }
-  return "#B7C4D7";
+  return "#64748B";
 }
 
 function getEdgeWidth(amount: number, maxAmount: number): number {
   const normalized = maxAmount <= 0 ? 0 : amount / maxAmount;
-  return Number((1.0 + normalized * 1.5).toFixed(2));
+  return Number((1.2 + normalized * 1.8).toFixed(2));
 }

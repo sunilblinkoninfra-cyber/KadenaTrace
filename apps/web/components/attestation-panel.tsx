@@ -150,7 +150,11 @@ export function AttestationPanel({ fraudCase }: { fraudCase: PublicCaseView }): 
             {pending ? "Submitting..." : "Sign & Publish Attestation"}
           </button>
         </div>
-        {status ? <p className="rounded-xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-300">{status}</p> : null}
+        {status ? (
+          <p className="rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm text-foreground" aria-live="polite">
+            {status}
+          </p>
+        ) : null}
       </div>
     </section>
   );

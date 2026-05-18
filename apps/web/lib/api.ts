@@ -58,31 +58,49 @@ class ApiRequestError extends Error {
   }
 }
 
-const API_BASE_URL =
-  (typeof window !== "undefined"
-    ? (window as unknown as { __NEXT_DATA__?: { env?: { NEXT_PUBLIC_API_BASE_URL?: string } } }).__NEXT_DATA__?.env?.NEXT_PUBLIC_API_BASE_URL
-    : undefined) ??
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "http://localhost:4000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 const DEFAULT_RETRIES = 3;
 const DEFAULT_DELAY_MS = 700;
 const ENGINE_UNAVAILABLE_MESSAGE =
-  "Tracing engine temporarily unavailable. Please retry or use the demo case.";
+  "Unable to connect to tracing engine. Possible reasons: API waking up (cold start), network issue. Please retry.";
 
 export async function apiFetch<T>(
   path: string,
-  options?: RequestInit
+  options?: RequestInit & { retries?: number; retryNotFound?: boolean }
 ): Promise<T | null> {
+  if (!API_BASE_URL) {
+    console.error(`[apiFetch] Missing NEXT_PUBLIC_API_URL. Cannot fetch ${path}.`);
+    return null;
+  }
+
+  const retries = options?.retries ?? DEFAULT_RETRIES;
+  const retryNotFound = options?.retryNotFound ?? false;
+
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      cache: "no-store",
-      ...options
-    });
-    if (!response.ok) {
-      console.error(`[apiFetch] ${path} returned HTTP ${response.status}`);
-      return null;
+    for (let attempt = 1; attempt <= retries; attempt += 1) {
+      const response = await fetch(`${API_BASE_URL}${path}`, {
+        cache: "no-store",
+        ...options
+      });
+
+      if (response.ok) {
+        return (await response.json()) as T;
+      }
+
+      const shouldRetry =
+        attempt < retries &&
+        (shouldRetryStatus(response.status) || (retryNotFound && response.status === 404));
+
+      console.error(`[apiFetch] ${path} returned HTTP ${response.status} (attempt ${attempt}/${retries})`);
+
+      if (!shouldRetry) {
+        return null;
+      }
+
+      await delay(DEFAULT_DELAY_MS * attempt);
     }
-    return (await response.json()) as T;
+
+    return null;
   } catch (err) {
     console.error(
       `[apiFetch] Network error fetching ${path}:`,
@@ -120,13 +138,16 @@ export async function fetchCase(slug: string): Promise<PublicCaseView | null> {
 }
 
 export async function getTrace(traceId: string): Promise<TraceRecord | null> {
-  const response = await apiFetch<unknown>(`/api/traces/${traceId}`);
+  const response = await apiFetch<unknown>(`/api/traces/${traceId}`, {
+    retries: 4,
+    retryNotFound: true
+  });
   return isTraceRecord(response) ? response : null;
 }
 
 export async function fetchTrace(payload: unknown): Promise<TraceSubmissionResponse> {
   if (!API_BASE_URL) {
-    console.error("fetchTrace aborted: NEXT_PUBLIC_API_BASE_URL is not configured.");
+    console.error("fetchTrace aborted: NEXT_PUBLIC_API_URL is not configured.");
     throw new Error(ENGINE_UNAVAILABLE_MESSAGE);
   }
 

@@ -1,7 +1,8 @@
 "use client";
 
 import type { TraceResult } from "@kadenatrace/shared/client";
-import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, type ReactElement } from "react";
 
 import { buildInvestigationSummary, buildInvestigationTimeline } from "../lib/investigation";
 import { InvestigationSummary } from "./investigation-summary";
@@ -9,6 +10,7 @@ import { InvestigationTimeline } from "./investigation-timeline";
 import { RiskFlags } from "./risk-flags";
 import { TraceGraphPanel } from "./trace-graph-panel";
 import { VerificationStrip } from "./verification-strip";
+import { ErrorStateCard, Section, buttonStyles } from "./ui";
 import { useTraceStore } from "../lib/store";
 import { adaptTraceData } from "../lib/adapter";
 
@@ -34,7 +36,19 @@ export function TraceOverview({
   autoScrollSummary = false
 }: TraceOverviewProps): ReactElement {
   if (!trace?.graph || trace.graph.nodes.length === 0) {
-    return <></>;
+    return (
+      <Section className="pt-0">
+        <ErrorStateCard
+          className="w-full"
+          title="No transaction graph available"
+          message="Try using the demo case or verify that the wallet or transaction input is correct. We could not build a usable graph from the current trace payload."
+        >
+          <Link href="/trace/demo" className={buttonStyles("primary")}>
+            Use Demo Case
+          </Link>
+        </ErrorStateCard>
+      </Section>
+    );
   }
 
   const summary = useMemo(() => buildInvestigationSummary(trace), [trace]);
@@ -114,11 +128,11 @@ export function TraceOverview({
 
       {isDemo ? (
         <div className="mx-auto w-full max-w-screen-xl px-6">
-          <div className="flex items-start gap-2 rounded-xl border border-yellow-500 bg-yellow-500/10 p-4 text-yellow-200">
+          <div className="flex items-start gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-4 text-yellow-700 shadow-card">
             <span className="pt-0.5 text-lg">!</span>
             <div className="grid gap-1">
-              <div className="text-sm font-medium">⚠ Live tracing unavailable — showing demo investigation</div>
-              <div className="text-sm text-yellow-100/80">This walkthrough uses bundled example data, not live blockchain activity.</div>
+              <div className="text-sm font-medium">Demo Investigation (preloaded example)</div>
+              <div className="text-sm text-yellow-700/80">Live tracing is currently unavailable, so this walkthrough uses bundled example data rather than live blockchain activity.</div>
             </div>
           </div>
         </div>

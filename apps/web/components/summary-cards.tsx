@@ -1,4 +1,5 @@
 import { type ReactElement } from "react";
+import { motion } from "framer-motion";
 
 import type { TraceGraph, TraceMetrics, TraceRequest } from "@kadenatrace/shared/client";
 
@@ -16,48 +17,41 @@ export function SummaryCards({
   const meanTimeToExit = metrics.velocity.meanTimeToExitMinutes;
   const efficiencyScore = metrics.velocity.criminalEfficiencyScore;
 
+  const cardItems = [
+    { label: "Graph Nodes", value: metrics.totalNodes },
+    { label: "Graph Edges", value: metrics.totalEdges },
+    { label: "Chains Involved", value: metrics.chainsInvolved.join(", ") },
+    { label: "Value to Exchanges", value: metrics.tracedValueToExchanges },
+    { label: "Suspicious Paths", value: metrics.suspiciousPathCount },
+    { label: "Pruned Nodes", value: metrics.prunedNodes },
+    { label: "Hops to Mixer", value: hopsToMixer ?? "N/A" },
+    { label: "Bridge Crossings", value: bridgeCrossings },
+    { label: "Mean Time to Exit", value: meanTimeToExit === null ? "Open" : formatMinutes(meanTimeToExit) },
+    { label: "Efficiency Score", value: efficiencyScore === null ? "N/A" : `${efficiencyScore}/100` }
+  ];
+
   return (
-    <section className="summary-cards">
-      <article className="summary-card">
-        <span className="muted">Nodes</span>
-        <strong>{metrics.totalNodes}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Edges</span>
-        <strong>{metrics.totalEdges}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Chains</span>
-        <strong>{metrics.chainsInvolved.join(", ")}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Value to exchanges</span>
-        <strong>{metrics.tracedValueToExchanges}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Suspicious paths</span>
-        <strong>{metrics.suspiciousPathCount}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Pruned nodes</span>
-        <strong>{metrics.prunedNodes}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Hops to mixer</span>
-        <strong>{hopsToMixer ?? "N/A"}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Bridge crossings</span>
-        <strong>{bridgeCrossings}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Mean Time to Exit</span>
-        <strong>{meanTimeToExit === null ? "Open" : formatMinutes(meanTimeToExit)}</strong>
-      </article>
-      <article className="summary-card">
-        <span className="muted">Efficiency Score</span>
-        <strong>{efficiencyScore === null ? "N/A" : `${efficiencyScore}/100`}</strong>
-      </article>
+    <section className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      {cardItems.map((item, idx) => (
+        <motion.article
+          key={item.label}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: idx * 0.04 }}
+          whileHover={{ y: -3, borderColor: "rgba(14, 165, 233, 0.4)", boxShadow: "0 10px 25px -5px rgba(14, 165, 233, 0.08)" }}
+          className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white/95 to-slate-50/50 p-4 shadow-sm hover:bg-white transition-colors group cursor-default"
+        >
+          {/* Decorative glowing gradient sphere inside the card */}
+          <div className="absolute -right-6 -bottom-6 h-16 w-16 rounded-full bg-sky-400/5 blur-xl group-hover:bg-sky-400/12 transition-all duration-300" />
+          
+          <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 font-display">
+            {item.label}
+          </span>
+          <strong className="block mt-2.5 font-display text-2xl font-black text-slate-800 tracking-tight break-all">
+            {item.value}
+          </strong>
+        </motion.article>
+      ))}
     </section>
   );
 }

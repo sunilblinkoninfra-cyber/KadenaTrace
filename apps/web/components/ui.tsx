@@ -1,32 +1,35 @@
 import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from "react";
-
 import { cn } from "../lib/utils";
 
 export const pageShellClassName =
-  "mx-auto flex w-full max-w-screen-xl flex-1 flex-col gap-6 px-6 py-6 lg:py-8";
+  "mx-auto flex w-full max-w-screen-xl flex-1 flex-col gap-6 px-6 py-6 lg:py-8 animate-slide-in";
 
 export const sectionShellClassName =
   "mx-auto flex w-full max-w-screen-xl flex-col gap-6 px-6";
 
 export const twoColumnClassName =
-  "grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]";
+  "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]";
 
 export const sidebarClassName =
-  "flex h-full w-full flex-col gap-4 xl:w-[360px]";
+  "flex h-full w-full flex-col gap-4 lg:w-[360px]";
 
 export const focusRingClassName =
-  "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-950";
+  "focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-background";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "subtle";
 
 export function buttonStyles(variant: ButtonVariant = "secondary"): string {
   return cn(
-    "inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex h-10 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-bold transition-all duration-200 cursor-pointer disabled:pointer-events-none disabled:opacity-50",
     focusRingClassName,
-    variant === "primary" && "bg-blue-600 text-white hover:bg-blue-500",
-    variant === "secondary" && "bg-gray-800 text-gray-100 hover:bg-gray-700",
-    variant === "danger" && "bg-red-600 text-white hover:bg-red-500",
-    variant === "subtle" && "border border-gray-800 bg-gray-900 text-gray-100 hover:border-gray-700 hover:bg-gray-800"
+    variant === "primary" &&
+      "border-sky-600 bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-glow hover:shadow-glow-cyan hover:from-sky-600 hover:to-blue-700",
+    variant === "secondary" &&
+      "border-slate-200 bg-white/80 text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 shadow-sm",
+    variant === "danger" &&
+      "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:border-rose-300 shadow-sm",
+    variant === "subtle" &&
+      "border-transparent bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-800"
   );
 }
 
@@ -37,7 +40,10 @@ export function Card({
 }: ComponentPropsWithoutRef<"div">): ReactElement {
   return (
     <div
-      className={cn("rounded-xl border border-gray-800 bg-gray-900 p-4", className)}
+      className={cn(
+        "rounded-2xl border border-white/50 bg-white/70 p-5 shadow-glow backdrop-blur-md transition-all duration-300 hover:shadow-glow-cyan hover:border-white/80",
+        className
+      )}
       {...props}
     >
       {children}
@@ -53,7 +59,7 @@ export function InspectorPanel({
   return (
     <aside
       className={cn(
-        "mt-0 flex h-full w-full flex-col gap-4 rounded-xl border border-gray-800 bg-gray-900 p-4 xl:w-[360px]",
+        "mt-0 flex h-full w-full flex-col gap-4 rounded-2xl border border-white/50 bg-white/70 p-5 shadow-glow backdrop-blur-md lg:w-[360px] transition-all duration-300 hover:shadow-glow-cyan",
         className
       )}
       {...props}
@@ -101,14 +107,14 @@ export function ErrorStateCard({
   return (
     <div
       className={cn(
-        "rounded-xl border border-red-500 bg-red-500/10 p-4 text-red-400",
+        "rounded-2xl border border-rose-200 bg-rose-50/80 p-5 text-rose-700 shadow-sm backdrop-blur-sm",
         className
       )}
       role="alert"
     >
       <div className="grid gap-2">
-        <h2 className="text-lg font-medium text-red-300">{title}</h2>
-        <p className="text-sm leading-6 text-red-200/80">{message}</p>
+        <h2 className="font-display text-lg font-bold text-rose-800">{title}</h2>
+        <p className="text-sm leading-6 text-rose-700/90 font-medium">{message}</p>
         {children ? <div className="flex flex-wrap gap-2 pt-2">{children}</div> : null}
       </div>
     </div>

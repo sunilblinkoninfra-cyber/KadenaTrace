@@ -2,6 +2,7 @@
 
 import type { PreparedCaseAnchorPayload } from "@kadenatrace/pact";
 import { useState, type ChangeEvent, type ReactElement } from "react";
+import { motion } from "framer-motion";
 
 import type { Finding, TraceRecord } from "@kadenatrace/shared/client";
 
@@ -122,166 +123,189 @@ export function PublishCasePanel({ trace }: { trace: TraceRecord }): ReactElemen
   }
 
   return (
-      <section className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 px-6">
-      <div>
-        <div>
-          <span className="pill">Publish Investigation</span>
-          <h2 className="mt-2 text-xl font-semibold text-foreground">Turn this trace into a public fraud case</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Create a public investigation page, then optionally anchor the final snapshot on Kadena for external verification.
-          </p>
-        </div>
+    <section className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 px-6">
+      <div className="mb-2">
+        <span className="pill">Publish Investigation</span>
+        <h2 className="mt-2 text-2xl font-black text-slate-800 font-display">
+          Anchor Public Forensic Report
+        </h2>
+        <p className="mt-2 text-sm font-semibold text-slate-500 leading-relaxed max-w-2xl">
+          Publish an immutable, shareable forensic audit trail. Anchor a zero-knowledge snapshot key directly to Kadena for cryptographically verifiable disputes.
+        </p>
       </div>
 
       <div className={twoColumnClassName}>
         <div className="grid gap-6">
           <div className="grid gap-4 md:grid-cols-2">
-            <Card>
+            <Card className="p-5 bg-gradient-to-br from-white/95 to-slate-50/50 border-slate-200/60 rounded-2xl shadow-sm">
               <div className="grid gap-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Signing Wallet
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-display">
+                  Signing Identity
                 </div>
-                <div className="trace-meta gap-2">
-                  <span className="pill">{wallet.currentAdapterName ?? "Wallet not selected"}</span>
+                <div className="trace-meta gap-2 mt-1">
+                  <span className="pill font-display text-[9px] uppercase tracking-wider">
+                    {wallet.currentAdapterName ?? "No Wallet Connected"}
+                  </span>
                 </div>
-                <div className="text-sm font-medium text-foreground">
-                  {wallet.signer?.accountName ?? "Connect a Kadena wallet to sign"}
+                <div className="text-sm font-extrabold text-slate-800 font-mono mt-1 truncate">
+                  {wallet.signer?.accountName ?? "Verification Required"}
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs font-semibold text-slate-500 leading-relaxed mt-1">
                   {wallet.signer
-                    ? "Your connected Kadena wallet will sign the publication and anchoring flow."
-                    : "Connect a Kadena wallet when you are ready to sign the investigation record."}
+                    ? "Your active account key will sign this case's root hash anchor payload."
+                    : "Connect a Kadena wallet to anchor verification steps on the public ledger."}
                 </p>
               </div>
             </Card>
 
             <div className={resolveUrgencyCardClassName(urgencyGauge.toneClass)}>
               <div className="grid gap-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-display">
                   {urgencyGauge.label}
                 </div>
-                <div className="text-xl font-semibold text-foreground">
+                <div className="text-xl font-black text-slate-800 font-display mt-1">
                   {urgencyGauge.value}
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs font-semibold text-slate-600 leading-relaxed">
                   {urgencyGauge.descriptor}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs font-semibold text-red-600 bg-white/70 px-2.5 py-1 rounded-lg border border-red-200/40 w-fit font-mono mt-1">
                   {urgencyGauge.warning}
                 </p>
               </div>
             </div>
           </div>
 
-          <Card>
-            <div className="grid gap-2">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Public Audit URL
+          <Card className="p-5 bg-gradient-to-br from-white/95 to-slate-50/50 border-slate-200/60 rounded-2xl shadow-sm">
+            <div className="grid gap-2.5">
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-display">
+                Public Verification Permastate Link
               </div>
-              <span className="code">
-                {publicAuditUrl ?? "Create a public case to generate a shareable permalink."}
+              <span className="font-mono text-xs font-extrabold text-sky-700 bg-sky-50 border border-sky-200/60 px-3 py-2.5 rounded-xl break-all shadow-sm">
+                {publicAuditUrl ?? "Permalink will be available once case is published."}
               </span>
-              <p className="text-sm text-muted-foreground">
-                Once created, this becomes the shareable public case page for investigators, partners, and reviewers.
+              <p className="text-xs font-semibold text-slate-500 leading-relaxed">
+                Use this immutable URL for submitting formal complaints, exchange alerts, and sharing proof audits.
               </p>
             </div>
           </Card>
 
-          <Card className="grid gap-4">
+          <Card className="grid gap-5 p-6 bg-gradient-to-br from-white/95 to-slate-50/50 border-slate-200/60 rounded-2xl shadow-sm">
             <div className="grid gap-4 md:grid-cols-2">
-              <label>
-                <span className="text-sm font-semibold text-foreground">Case Title</span>
+              <label className="flex flex-col gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500 font-display">
+                Case Report Title
                 <input
-                  className="input"
+                  className="input bg-white text-slate-800 font-bold border-slate-200/80 focus:border-sky-500"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                 />
               </label>
 
-              <label>
-                <span className="text-sm font-semibold text-foreground">Executive Summary</span>
+              <label className="flex flex-col gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500 font-display">
+                Executive Executive Summary
                 <input
-                  className="input"
+                  className="input bg-white text-slate-800 font-bold border-slate-200/80 focus:border-sky-500"
                   value={summary}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => setSummary(event.target.value)}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setSummary(event.target.value)}
                 />
               </label>
             </div>
 
-            <label className="grid gap-2">
-              <span className="text-sm font-semibold text-foreground">Public Narrative</span>
-              <span className="text-sm text-muted-foreground">
-                Keep this readable for reviewers. Focus on the laundering pattern, affected branches, and why the case matters.
+            <label className="grid gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-500 font-display">
+              Public Case Narrative
+              <span className="text-xs font-semibold text-slate-400 font-sans tracking-normal capitalize mt-0.5">
+                Explain the laundering flow, asset splits, cross-chain hopping nodes, and final trace verdict.
               </span>
               <textarea
-                className="input min-h-[220px]"
+                className="input min-h-[220px] bg-white text-slate-800 font-medium border-slate-200/80 focus:border-sky-500"
                 value={narrative}
                 onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNarrative(event.target.value)}
               />
             </label>
 
             {status ? (
-              <p className="rounded-xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-300">
+              <p className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3.5 text-xs font-bold text-sky-800 font-mono shadow-sm" aria-live="polite">
                 {status}
               </p>
             ) : null}
 
-            <div className="actions">
-              <button className={buttonStyles("primary")} type="button" disabled={pending} onClick={createCase}>
-                {pending ? "Working..." : "Create Public Case"}
+            <div className="flex flex-wrap gap-3.5 pt-2">
+              <button 
+                className={`${buttonStyles("primary")} cursor-pointer font-bold text-xs shadow-glow`} 
+                type="button" 
+                disabled={pending} 
+                onClick={createCase}
+              >
+                {pending ? "Publishing..." : "Create Public Case"}
               </button>
               {caseId ? (
-                <button className={buttonStyles("secondary")} type="button" disabled={pending || !wallet.signer} onClick={anchorCase}>
-                  Sign & Relay on Kadena
+                <button 
+                  className={`${buttonStyles("secondary")} cursor-pointer font-bold text-xs`} 
+                  type="button" 
+                  disabled={pending || !wallet.signer} 
+                  onClick={anchorCase}
+                >
+                  Sign & Anchor on Kadena
                 </button>
               ) : null}
               {slug ? (
-                <a className={buttonStyles("secondary")} href={`/case/${slug}`}>
-                  Open public case
+                <a 
+                  className={`${buttonStyles("secondary")} cursor-pointer font-bold text-xs inline-flex items-center`} 
+                  href={`/case/${slug}`}
+                >
+                  Open Report Portal
                 </a>
               ) : null}
             </div>
           </Card>
         </div>
 
-        <InspectorPanel className="min-h-[520px]">
-          <div className="flex h-full flex-col gap-4">
-            <div className="grid gap-2">
+        {/* Right side interactive exit tracker timeline */}
+        <InspectorPanel className="min-h-[520px] bg-gradient-to-br from-white/95 to-slate-50/50 border-slate-200/60 rounded-2xl p-5 shadow-sm stack">
+          <div className="flex h-full flex-col gap-5">
+            <div className="grid gap-2 border-b border-slate-200/60 pb-3">
               <div className="trace-meta gap-2">
-                <span className="pill">{wallet.currentAdapterName ?? "Wallet not selected"}</span>
-                <span className="muted">
-                  {velocityMetrics?.terminalPathCount ?? 0} terminal branch{velocityMetrics?.terminalPathCount === 1 ? "" : "es"}
+                <span className="pill font-display text-[9px] uppercase tracking-wider">Laundering Velocity</span>
+                <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+                  {velocityMetrics?.terminalPathCount ?? 0} terminal path{velocityMetrics?.terminalPathCount === 1 ? "" : "s"}
                 </span>
               </div>
-              <h3 className="text-xl font-semibold text-foreground">Hop Timeline</h3>
-              <p className="text-sm text-muted-foreground">
-                Follow how quickly the trace reaches bridges, exchanges, or other terminal destinations.
+              <h3 className="text-lg font-black text-slate-800 font-display mt-1">Terminal Exit Watch</h3>
+              <p className="text-xs font-semibold text-slate-500 leading-relaxed">
+                Follow chronological steps as tracked funds propagate through mixers, bridge vaults, or exit points.
               </p>
             </div>
 
             {timelineEntries.length > 0 ? (
-              <div className="grid gap-4">
+              <div className="grid gap-4 overflow-y-auto pr-1">
                 {timelineEntries.map((entry) => (
-                  <article key={entry.id} className="rounded-xl border border-gray-800 bg-gray-950 p-4">
-                    <div className="grid gap-2">
-                      <span className="inline-flex w-fit rounded-full bg-cyan/10 px-2 py-1 text-[11px] font-semibold text-cyan">
+                  <article 
+                    key={entry.id} 
+                    className="rounded-2xl border border-slate-200/60 bg-white p-4.5 shadow-sm hover:border-sky-300 transition-colors"
+                  >
+                    <div className="grid gap-2 text-xs font-bold text-slate-600">
+                      <span className="inline-flex w-fit rounded-full bg-sky-100 border border-sky-200 px-2.5 py-0.5 text-[9px] font-extrabold text-sky-700 font-display uppercase tracking-wider">
                         {entry.gapLabel}
                       </span>
-                      <strong className="text-base font-semibold text-foreground">{entry.title}</strong>
-                      <span className="text-sm text-muted-foreground">{entry.subtitle}</span>
-                      <span className="text-sm text-muted-foreground">{entry.timestampLabel}</span>
-                      {entry.terminalLabel ? <span className="pill">{entry.terminalLabel}</span> : null}
-                      <span className="code">{entry.txHash}</span>
+                      <strong className="text-sm font-black text-slate-800 font-display">{entry.title}</strong>
+                      <span className="text-slate-500 font-semibold">{entry.subtitle}</span>
+                      <span className="text-slate-500 font-semibold font-mono text-[10px]">{entry.timestampLabel}</span>
+                      {entry.terminalLabel ? (
+                        <span className="pill bg-rose-50 border border-rose-200 text-rose-700 font-display text-[9px] uppercase tracking-wider">
+                          {entry.terminalLabel}
+                        </span>
+                      ) : null}
+                      <span className="font-mono text-[10px] text-slate-400 bg-slate-50 border border-slate-100 px-2 py-1.5 rounded-xl break-all mt-1">
+                        {entry.txHash}
+                      </span>
                     </div>
                   </article>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border bg-secondary/30 p-6 text-center">
-                <p className="max-w-[220px] text-sm text-muted-foreground">
-                  No terminal exit detected yet.
-                  <br />
-                  Timeline will appear once funds reach exchanges or bridges.
+              <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/20 p-6 text-center">
+                <p className="max-w-[200px] text-xs font-semibold text-slate-400 leading-relaxed">
+                  No terminal exits detected yet. Exit timeline will populate automatically once tracked flow reaches known endpoints.
                 </p>
               </div>
             )}
@@ -301,10 +325,10 @@ function defaultNarrative(findings: Finding[]): string {
 
 function resolveUrgencyCardClassName(toneClass: string): string {
   if (toneClass.includes("critical")) {
-    return "rounded-xl border border-red-500 bg-red-500/10 p-4";
+    return "rounded-2xl border border-red-200 bg-red-50/70 p-5 shadow-sm";
   }
   if (toneClass.includes("active")) {
-    return "rounded-xl border border-yellow-500 bg-yellow-500/10 p-4";
+    return "rounded-2xl border border-amber-200 bg-amber-50/70 p-5 shadow-sm";
   }
-  return "rounded-xl border border-green-500 bg-green-500/10 p-4";
+  return "rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 shadow-sm";
 }

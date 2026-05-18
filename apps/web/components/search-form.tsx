@@ -1,15 +1,19 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent, type ReactElement } from "react";
 import { ArrowRight, Loader2, AlertCircle, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { fetchTrace } from "../lib/api";
 import { buttonStyles } from "./ui";
 import { useTraceStore } from "../lib/store";
 
 const ETH_DEMO_WALLET = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
 const ETH_DEMO_TX = "0xa9d5d7a91d3e3d3e3d3e3d3e3d3e3d3e3d3e3d3e3d3e3d3e3d3e3d";
+
+const ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+const TX_PATTERN = /^0x[a-fA-F0-9]{64}$/;
 
 export function SearchForm(): ReactElement {
   const router = useRouter();
@@ -24,71 +28,90 @@ export function SearchForm(): ReactElement {
 
     setError(null);
 
-    // Invalid Input Fallback Logic
-    if (seedValue.trim() !== ETH_DEMO_WALLET && seedValue.trim() !== ETH_DEMO_TX && seedValue.trim().length < 42) {
-      setError("Invalid wallet address. Showing demo investigation.");
-      // Wait for a second so they see the message, then redirect to demo
-      setTimeout(() => {
-        router.push(`/trace/demo`);
-      }, 1500);
+    const normalizedInput = seedValue.trim();
+    const isValidInput =
+      seedType === "address"
+        ? ADDRESS_PATTERN.test(normalizedInput)
+        : TX_PATTERN.test(normalizedInput);
+
+    if (!isValidInput) {
+      setError(
+        seedType === "address"
+          ? "Enter a valid wallet address. You can also use the demo case to explore the workflow instantly."
+          : "Enter a valid transaction ID. You can also use the demo case to explore the workflow instantly."
+      );
       return;
     }
 
     try {
-      const traceId = await fetchAndSetTrace(seedValue.trim());
+      const traceId = await fetchAndSetTrace(normalizedInput, seedType);
       router.push(`/trace/${traceId}`);
     } catch (err) {
       if (err instanceof Error && err.message === "Trace is already loading") return;
-      setError("Tracing unavailable. Showing demo investigation.");
-      setTimeout(() => {
-        router.push(`/trace/demo`);
-      }, 1500);
+      setError(
+        "Unable to connect to tracing engine. Possible reasons: API waking up (cold start), network issue. Please retry or use the demo case."
+      );
     }
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl rounded-xl border border-gray-800 bg-gray-900 p-4">
-      <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="mx-auto w-full max-w-3xl rounded-2xl border border-white/50 bg-white/70 p-5 shadow-glow backdrop-blur-md"
+    >
+      <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-5">
+        <div className="flex border border-slate-200/60 p-1 rounded-xl bg-slate-100/50 w-fit">
           <button
             type="button"
-            aria-pressed={seedType === "address"}
-            className={
-              seedType === "address"
-                ? buttonStyles("primary")
-                : buttonStyles("secondary")
-            }
+            className="relative cursor-pointer px-4.5 py-2 text-xs font-extrabold tracking-wider uppercase transition-colors duration-200 rounded-lg text-slate-600 focus:outline-none font-display"
             onClick={() => {
               setSeedType("address");
               setSeedValue(ETH_DEMO_WALLET);
+              setError(null);
             }}
           >
-            Wallet Address
+            {seedType === "address" && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 bg-white shadow-sm border border-slate-200/50 rounded-lg"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span className={seedType === "address" ? "relative z-10 text-sky-700" : "relative z-10"}>
+              Wallet Address
+            </span>
           </button>
           <button
             type="button"
-            aria-pressed={seedType === "tx"}
-            className={
-              seedType === "tx"
-                ? buttonStyles("primary")
-                : buttonStyles("secondary")
-            }
+            className="relative cursor-pointer px-4.5 py-2 text-xs font-extrabold tracking-wider uppercase transition-colors duration-200 rounded-lg text-slate-600 focus:outline-none font-display"
             onClick={() => {
               setSeedType("tx");
               setSeedValue(ETH_DEMO_TX);
+              setError(null);
             }}
           >
-            Transaction Hash
+            {seedType === "tx" && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 bg-white shadow-sm border border-slate-200/50 rounded-lg"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span className={seedType === "tx" ? "relative z-10 text-sky-700" : "relative z-10"}>
+              Transaction Hash
+            </span>
           </button>
         </div>
 
         <label className="grid gap-2">
-          <span className="text-sm text-gray-400">
-            {seedType === "address" ? "Wallet address" : "Transaction hash"}
+          <span className="text-xs font-extrabold tracking-wider uppercase text-slate-500 font-display">
+            {seedType === "address" ? "Wallet address target" : "Transaction hash target"}
           </span>
-          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
             <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-muted-foreground">
+              <div className="pointer-events-none absolute left-3.5 top-1/2 flex -translate-y-1/2 items-center justify-center text-slate-400">
                 <Search className="h-5 w-5" />
               </div>
               <input
@@ -96,14 +119,15 @@ export function SearchForm(): ReactElement {
                 value={seedValue}
                 onChange={(e) => setSeedValue(e.target.value)}
                 placeholder={seedType === "address" ? "0x..." : "0x..."}
-                className="input pl-10 font-mono"
+                className="input pl-11 font-mono"
                 spellCheck={false}
                 autoComplete="off"
                 aria-label={seedType === "address" ? "Wallet address" : "Transaction hash"}
                 disabled={isLoading}
               />
             </div>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={isLoading || !seedValue.trim()}
               className={buttonStyles("primary")}
@@ -111,32 +135,59 @@ export function SearchForm(): ReactElement {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
                   Tracing...
                 </>
               ) : (
                 <>
                   Trace Funds
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4.5 w-4.5" />
                 </>
               )}
-            </button>
+            </motion.button>
           </div>
         </label>
 
-        {error ? (
-          <div
-            className="flex items-start gap-2 rounded-xl border border-red-500 bg-red-500/10 p-4 text-sm text-red-300 animate-slide-in"
-            role="alert"
-          >
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            <div className="grid gap-1 text-left">
-              <span className="font-medium text-red-200">Unable to trace that input</span>
-              <p>{error}</p>
-            </div>
-          </div>
-        ) : null}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden"
+            >
+              <div
+                className="flex items-start gap-3.5 rounded-xl border border-rose-200 bg-rose-50/70 p-4.5 text-sm text-rose-700 shadow-sm"
+                role="alert"
+                aria-live="polite"
+              >
+                <AlertCircle className="h-5.5 w-5.5 shrink-0 text-rose-500" />
+                <div className="grid gap-3 text-left">
+                  <div className="grid gap-1">
+                    <span className="font-display font-bold text-rose-800">
+                      Forensic tracing boundary validation failed
+                    </span>
+                    <p className="text-slate-600 font-medium leading-relaxed">{error}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    <button
+                      className={buttonStyles("secondary")}
+                      type="button"
+                      onClick={() => setError(null)}
+                    >
+                      Dismiss
+                    </button>
+                    <Link className={buttonStyles("primary")} href="/trace/demo">
+                      Use Demo Case
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </form>
-    </div>
+    </motion.div>
   );
 }

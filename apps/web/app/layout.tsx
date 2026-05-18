@@ -1,17 +1,11 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Activity } from "lucide-react";
 
 import { WalletProviders } from "../components/wallet-providers";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
 
 export const metadata: Metadata = {
   title: "KadenaTrace | Verifiable Blockchain Forensics",
@@ -20,39 +14,39 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased`} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground font-sans selection:bg-cyan/20 selection:text-foreground" suppressHydrationWarning>
+    <html lang="en" className="antialiased" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-slate-800 font-sans selection:bg-sky-200/50 selection:text-slate-900" suppressHydrationWarning>
         <WalletProviders>
-          <header className="sticky top-0 z-50 w-full border-b border-gray-800 bg-background/90 backdrop-blur-xl">
+          <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/70 backdrop-blur-md">
             <div className="mx-auto flex h-16 max-w-screen-xl items-center justify-between px-6">
               <Link
                 href="/"
-                className="flex min-w-0 items-center gap-2.5 transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-950"
+                className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-85 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-primary-foreground">
-                  <Activity className="h-5 w-5" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-glow">
+                  <Activity className="h-5.5 w-5.5" />
                 </div>
-                <span className="truncate font-display text-base font-semibold tracking-tight text-foreground sm:text-lg">
-                  KadenaTrace
+                <span className="truncate font-display text-base font-extrabold tracking-wider text-slate-800 sm:text-lg">
+                  KADENATRACE
                 </span>
               </Link>
 
-              <nav className="flex shrink-0 items-center gap-4 text-sm font-medium">
+              <nav className="flex shrink-0 items-center gap-6 text-sm font-bold">
                 <Link
                   href="/"
-                  className="text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:text-foreground"
+                  className="text-slate-600 transition-colors hover:text-sky-600 focus:outline-none focus:text-sky-600"
                 >
                   Trace
                 </Link>
                 <Link
                   href="/waterfall"
-                  className="text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:text-foreground"
+                  className="text-slate-600 transition-colors hover:text-sky-600 focus:outline-none focus:text-sky-600"
                 >
                   Waterfall
                 </Link>
                 <Link
                   href="/attestations"
-                  className="text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:text-foreground"
+                  className="text-slate-600 transition-colors hover:text-sky-600 focus:outline-none focus:text-sky-600"
                 >
                   Attestations
                 </Link>

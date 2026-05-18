@@ -4,21 +4,22 @@ import { getDemoTraceRecord } from "./demo-trace";
 // In-memory cache to prevent duplicate API calls for the same trace
 const traceCache = new Map<string, TraceSubmissionResponse>();
 
-export async function getTrace(input: string) {
-  if (traceCache.has(input)) {
-    return { data: traceCache.get(input)!, isDemo: false };
+export async function getTrace(input: string, seedType: "address" | "tx" = "address") {
+  const cacheKey = `${seedType}:${input}`;
+  if (traceCache.has(cacheKey)) {
+    return { data: traceCache.get(cacheKey)!, isDemo: false };
   }
 
   try {
     const payload = {
       chain: "ethereum",
-      seedType: "address",
+      seedType,
       seedValue: input.trim()
     };
     const data = await fetchTrace(payload);
     
     // Store in cache
-    traceCache.set(input, data);
+    traceCache.set(cacheKey, data);
     
     return { data, isDemo: false };
   } catch (err) {
@@ -29,7 +30,7 @@ export async function getTrace(input: string) {
     const demoData = await getDemoTraceRecord();
     const mockResponse: TraceSubmissionResponse = {
       ...demoData,
-      traceId: demoData.id,
+      traceId: "demo",
     };
     
     return { data: mockResponse, isDemo: true };
